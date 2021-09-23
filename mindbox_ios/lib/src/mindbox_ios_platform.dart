@@ -14,7 +14,7 @@ class MindboxIosPlatform extends MindboxPlatform {
     MindboxPlatform.instance = MindboxIosPlatform._();
   }
 
-  /// Returns SDK version or empty string("") on error
+  /// Returns SDK version or "Unknown" on error
   @override
   Future<String> get sdkVersion async =>
       await _channel.invokeMethod('getSdkVersion');

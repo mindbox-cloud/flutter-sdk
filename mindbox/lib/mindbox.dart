@@ -4,7 +4,7 @@ import 'package:mindbox_ios/mindbox_ios.dart';
 import 'package:mindbox_platform_interface/mindbox_platform_interface.dart';
 
 /// Basic Mindbox API
-class Mindbox extends MindboxPlatform {
+class Mindbox {
   Mindbox._();
 
   static Mindbox? _instance;
@@ -27,10 +27,14 @@ class Mindbox extends MindboxPlatform {
     return _instance!;
   }
 
-  @override
+  /// Returns SDK version
+  ///
+  /// On error returns "Unknown" on iOs platform and empty string("") on Android
   Future<String> get sdkVersion async => MindboxPlatform.instance.sdkVersion;
 
-  @override
+  /// Initializes the SDK for further work
+  ///
+  /// Read more about parameter [Configuration]
   Future<void> init({required Configuration configuration}) async {
       MindboxPlatform.instance.init(configuration: configuration);
   }
