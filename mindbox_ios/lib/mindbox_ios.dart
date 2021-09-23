@@ -1,0 +1,1 @@
+export 'src/mindbox_ios_platform.dart';

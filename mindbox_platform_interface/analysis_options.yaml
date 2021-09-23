@@ -1,0 +1,24 @@
+include: package:flutter_lints/flutter.yaml
+
+linter:
+  rules:
+    - file_names
+    - lines_longer_than_80_chars
+    - prefer_single_quotes
+    - avoid_print
+    - cancel_subscriptions
+    - constant_identifier_names
+    - directives_ordering
+    - empty_constructor_bodies
+    - flutter_style_todos
+    - implementation_imports
+    - package_names
+    - package_prefixed_library_names
+    - prefer_final_locals
+    - sort_child_properties_last
+    - sort_constructors_first
+    - sort_unnamed_constructors_first
+    - type_annotate_public_apis
+    - unnecessary_await_in_return
+    - prefer_relative_imports
+    - public_member_api_docs

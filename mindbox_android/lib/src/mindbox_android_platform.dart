@@ -1,0 +1,32 @@
+import 'package:flutter/services.dart';
+import 'package:mindbox_platform_interface/mindbox_platform_interface.dart';
+
+/// An [MindboxPlatform] that wraps Mindbox Android SDK.
+class MindboxAndroidPlatform extends MindboxPlatform {
+  MindboxAndroidPlatform._();
+
+  static const MethodChannel _channel =
+      MethodChannel('mindbox.cloud/flutter-sdk');
+
+  /// Registers this class as the default instance of [InAppPurchasePlatform].
+  static void registerPlatform() {
+    /// Register the platform instance with the plugin platform interface.
+    MindboxPlatform.instance = MindboxAndroidPlatform._();
+  }
+
+  /// Returns SDK version or empty string("") on error
+  @override
+  Future<String> get sdkVersion async =>
+      await _channel.invokeMethod('getSdkVersion');
+
+  /// Initializes the SDK for further work
+  @override
+  Future init({required Configuration configuration}) async {
+    try {
+      await _channel.invokeMethod('init', configuration.toMap());
+    } on PlatformException catch (e) {
+      return Future.error(
+          MindboxException(message: e.message ?? '', details: e.details ?? ''));
+    }
+  }
+}

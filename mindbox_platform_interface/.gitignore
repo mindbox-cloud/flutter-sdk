@@ -1,0 +1,9 @@
+.DS_Store
+.dart_tool/
+.idea/
+.metadata
+.packages
+pubspec.lock
+.pub/
+mindbox_platform_interface.iml
+build/
