@@ -1,0 +1,27 @@
+name: mindbox_ios
+description: An implementation of 'mindbox' plugin for the iOs platform.
+version: 0.0.1
+homepage: https://mindbox.cloud/
+repository:
+issue_tracker:
+
+environment:
+  sdk: ">=2.12.0 <3.0.0"
+  flutter: ">=2.0.0"
+
+flutter:
+  plugin:
+    platforms:
+      ios:
+        pluginClass: MindboxIosPlugin
+
+dependencies:
+  flutter:
+    sdk: flutter
+  mindbox_platform_interface:
+    path: ../mindbox_platform_interface
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^1.0.4
