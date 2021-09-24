@@ -2,7 +2,7 @@ name: mindbox
 description: Mindbox SDK.
 version: 0.0.1
 homepage: https://mindbox.cloud/
-repository:
+repository: https://github.com/mindbox-moscow/flutter-sdk/tree/master/mindbox
 issue_tracker:
 
 environment:
