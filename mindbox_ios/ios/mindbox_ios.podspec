@@ -5,7 +5,7 @@
 Pod::Spec.new do |s|
   s.name             = 'mindbox_ios'
   s.version          = '0.0.1'
-  s.summary          = 'An implementation of mindbox plugin for the iOs platform'
+  s.summary          = 'Mindbox Flutter SDK'
   s.description      = <<-DESC
 An implementation of 'mindbox' plugin for the iOs platform
                        DESC

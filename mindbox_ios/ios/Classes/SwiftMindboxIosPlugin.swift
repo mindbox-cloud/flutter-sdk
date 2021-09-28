@@ -14,21 +14,24 @@ public class SwiftMindboxIosPlugin: NSObject, FlutterPlugin {
         case "getSdkVersion":
             result(Mindbox.shared.sdkVersion)
         case "init":
-            Mindbox.logger.logLevel = .debug
-            Mindbox.logger.log(level: .default, message: "Test log")
-            guard let args = call.arguments else {
+            guard let arguments = call.arguments else {
                 return
             }
-            if let myArgs = args as? [String: Any],
-               let domain = myArgs["domain"] as? String,
-               let endpoint = myArgs["endpoint"] as? String {
+            if let args = arguments as? [String: Any],
+               let domain = args["domain"] as? String,
+               let endpoint = args["endpointIos"] as? String,
+               let previousUuid = args["previousUuid"] as? String,
+               let previousInstallId = args["previousInstallId"] as? String,
+               let subscribeIfCreated = args["subscribeCustomerIfCreated"] as? Bool,
+               let shouldCreateCustomer = args["shouldCreateCustomer"] as? Bool{
+                let prevUuid = previousUuid.isEmpty ? nil : previousUuid
+                let prevId = previousInstallId.isEmpty ? nil : previousInstallId
                 do{
-                    let config = try MBConfiguration(endpoint: endpoint, domain: domain)
+                    let config = try MBConfiguration(endpoint: endpoint, domain: domain,previousInstallationId: prevId, previousDeviceUUID: prevUuid, subscribeCustomerIfCreated: subscribeIfCreated, shouldCreateCustomer: shouldCreateCustomer)
                     Mindbox.shared.initialization(configuration: config)
                 }catch let error {
-                    print(error.localizedDescription)
+                    result(FlutterError(code: "-1", message: error.localizedDescription, details: nil))
                 }
-                result("\(domain), \(endpoint)")
             } else {
                 result(FlutterError(code: "-1", message: "iOS could not extract " +
                                         "flutter arguments in method: (init)", details: nil))
@@ -37,5 +40,4 @@ public class SwiftMindboxIosPlugin: NSObject, FlutterPlugin {
             result(FlutterMethodNotImplemented)
         }
     }
-    
 }

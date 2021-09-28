@@ -21,13 +21,12 @@ class MindboxAndroidPlatform extends MindboxPlatform {
 
   /// Initializes the SDK for further work
   @override
-  Future<void> init({required Configuration configuration}) async {
-    await _channel.invokeMethod(
-      'init',
-      {
-        'domain': configuration.domain,
-        'endpoint': configuration.endpoint,
-      },
-    );
+  Future init({required Configuration configuration}) async {
+    try {
+      await _channel.invokeMethod('init', configuration.toMap());
+    } on PlatformException catch (e) {
+      return Future.error(
+          MindboxException(message: e.message ?? '', details: e.details ?? ''));
+    }
   }
 }

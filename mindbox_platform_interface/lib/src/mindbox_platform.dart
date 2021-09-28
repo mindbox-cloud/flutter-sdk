@@ -1,6 +1,6 @@
 import 'types/configuration.dart';
 
-/// The interface that implementations of mindbox must implement.
+/// The interface that implementations of 'mindbox' must implement.
 ///
 /// Platform implementations should extend this class rather than implement it
 /// as `mindbox` does not consider newly added methods to be breaking changes.
@@ -30,5 +30,5 @@ abstract class MindboxPlatform {
 
   /// Returns SDK version.
   Future<String> get sdkVersion =>
-      throw UnimplementedError('sdkVersion() has not been implemented.');
+      throw UnimplementedError('sdkVersion has not been implemented.');
 }

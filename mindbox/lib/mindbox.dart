@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:mindbox_android/mindbox_android.dart';
 import 'package:mindbox_ios/mindbox_ios.dart';
 import 'package:mindbox_platform_interface/mindbox_platform_interface.dart';
+export 'package:mindbox_platform_interface/mindbox_platform_interface.dart'
+    show MindboxException, Configuration;
 
 /// Basic Mindbox API
 class Mindbox {
@@ -36,6 +38,6 @@ class Mindbox {
   ///
   /// Read more about parameter [Configuration]
   Future<void> init({required Configuration configuration}) async {
-      MindboxPlatform.instance.init(configuration: configuration);
+    await MindboxPlatform.instance.init(configuration: configuration);
   }
 }
