@@ -67,19 +67,6 @@ class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                     result.success(token)
                 }
             }
-            "updateToken" -> {
-                if (call.arguments is String) {
-                    val token = call.arguments as String
-                    try {
-                        Mindbox.updateFmsToken(context, token)
-                        result.success("token updated")
-                    } catch (e: Exception) {
-                        result.error("-1", e.message, e.localizedMessage)
-                    }
-                } else {
-                    result.error("-1", "Token updating error", "Wrong argument type")
-                }
-            }
             else -> {
                 result.notImplemented()
             }

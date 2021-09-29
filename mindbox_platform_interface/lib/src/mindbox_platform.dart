@@ -41,8 +41,4 @@ abstract class MindboxPlatform {
   /// Method to obtain token.
   void getToken({required Function(String) callback}) =>
       throw UnimplementedError('getToken() has not been implemented.');
-
-  /// Method for updating SDK tokens.
-  Future<void> updateToken({required String token}) =>
-      throw UnimplementedError('getToken() has not been implemented.');
 }

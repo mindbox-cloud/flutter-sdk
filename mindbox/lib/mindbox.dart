@@ -54,9 +54,4 @@ class Mindbox {
   void getToken(Function(String token) callback) {
     MindboxPlatform.instance.getToken(callback: callback);
   }
-
-  /// Method for updating SDK tokens.
-  Future<void> updateToken({required String token}) async {
-    await MindboxPlatform.instance.updateToken(token: token);
-  }
 }

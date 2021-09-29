@@ -44,16 +44,6 @@ public class SwiftMindboxIosPlugin: NSObject, FlutterPlugin {
             Mindbox.shared.getAPNSToken {
                 token in result(token)
             }
-        case "updateToken":
-            guard let arguments = call.arguments else {
-                return
-            }
-            if let token = arguments as? String{
-                Mindbox.shared.apnsTokenUpdate(deviceToken: Data(token.utf8))
-                result("token updated")
-            } else {
-                result(FlutterError(code: "-1", message: "APNS token updating", details:  "Wrong argument type"))
-            }
         default:
             result(FlutterMethodNotImplemented)
         }

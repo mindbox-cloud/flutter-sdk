@@ -61,14 +61,4 @@ class MindboxMethodHandler {
           _MethodCallback(methodName: 'getToken', callback: callback));
     }
   }
-
-  /// Method for updating SDK token.
-  Future<void> updateToken({required String token}) async{
-    try{
-      await channel.invokeMethod('updateToken', token);
-    } on PlatformException catch (e) {
-      return Future.error(
-          MindboxException(message: e.message ?? '', details: e.details ?? ''));
-    }
-  }
 }
