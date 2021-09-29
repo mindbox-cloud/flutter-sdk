@@ -33,10 +33,4 @@ class MindboxAndroidPlatform extends MindboxPlatform {
   void getToken({required Function(String token) callback}) {
     _methodHandler.getToken(callback: callback);
   }
-
-  /// Updates FMS token.
-  @override
-  Future<void> updateToken({required String token}) async {
-    await _methodHandler.updateToken(token: token);
-  }
 }
