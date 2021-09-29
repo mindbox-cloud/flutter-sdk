@@ -20,8 +20,8 @@ public class SwiftMindboxIosPlugin: NSObject, FlutterPlugin {
             if let args = arguments as? [String: Any],
                let domain = args["domain"] as? String,
                let endpoint = args["endpointIos"] as? String,
-               let previousUuid = args["previousUuid"] as? String,
-               let previousInstallId = args["previousInstallId"] as? String,
+               let previousUuid = args["previousDeviceUUID"] as? String,
+               let previousInstallId = args["previousInstallationId"] as? String,
                let subscribeIfCreated = args["subscribeCustomerIfCreated"] as? Bool,
                let shouldCreateCustomer = args["shouldCreateCustomer"] as? Bool{
                 let prevUuid = previousUuid.isEmpty ? nil : previousUuid
@@ -29,12 +29,30 @@ public class SwiftMindboxIosPlugin: NSObject, FlutterPlugin {
                 do{
                     let config = try MBConfiguration(endpoint: endpoint, domain: domain,previousInstallationId: prevId, previousDeviceUUID: prevUuid, subscribeCustomerIfCreated: subscribeIfCreated, shouldCreateCustomer: shouldCreateCustomer)
                     Mindbox.shared.initialization(configuration: config)
+                    result("initialized")
                 }catch let error {
                     result(FlutterError(code: "-1", message: error.localizedDescription, details: nil))
                 }
             } else {
-                result(FlutterError(code: "-1", message: "iOS could not extract " +
-                                        "flutter arguments in method: (init)", details: nil))
+                result(FlutterError(code: "-1", message: "Initialization method", details:  "Wrong argument type"))
+            }
+        case "getDeviceUUID":
+            Mindbox.shared.getDeviceUUID {
+                deviceUUID in result(deviceUUID)
+            }
+        case "getToken":
+            Mindbox.shared.getAPNSToken {
+                token in result(token)
+            }
+        case "updateToken":
+            guard let arguments = call.arguments else {
+                return
+            }
+            if let token = arguments as? String{
+                Mindbox.shared.apnsTokenUpdate(deviceToken: Data(token.utf8))
+                result("token updated")
+            } else {
+                result(FlutterError(code: "-1", message: "APNS token updating", details:  "Wrong argument type"))
             }
         default:
             result(FlutterMethodNotImplemented)

@@ -1,3 +1,5 @@
+import '../mindbox_platform_interface.dart';
+
 import 'types/configuration.dart';
 
 /// The interface that implementations of 'mindbox' must implement.
@@ -31,4 +33,16 @@ abstract class MindboxPlatform {
   /// Returns SDK version.
   Future<String> get sdkVersion =>
       throw UnimplementedError('sdkVersion has not been implemented.');
+
+  /// Method to obtain device UUID.
+  void getDeviceUUID({required Function(String) callback}) =>
+      throw UnimplementedError('getDeviceUUID() has not been implemented.');
+
+  /// Method to obtain token.
+  void getToken({required Function(String) callback}) =>
+      throw UnimplementedError('getToken() has not been implemented.');
+
+  /// Method for updating SDK tokens.
+  Future<void> updateToken({required String token}) =>
+      throw UnimplementedError('getToken() has not been implemented.');
 }
