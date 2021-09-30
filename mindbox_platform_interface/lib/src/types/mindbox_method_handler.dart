@@ -30,8 +30,8 @@ class MindboxMethodHandler {
       if (!_initialized) {
         await channel.invokeMethod('init', configuration.toMap());
         for (final methodCallback in _callbacks) {
-          methodCallback
-              .callback(await channel.invokeMethod(methodCallback.methodName));
+          methodCallback.callback(
+              await channel.invokeMethod(methodCallback.methodName) ?? 'null');
         }
         _callbacks.clear();
         _initialized = true;
@@ -55,7 +55,7 @@ class MindboxMethodHandler {
   /// Returns token to callback
   void getToken({required Function(String token) callback}) async {
     if (_initialized) {
-      callback(await channel.invokeMethod('getToken'));
+      callback(await channel.invokeMethod('getToken') ?? 'null');
     } else {
       _callbacks
           .add(_MethodCallback(methodName: 'getToken', callback: callback));
