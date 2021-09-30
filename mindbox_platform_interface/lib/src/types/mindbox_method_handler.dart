@@ -37,8 +37,8 @@ class MindboxMethodHandler {
         _initialized = true;
       }
     } on PlatformException catch (e) {
-      return Future.error(
-          MindboxException(message: e.message ?? '', details: e.details ?? ''));
+      throw MindboxException(
+          message: e.message ?? '', details: e.details ?? '');
     }
   }
 
@@ -57,8 +57,8 @@ class MindboxMethodHandler {
     if (_initialized) {
       callback(await channel.invokeMethod('getToken'));
     } else {
-      _callbacks.add(
-          _MethodCallback(methodName: 'getToken', callback: callback));
+      _callbacks
+          .add(_MethodCallback(methodName: 'getToken', callback: callback));
     }
   }
 }

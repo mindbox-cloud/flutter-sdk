@@ -19,7 +19,7 @@ class MindboxIosPlatform extends MindboxPlatform {
   /// Initializes the SDK for further work.
   @override
   Future<void> init({required Configuration configuration}) async {
-    _methodHandler.init(configuration: configuration);
+    await _methodHandler.init(configuration: configuration);
   }
 
   /// Returns device UUID string to callback.
