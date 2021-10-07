@@ -18,17 +18,7 @@ import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 /** MindboxAndroidPlugin */
 class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     private lateinit var context: Context
-
-    companion object {
-        lateinit var channel: MethodChannel
-
-        fun test() {
-            Handler().postDelayed({
-                channel.invokeMethod("test", null)
-            }, 0)
-
-        }
-    }
+    private lateinit var channel: MethodChannel
 
     override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         channel = MethodChannel(flutterPluginBinding.binaryMessenger, "mindbox.cloud/flutter-sdk")
