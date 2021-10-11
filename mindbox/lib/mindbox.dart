@@ -54,4 +54,11 @@ class Mindbox {
   void getToken(Function(String token) callback) {
     MindboxPlatform.instance.getToken(callback: callback);
   }
+
+  /// Method for handling push-notification click.
+  ///
+  /// Returns link from push-notification to callback
+  void onLinkReceived({required Function(String link) onLinkReceived}) {
+    MindboxPlatform.instance.onLinkReceived(onPushClicked: onLinkReceived);
+  }
 }
