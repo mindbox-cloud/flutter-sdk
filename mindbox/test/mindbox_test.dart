@@ -2,7 +2,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mindbox/mindbox.dart';
 import 'package:mindbox_ios/mindbox_ios.dart';
-import 'package:mockito/mockito.dart';
 
 void main() {
   const MethodChannel channel = MethodChannel('mindbox.cloud/flutter-sdk');

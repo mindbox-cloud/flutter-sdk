@@ -2,6 +2,7 @@ package cloud.mindbox.mindbox_android
 
 import android.content.Context
 import android.os.Handler
+import android.util.Log
 
 import androidx.annotation.NonNull
 import cloud.mindbox.mobile_sdk.Mindbox
@@ -18,7 +19,16 @@ import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 /** MindboxAndroidPlugin */
 class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     private lateinit var context: Context
-    private lateinit var channel: MethodChannel
+
+    companion object {
+        lateinit var channel: MethodChannel
+
+        fun pushClicked(url: String) {
+            Handler().postDelayed({
+                channel.invokeMethod("linkReceived", url)
+            }, 0)
+        }
+    }
 
     override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         channel = MethodChannel(flutterPluginBinding.binaryMessenger, "mindbox.cloud/flutter-sdk")

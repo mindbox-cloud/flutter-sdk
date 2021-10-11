@@ -41,4 +41,9 @@ abstract class MindboxPlatform {
   /// Method to obtain token.
   void getToken({required Function(String) callback}) =>
       throw UnimplementedError('getToken() has not been implemented.');
+
+  /// Method for handling push-notification click. Returns link to callback.
+  void onLinkReceived({required Function(String) onPushClicked}) =>
+                            // TODO(me): add method name bellow
+      throw UnimplementedError(' * here *  has not been implemented.');
 }
