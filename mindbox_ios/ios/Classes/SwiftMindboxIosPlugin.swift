@@ -10,15 +10,16 @@ public class SwiftMindboxIosPlugin: NSObject, FlutterPlugin {
         let instance = SwiftMindboxIosPlugin()
         registrar.addMethodCallDelegate(instance, channel: channel!)
     }
-    
+
+    @objc
     public static func pushClicked(response: UNNotificationResponse){
-        let action = response.actionIdentifier
+        let action = response.actionIdentifier as NSString
         let request = response.notification.request
         let userInfo = request.content.userInfo
         
-        var link: String?
+        var link: NSString?
         
-        if let url = userInfo["clickUrl"] as? String {
+        if let url = userInfo["clickUrl"] as? NSString {
             link = url
         }
         
@@ -26,11 +27,11 @@ public class SwiftMindboxIosPlugin: NSObject, FlutterPlugin {
             buttons.forEach{
                 guard
                     let button = $0 as? NSDictionary,
-                    let uniqueKey = button["uniqueKey"] as? String
+                    let uniqueKey = button["uniqueKey"] as? NSString
                 else { return }
                 if uniqueKey == action{
                     let btnDictionary = button
-                    let url = btnDictionary["url"] as? String
+                    let url = btnDictionary["url"] as? NSString
                     link = url
                 }
             }
