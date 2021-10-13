@@ -33,4 +33,10 @@ class MindboxIosPlatform extends MindboxPlatform {
   void getToken({required Function(String token) callback}) {
     _methodHandler.getToken(callback: callback);
   }
+
+  /// Returns link from push to callback.
+  @override
+  void onPushClickReceived({required Function(String link) onLinkReceived}) {
+    _methodHandler.handlePushClick(callback: onLinkReceived);
+  }
 }
