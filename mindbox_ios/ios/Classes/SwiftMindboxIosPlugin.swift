@@ -3,10 +3,39 @@ import UIKit
 import Mindbox
 
 public class SwiftMindboxIosPlugin: NSObject, FlutterPlugin {
+    private static var channel: FlutterMethodChannel?
+    
     public static func register(with registrar: FlutterPluginRegistrar) {
-        let channel = FlutterMethodChannel(name: "mindbox.cloud/flutter-sdk", binaryMessenger: registrar.messenger())
+        channel = FlutterMethodChannel(name: "mindbox.cloud/flutter-sdk", binaryMessenger: registrar.messenger())
         let instance = SwiftMindboxIosPlugin()
-        registrar.addMethodCallDelegate(instance, channel: channel)
+        registrar.addMethodCallDelegate(instance, channel: channel!)
+    }
+    
+    public static func pushClicked(response: UNNotificationResponse){
+        let action = response.actionIdentifier
+        let request = response.notification.request
+        let userInfo = request.content.userInfo
+        
+        var link: String?
+        
+        if let url = userInfo["clickUrl"] as? String {
+            link = url
+        }
+        
+        if let buttons = userInfo["buttons"] as? NSArray {
+            buttons.forEach{
+                guard
+                    let button = $0 as? NSDictionary,
+                    let uniqueKey = button["uniqueKey"] as? String
+                else { return }
+                if uniqueKey == action{
+                    let btnDictionary = button
+                    let url = btnDictionary["url"] as? String
+                    link = url
+                }
+            }
+        }        
+        channel?.invokeMethod("linkReceived", arguments: link)
     }
     
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
