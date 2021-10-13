@@ -2,7 +2,7 @@ package cloud.mindbox.mindbox_android
 
 import android.content.Context
 import android.os.Handler
-import android.util.Log
+import android.os.Looper
 
 import androidx.annotation.NonNull
 import cloud.mindbox.mobile_sdk.Mindbox
@@ -24,9 +24,9 @@ class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         lateinit var channel: MethodChannel
 
         fun pushClicked(url: String) {
-            Handler().postDelayed({
+            Handler(Looper.getMainLooper()).post {
                 channel.invokeMethod("linkReceived", url)
-            }, 0)
+            }
         }
     }
 
