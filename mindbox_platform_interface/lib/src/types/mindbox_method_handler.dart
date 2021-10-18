@@ -63,9 +63,9 @@ class MindboxMethodHandler {
   }
 
   /// Method for handling push-notification click
-  void handlePushClick({required Function(String) callback}){
+  void handlePushClick({required Function(String) callback}) {
     channel.setMethodCallHandler((call) {
-      if(call.method == 'linkReceived'){
+      if (call.method == 'linkReceived') {
         callback(call.arguments);
       }
       return Future.value(true);
