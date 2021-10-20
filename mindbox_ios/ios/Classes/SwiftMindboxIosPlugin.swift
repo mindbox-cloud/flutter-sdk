@@ -39,6 +39,11 @@ public class SwiftMindboxIosPlugin: NSObject, FlutterPlugin {
         channel?.invokeMethod("linkReceived", arguments: link)
     }
     
+    @objc
+    public static func linkReceived(link: NSString){
+        channel?.invokeMethod("linkReceived", arguments: link)
+    }
+    
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         switch call.method {
         case "getSdkVersion":
