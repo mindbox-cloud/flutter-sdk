@@ -17,43 +17,26 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   String _sdkVersion = "";
 
-  // Initialization fields
-  String domain = "";
-  String endpointIos = "";
-  String endpointAndroid = "";
-
   @override
   void initState() {
     super.initState();
-    initMindbox();
+    getSdkVersion();
   }
 
-  Future<void> initMindbox() async {
+  Future<void> getSdkVersion() async {
     String sdkVersion = 'Unknown';
-
-    final configuration = Configuration(
-      domain: domain,
-      endpointIos: endpointIos,
-      endpointAndroid: endpointAndroid,
-      subscribeCustomerIfCreated: false,
-    );
 
     try {
       sdkVersion = await Mindbox.instance.sdkVersion;
-
-      setState(() {
-        _sdkVersion = sdkVersion;
-      });
-
-      await Mindbox.instance.init(configuration: configuration);
-
     } catch (e) {
       print(e);
     }
 
     if (!mounted) return;
 
-
+    setState(() {
+      _sdkVersion = sdkVersion;
+    });
   }
 
   @override

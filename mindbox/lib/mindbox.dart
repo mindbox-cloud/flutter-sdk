@@ -40,4 +40,18 @@ class Mindbox {
   Future<void> init({required Configuration configuration}) async {
     await MindboxPlatform.instance.init(configuration: configuration);
   }
+
+  /// Method to obtain device UUID.
+  ///
+  /// Callback returns UUID when Mindbox SDK is initialized. See also [init]
+  void getDeviceUUID(Function(String uuid) callback) {
+    MindboxPlatform.instance.getDeviceUUID(callback: callback);
+  }
+
+  /// Method to obtain token.
+  ///
+  /// Callback returns token when Mindbox SDK is initialized. See also [init]
+  void getToken(Function(String token) callback) {
+    MindboxPlatform.instance.getToken(callback: callback);
+  }
 }

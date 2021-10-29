@@ -38,8 +38,8 @@ class Configuration {
         'domain': domain,
         'endpointIos': endpointIos,
         'endpointAndroid': endpointAndroid,
-        'previousUuid': previousDeviceUUID,
-        'previousInstallId': previousInstallationId,
+        'previousDeviceUUID': previousDeviceUUID,
+        'previousInstallationId': previousInstallationId,
         'subscribeCustomerIfCreated': subscribeCustomerIfCreated,
         'shouldCreateCustomer': shouldCreateCustomer,
       };

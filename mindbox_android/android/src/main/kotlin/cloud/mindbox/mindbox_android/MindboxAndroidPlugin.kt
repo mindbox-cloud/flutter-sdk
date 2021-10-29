@@ -36,8 +36,8 @@ class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                     val args = call.arguments as HashMap<*, *>
                     val domain: String = args["domain"] as String
                     val endpointId: String = args["endpointAndroid"] as String
-                    val previousDeviceUuid: String = args["previousUuid"] as String
-                    val previousInstallId: String = args["previousInstallId"] as String
+                    val previousDeviceUuid: String = args["previousDeviceUUID"] as String
+                    val previousInstallId: String = args["previousInstallationId"] as String
                     val subscribeIfCreated: Boolean = args["subscribeCustomerIfCreated"] as Boolean
                     val shouldCreateCustomer: Boolean = args["shouldCreateCustomer"] as Boolean
                     val config = MindboxConfiguration.Builder(context, domain, endpointId)
@@ -47,10 +47,24 @@ class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                         .shouldCreateCustomer(shouldCreateCustomer)
                         .build()
                     try {
+                        // Android SDK validation doesn't work
                         Mindbox.init(context, config)
+                        result.success("initialized")
                     } catch (e: Exception) {
                         result.error("-1", e.message, e.localizedMessage)
                     }
+                } else {
+                    result.error("-1", "Initialization error", "Wrong argument type")
+                }
+            }
+            "getDeviceUUID" -> {
+                Mindbox.subscribeDeviceUuid { uuid ->
+                    result.success(uuid)
+                }
+            }
+            "getToken" -> {
+                Mindbox.subscribeFmsToken { token ->
+                    result.success(token)
                 }
             }
             else -> {
