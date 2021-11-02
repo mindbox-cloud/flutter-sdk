@@ -1,12 +1,12 @@
 package cloud.mindbox.mindbox_android
 
 import android.content.Context
-import android.util.Log
+import android.os.Handler
+import android.os.Looper
+
 import androidx.annotation.NonNull
-import cloud.mindbox.mobile_sdk.InitializeMindboxException
 import cloud.mindbox.mobile_sdk.Mindbox
 import cloud.mindbox.mobile_sdk.MindboxConfiguration
-import cloud.mindbox.mobile_sdk.logger.Level
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
@@ -18,8 +18,17 @@ import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 
 /** MindboxAndroidPlugin */
 class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
-    private lateinit var channel: MethodChannel
     private lateinit var context: Context
+
+    companion object {
+        lateinit var channel: MethodChannel
+
+        fun pushClicked(url: String) {
+            Handler(Looper.getMainLooper()).post {
+                channel.invokeMethod("linkReceived", url)
+            }
+        }
+    }
 
     override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         channel = MethodChannel(flutterPluginBinding.binaryMessenger, "mindbox.cloud/flutter-sdk")

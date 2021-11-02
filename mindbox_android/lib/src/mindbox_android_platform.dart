@@ -12,25 +12,31 @@ class MindboxAndroidPlatform extends MindboxPlatform {
     MindboxPlatform.instance = MindboxAndroidPlatform._();
   }
 
-  /// Returns SDK version or empty string("") on error
+  /// Returns SDK version or empty string("") on error.
   @override
   Future<String> get sdkVersion async => _methodHandler.sdkVersion;
 
-  /// Initializes the SDK for further work
+  /// Initializes the SDK for further work.
   @override
   Future<void> init({required Configuration configuration}) async {
     await _methodHandler.init(configuration: configuration);
   }
 
-  /// Returns device UUID to callback
+  /// Returns device UUID to callback.
   @override
   void getDeviceUUID({required Function(String uuid) callback}) {
     _methodHandler.getDeviceUUID(callback: callback);
   }
 
-  /// Returns token to callback
+  /// Returns token to callback.
   @override
   void getToken({required Function(String token) callback}) {
     _methodHandler.getToken(callback: callback);
+  }
+
+  /// Returns link from push to callback.
+  @override
+  void onPushClickReceived({required Function(String link) onLinkReceived}) {
+    _methodHandler.handlePushClick(callback: onLinkReceived);
   }
 }

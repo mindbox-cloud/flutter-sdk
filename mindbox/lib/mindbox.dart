@@ -36,22 +36,30 @@ class Mindbox {
 
   /// Initializes the SDK for further work
   ///
-  /// Read more about parameter [Configuration]
+  /// Read more about parameter [Configuration].
   Future<void> init({required Configuration configuration}) async {
     await MindboxPlatform.instance.init(configuration: configuration);
   }
 
   /// Method to obtain device UUID.
   ///
-  /// Callback returns UUID when Mindbox SDK is initialized. See also [init]
+  /// Callback returns UUID when Mindbox SDK is initialized. See also [init].
   void getDeviceUUID(Function(String uuid) callback) {
     MindboxPlatform.instance.getDeviceUUID(callback: callback);
   }
 
   /// Method to obtain token.
   ///
-  /// Callback returns token when Mindbox SDK is initialized. See also [init]
+  /// Callback returns token when Mindbox SDK is initialized. See also [init].
   void getToken(Function(String token) callback) {
     MindboxPlatform.instance.getToken(callback: callback);
+  }
+
+  /// Method for handling push-notification click.
+  ///
+  /// Returns link from push-notification to callback.
+  void onPushClickReceived({required Function(String link) onLinkReceived}) {
+    MindboxPlatform.instance
+        .onPushClickReceived(onLinkReceived: onLinkReceived);
   }
 }

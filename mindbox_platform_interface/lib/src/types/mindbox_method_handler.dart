@@ -61,4 +61,14 @@ class MindboxMethodHandler {
           .add(_MethodCallback(methodName: 'getToken', callback: callback));
     }
   }
+
+  /// Method for handling push-notification click
+  void handlePushClick({required Function(String) callback}){
+    channel.setMethodCallHandler((call) {
+      if(call.method == 'linkReceived'){
+        callback(call.arguments);
+      }
+      return Future.value(true);
+    });
+  }
 }
