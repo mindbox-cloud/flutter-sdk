@@ -24,13 +24,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> getSdkVersion() async {
-    String sdkVersion = 'Unknown';
-
-    try {
-      sdkVersion = await Mindbox.instance.sdkVersion;
-    } catch (e) {
-      print(e);
-    }
+    String sdkVersion = await Mindbox.instance.sdkVersion;
 
     if (!mounted) return;
 
