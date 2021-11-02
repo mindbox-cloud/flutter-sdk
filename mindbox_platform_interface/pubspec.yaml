@@ -1,9 +1,8 @@
 name: mindbox_platform_interface
 description: Mindbox platform interface.
-version: 0.0.1
+version: 0.1.0
 homepage: https://mindbox.cloud/
 repository: https://github.com/mindbox-moscow/flutter-sdk/tree/master/mindbox_platform_interface
-issue_tracker:
 
 environment:
   sdk: ">=2.12.0 <3.0.0"
