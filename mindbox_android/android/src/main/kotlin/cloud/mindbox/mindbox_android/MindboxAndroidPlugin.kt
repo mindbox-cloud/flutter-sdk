@@ -7,6 +7,7 @@ import android.os.Looper
 import androidx.annotation.NonNull
 import cloud.mindbox.mobile_sdk.Mindbox
 import cloud.mindbox.mobile_sdk.MindboxConfiguration
+import io.flutter.Log
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
@@ -91,14 +92,14 @@ class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     }
 
     override fun onDetachedFromActivityForConfigChanges() {
-        TODO("Not yet implemented")
+        Log.i("MindboxAndroidPlugin", "Not yet implemented")
     }
 
     override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
-        TODO("Not yet implemented")
+        Log.i("MindboxAndroidPlugin", "Not yet implemented")
     }
 
     override fun onDetachedFromActivity() {
-        TODO("Not yet implemented")
+        Log.i("MindboxAndroidPlugin", "Not yet implemented")
     }
 }
