@@ -2,17 +2,17 @@ import 'dart:async';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mindbox/mindbox.dart';
-import 'package:mindbox_ios/mindbox_ios.dart';
 import 'package:mindbox_platform_interface/mindbox_platform_interface.dart';
+import 'package:mindbox_platform_interface/src/channel.dart';
+import 'package:mindbox_platform_interface/src/types/mindbox_method_handler.dart';
 
 void main() {
-  const MethodChannel channel = MethodChannel('mindbox.cloud/flutter-sdk');
-
   TestWidgetsFlutterBinding.ensureInitialized();
 
+  late MindboxMethodHandler handler;
+
   setUp(() {
-    MindboxIosPlatform.registerPlatform();
+    handler = MindboxMethodHandler();
     channel.setMockMethodCallHandler((MethodCall methodCall) async {
       switch (methodCall.method) {
         case 'init':
@@ -31,7 +31,7 @@ void main() {
         case 'getToken':
           return Future.value('dummy-token');
         default:
-          return '1.2.0';
+          return 'dummy-sdk-version';
       }
     });
   });
@@ -41,7 +41,7 @@ void main() {
   });
 
   test('getPlatformVersion', () async {
-    expect(await Mindbox.instance.sdkVersion, '1.2.0');
+    expect(await handler.sdkVersion, 'dummy-sdk-version');
   });
 
   test('init()', () async {
@@ -51,7 +51,7 @@ void main() {
         endpointAndroid: 'endpointAndroid',
         subscribeCustomerIfCreated: true);
 
-    await Mindbox.instance.init(configuration: validConfig);
+    await handler.init(configuration: validConfig);
   });
 
   test('When config is invalid, init() calling should throws MindboxException',
@@ -62,7 +62,7 @@ void main() {
         endpointAndroid: '',
         subscribeCustomerIfCreated: true);
 
-    expect(() async => Mindbox.instance.init(configuration: invalidConfig),
+    expect(() async => handler.init(configuration: invalidConfig),
         throwsA(isA<MindboxException>()));
   });
 
@@ -70,7 +70,7 @@ void main() {
       () async {
     final completer = Completer<String>();
 
-    Mindbox.instance.getDeviceUUID((uuid) => completer.complete(uuid));
+    handler.getDeviceUUID(callback: (uuid) => completer.complete(uuid));
 
     final validConfig = Configuration(
         domain: 'domain',
@@ -78,7 +78,7 @@ void main() {
         endpointAndroid: 'endpointAndroid',
         subscribeCustomerIfCreated: true);
 
-    await Mindbox.instance.init(configuration: validConfig);
+    await handler.init(configuration: validConfig);
 
     expect(completer.isCompleted, isTrue);
     expect(await completer.future, equals('dummy-device-uuid'));
@@ -89,7 +89,7 @@ void main() {
       'device uuid', () async {
     final completer = Completer<String>();
 
-    Mindbox.instance.getDeviceUUID((uuid) => completer.complete(uuid));
+    handler.getDeviceUUID(callback: (uuid) => completer.complete(uuid));
 
     expect(completer.isCompleted, isFalse);
   });
@@ -97,7 +97,8 @@ void main() {
   test('When SDK was initialized, getToken() should return token', () async {
     final completer = Completer<String>();
 
-    Mindbox.instance.getToken((deviceToken) => completer.complete(deviceToken));
+    handler.getToken(
+        callback: (deviceToken) => completer.complete(deviceToken));
 
     final validConfig = Configuration(
         domain: 'domain',
@@ -105,7 +106,7 @@ void main() {
         endpointAndroid: 'endpointAndroid',
         subscribeCustomerIfCreated: true);
 
-    await Mindbox.instance.init(configuration: validConfig);
+    await handler.init(configuration: validConfig);
 
     expect(completer.isCompleted, isTrue);
     expect(await completer.future, equals('dummy-token'));
@@ -115,31 +116,25 @@ void main() {
       () async {
     final completer = Completer<String>();
 
-    Mindbox.instance.getToken((deviceToken) => completer.complete(deviceToken));
+    handler.getToken(
+        callback: (deviceToken) => completer.complete(deviceToken));
 
     expect(completer.isCompleted, isFalse);
   });
 
   test('onPushClickReceived()', () async {
-    StubMindboxPlatform.registerPlatform();
+    final StubMindboxMethodHandler handler = StubMindboxMethodHandler();
     final completer = Completer<String>();
 
-    Mindbox.instance.onPushClickReceived((url) => completer.complete(url));
+    handler.handlePushClick(callback: (url) => completer.complete(url));
 
     expect(completer.isCompleted, isTrue);
     expect(await completer.future, equals('dummy-url'));
   });
 }
 
-class StubMindboxPlatform extends MindboxPlatform {
-  StubMindboxPlatform._();
-
-  static void registerPlatform() {
-    MindboxPlatform.instance = StubMindboxPlatform._();
-  }
-
-  @override
-  void onPushClickReceived({required Function(String url) callback}) {
+class StubMindboxMethodHandler {
+  void handlePushClick({required Function(String url) callback}) {
     callback('dummy-url');
   }
 }

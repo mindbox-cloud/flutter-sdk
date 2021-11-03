@@ -1,4 +1,5 @@
 # mindbox_ios
 
-Mindbox SDK iOs implementation
+iOs implementation of [`mindbox`][1] plugin.
 
+[1]: ../mindbox

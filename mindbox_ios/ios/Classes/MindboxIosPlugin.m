@@ -12,4 +12,8 @@
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
   [SwiftMindboxIosPlugin registerWithRegistrar:registrar];
 }
+
++ (void)pushClicked:(UNNotificationResponse*)response {
+    [SwiftMindboxIosPlugin pushClickedWithResponse:response];
+}
 @end

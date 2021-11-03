@@ -1,12 +1,13 @@
 package cloud.mindbox.mindbox_android
 
 import android.content.Context
-import android.util.Log
+import android.os.Handler
+import android.os.Looper
+
 import androidx.annotation.NonNull
-import cloud.mindbox.mobile_sdk.InitializeMindboxException
 import cloud.mindbox.mobile_sdk.Mindbox
 import cloud.mindbox.mobile_sdk.MindboxConfiguration
-import cloud.mindbox.mobile_sdk.logger.Level
+import io.flutter.Log
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
@@ -18,8 +19,17 @@ import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 
 /** MindboxAndroidPlugin */
 class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
-    private lateinit var channel: MethodChannel
     private lateinit var context: Context
+
+    companion object {
+        lateinit var channel: MethodChannel
+
+        fun pushClicked(url: String) {
+            Handler(Looper.getMainLooper()).post {
+                channel.invokeMethod("linkReceived", url)
+            }
+        }
+    }
 
     override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         channel = MethodChannel(flutterPluginBinding.binaryMessenger, "mindbox.cloud/flutter-sdk")
@@ -36,8 +46,8 @@ class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                     val args = call.arguments as HashMap<*, *>
                     val domain: String = args["domain"] as String
                     val endpointId: String = args["endpointAndroid"] as String
-                    val previousDeviceUuid: String = args["previousUuid"] as String
-                    val previousInstallId: String = args["previousInstallId"] as String
+                    val previousDeviceUuid: String = args["previousDeviceUUID"] as String
+                    val previousInstallId: String = args["previousInstallationId"] as String
                     val subscribeIfCreated: Boolean = args["subscribeCustomerIfCreated"] as Boolean
                     val shouldCreateCustomer: Boolean = args["shouldCreateCustomer"] as Boolean
                     val config = MindboxConfiguration.Builder(context, domain, endpointId)
@@ -47,10 +57,24 @@ class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                         .shouldCreateCustomer(shouldCreateCustomer)
                         .build()
                     try {
+                        // Android SDK validation doesn't work
                         Mindbox.init(context, config)
+                        result.success("initialized")
                     } catch (e: Exception) {
                         result.error("-1", e.message, e.localizedMessage)
                     }
+                } else {
+                    result.error("-1", "Initialization error", "Wrong argument type")
+                }
+            }
+            "getDeviceUUID" -> {
+                Mindbox.subscribeDeviceUuid { uuid ->
+                    result.success(uuid)
+                }
+            }
+            "getToken" -> {
+                Mindbox.subscribeFmsToken { token ->
+                    result.success(token)
                 }
             }
             else -> {
@@ -68,14 +92,14 @@ class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     }
 
     override fun onDetachedFromActivityForConfigChanges() {
-        TODO("Not yet implemented")
+        Log.i("MindboxAndroidPlugin", "Not yet implemented")
     }
 
     override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
-        TODO("Not yet implemented")
+        Log.i("MindboxAndroidPlugin", "Not yet implemented")
     }
 
     override fun onDetachedFromActivity() {
-        TODO("Not yet implemented")
+        Log.i("MindboxAndroidPlugin", "Not yet implemented")
     }
 }
