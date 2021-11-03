@@ -1,6 +1,6 @@
 import 'package:mindbox_platform_interface/mindbox_platform_interface.dart';
 
-/// An [MindboxPlatform] that wraps Mindbox iOs SDK.
+/// An [MindboxPlatform] that wraps Mindbox iOS SDK.
 class MindboxIosPlatform extends MindboxPlatform {
   MindboxIosPlatform._();
 
