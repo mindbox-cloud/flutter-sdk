@@ -1,4 +1,4 @@
-This plugin is a wrapper over the native Mindbox([iOs](https://github.com/mindbox-moscow/ios-sdk),
+This plugin is a wrapper over the native Mindbox([iOS](https://github.com/mindbox-moscow/ios-sdk),
 [Android](https://github.com/mindbox-moscow/android-sdk)) libraries that allows to
 receive and handle push notifications.
 

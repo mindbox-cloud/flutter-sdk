@@ -5,7 +5,7 @@ void main() {
   test('Constructor Test', () {
     final Configuration configuration = Configuration(
       domain: 'domain',
-      endpointIos: 'iOsEndpoint',
+      endpointIos: 'iOSEndpoint',
       endpointAndroid: 'androidEndpoint',
       previousInstallationId: 'previousInstallationId',
       previousDeviceUUID: 'previousDeviceUUID',
@@ -14,7 +14,7 @@ void main() {
     );
 
     expect(configuration.domain, 'domain');
-    expect(configuration.endpointIos, 'iOsEndpoint');
+    expect(configuration.endpointIos, 'iOSEndpoint');
     expect(configuration.endpointAndroid, 'androidEndpoint');
     expect(configuration.previousInstallationId, 'previousInstallationId');
     expect(configuration.previousDeviceUUID, 'previousDeviceUUID');

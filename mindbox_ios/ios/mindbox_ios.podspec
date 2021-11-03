@@ -7,7 +7,7 @@ Pod::Spec.new do |s|
   s.version          = '0.1.0'
   s.summary          = 'Mindbox Flutter SDK'
   s.description      = <<-DESC
-An implementation of 'mindbox' plugin for the iOs platform
+An implementation of 'mindbox' plugin for the iOS platform
                        DESC
   s.homepage         = 'https://mindbox.cloud/'
   s.license          = { :file => '../LICENSE' }

@@ -31,7 +31,7 @@ class Mindbox {
 
   /// Returns SDK version
   ///
-  /// On error returns "Unknown" on iOs platform and empty string("") on Android
+  /// On error returns "Unknown" on iOS platform and empty string("") on Android
   Future<String> get sdkVersion async => MindboxPlatform.instance.sdkVersion;
 
   /// Initializes the SDK for further work
