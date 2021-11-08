@@ -61,4 +61,30 @@ class Mindbox {
   void onPushClickReceived(Function(String link) callback) {
     MindboxPlatform.instance.onPushClickReceived(callback: callback);
   }
+
+  /// Method for register a custom event.
+  void executeAsyncOperation({
+    required String operationSystemName,
+    required Map<String, dynamic> operationBody,
+  }) async {
+    MindboxPlatform.instance.executeAsyncOperation(
+      operationSystemName: operationSystemName,
+      operationBody: operationBody,
+    );
+  }
+
+  /// Method for executing an operation synchronously.
+  void executeSyncOperation({
+    required String operationSystemName,
+    required Map<String, dynamic> operationBody,
+    required Function(String)? onSuccess,
+    Function(MindboxException)? onError,
+  }) async {
+    MindboxPlatform.instance.executeSyncOperation(
+      operationSystemName: operationSystemName,
+      operationBody: operationBody,
+      onSuccess: onSuccess,
+      onError: onError,
+    );
+  }
 }

@@ -3,6 +3,7 @@ import 'package:mindbox_platform_interface/src/types/configuration.dart';
 
 void main() {
   test('Constructor Test', () {
+    // Arrange
     final Configuration configuration = Configuration(
       domain: 'domain',
       endpointIos: 'iOSEndpoint',
@@ -13,6 +14,7 @@ void main() {
       shouldCreateCustomer: true,
     );
 
+    // Assert
     expect(configuration.domain, 'domain');
     expect(configuration.endpointIos, 'iOSEndpoint');
     expect(configuration.endpointAndroid, 'androidEndpoint');

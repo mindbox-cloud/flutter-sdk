@@ -39,4 +39,32 @@ class MindboxIosPlatform extends MindboxPlatform {
   void onPushClickReceived({required Function(String link) callback}) {
     _methodHandler.handlePushClick(callback: callback);
   }
+
+  /// Method for register a custom event.
+  @override
+  Future<void> executeAsyncOperation({
+    required String operationSystemName,
+    required Map<String, dynamic> operationBody,
+  }) async {
+    _methodHandler.executeAsyncOperation(
+      operationSystemName: operationSystemName,
+      operationBody: operationBody,
+    );
+  }
+
+  /// Method for executing an operation synchronously.
+  @override
+  Future<void> executeSyncOperation({
+    required String operationSystemName,
+    required Map<String, dynamic> operationBody,
+    Function(String)? onSuccess,
+    Function(MindboxException)? onError,
+  }) async {
+    _methodHandler.executeSyncOperation(
+      operationSystemName: operationSystemName,
+      operationBody: operationBody,
+      onSuccess: onSuccess,
+      onError: onError,
+    );
+  }
 }

@@ -6,6 +6,9 @@ public class SwiftMindboxIosPlugin: NSObject, FlutterPlugin {
     private static var channel: FlutterMethodChannel?
     
     public static func register(with registrar: FlutterPluginRegistrar) {
+    //TODO remove logs
+        Mindbox.logger.logLevel = .debug
+        Mindbox.logger.log(level: .default, message: "Test log")
         channel = FlutterMethodChannel(name: "mindbox.cloud/flutter-sdk", binaryMessenger: registrar.messenger())
         let instance = SwiftMindboxIosPlugin()
         registrar.addMethodCallDelegate(instance, channel: channel!)
@@ -16,13 +19,13 @@ public class SwiftMindboxIosPlugin: NSObject, FlutterPlugin {
         let action = response.actionIdentifier as NSString
         let request = response.notification.request
         let userInfo = request.content.userInfo
-        
+
         var link: NSString?
-        
+
         if let url = userInfo["clickUrl"] as? NSString {
             link = url
         }
-        
+
         if let buttons = userInfo["buttons"] as? NSArray {
             buttons.forEach{
                 guard
@@ -35,15 +38,15 @@ public class SwiftMindboxIosPlugin: NSObject, FlutterPlugin {
                     link = url
                 }
             }
-        }        
+        }
         channel?.invokeMethod("linkReceived", arguments: link)
     }
-    
+
     @objc
     public static func linkReceived(link: NSString){
         channel?.invokeMethod("linkReceived", arguments: link)
     }
-    
+
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         switch call.method {
         case "getSdkVersion":
@@ -78,6 +81,27 @@ public class SwiftMindboxIosPlugin: NSObject, FlutterPlugin {
         case "getToken":
             Mindbox.shared.getAPNSToken {
                 token in result(token)
+            }
+        case "executeAsyncOperation":
+            let args: [String] = call.arguments as! Array<String>
+            Mindbox.shared.executeAsyncOperation(operationSystemName: args[0], operationBody: args[1])
+            result("executed")
+        case "executeSyncOperation":
+            let args: [String] = call.arguments as! Array<String>
+            Mindbox.shared.executeSyncOperation(operationSystemName: args[0], operationBody: args[1]) { response in
+                switch response {
+                case .success(let resultSuccess):
+                    guard
+                        let jsonData = try? JSONEncoder().encode(resultSuccess),
+                        let jsonString = String(data: jsonData, encoding: .utf8)
+                    else {
+                        result(FlutterError(code: "-1", message: "Can't make json string", details: nil))
+                        return
+                    }
+                    result(jsonString)
+                case .failure(let resultError):
+                    result(FlutterError(code: "-1", message: resultError.localizedDescription, details: nil))
+                }
             }
         default:
             result(FlutterMethodNotImplemented)

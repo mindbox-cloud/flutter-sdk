@@ -60,6 +60,31 @@ void main() {
         throwsUnimplementedError,
       );
     });
+
+    test(
+        'Default implementation of executeAsyncOperation() '
+        'should throw unimplemented error', () {
+      expect(
+        () => mindboxPlatform.executeAsyncOperation(
+            operationSystemName: 'dummy-name',
+            operationBody: {'dummy-key': 'dummy-value'}),
+        throwsUnimplementedError,
+      );
+    });
+
+    test(
+        'Default implementation of executeSyncOperation() '
+        'should throw unimplemented error', () {
+      expect(
+        () => mindboxPlatform.executeSyncOperation(
+          operationSystemName: 'dummy-name',
+          operationBody: {'dummy-key': 'dummy-value'},
+          onError: (error) {},
+          onSuccess: (result) {},
+        ),
+        throwsUnimplementedError,
+      );
+    });
   });
 }
 
