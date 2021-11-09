@@ -61,7 +61,7 @@ abstract class MindboxPlatform {
   Future<void> executeSyncOperation({
     required String operationSystemName,
     required Map<String, dynamic> operationBody,
-    Function(String)? onSuccess,
+    Function(String? success, String? error)? onResponse,
     Function(MindboxException)? onError,
   }) =>
       throw UnimplementedError(

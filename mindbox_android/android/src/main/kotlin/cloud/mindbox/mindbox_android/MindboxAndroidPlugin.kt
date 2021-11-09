@@ -7,6 +7,8 @@ import android.os.Looper
 import androidx.annotation.NonNull
 import cloud.mindbox.mobile_sdk.Mindbox
 import cloud.mindbox.mobile_sdk.MindboxConfiguration
+import cloud.mindbox.mobile_sdk.models.MindboxError
+import cloud.mindbox.mobile_sdk.models.operation.response.OperationResponse
 import io.flutter.Log
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin
@@ -57,7 +59,6 @@ class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                         .shouldCreateCustomer(shouldCreateCustomer)
                         .build()
                     try {
-                        // Android SDK validation doesn't work
                         Mindbox.init(context, config)
                         result.success("initialized")
                     } catch (e: Exception) {
@@ -76,6 +77,35 @@ class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                 Mindbox.subscribeFmsToken { token ->
                     result.success(token)
                 }
+            }
+            "executeAsyncOperation" -> {
+                if (call.arguments is List<*>) {
+                    val args = call.arguments as List<*>
+                    Mindbox.executeAsyncOperation(context, args[0] as String, args[1] as String)
+                }
+            }
+            "executeSyncOperation" -> {
+                if (call.arguments is List<*>) {
+                    val args = call.arguments as List<*>
+                    Mindbox.executeSyncOperation(
+                        context,
+                        args[0] as String,
+                        args[1] as String,
+                        { response ->
+                            result.success(mapOf("success" to response))
+                        },
+                        { response ->
+                            result.success(mapOf("error" to response))
+                        },
+                        { error ->
+                            result.error(
+                                error.statusCode.toString(),
+                                error.toString(),
+                                null
+                            )
+                        })
+                }
+
             }
             else -> {
                 result.notImplemented()

@@ -19,6 +19,7 @@ rootProject.allprojects {
         google()
         jcenter()
         mavenCentral()
+        maven { url "https://jitpack.io" }
     }
 }
 
@@ -48,5 +49,6 @@ android {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    implementation "cloud.mindbox:mobile-sdk:1.2.0"
+    // TODO change
+    implementation 'com.github.mindbox-moscow:android-sdk:1.2.3-beta03'
 }

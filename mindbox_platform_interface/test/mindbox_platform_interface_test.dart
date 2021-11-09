@@ -80,7 +80,7 @@ void main() {
           operationSystemName: 'dummy-name',
           operationBody: {'dummy-key': 'dummy-value'},
           onError: (error) {},
-          onSuccess: (result) {},
+          onResponse: (result) {},
         ),
         throwsUnimplementedError,
       );

@@ -131,7 +131,7 @@ class MindboxMethodHandler {
   Future<void> executeSyncOperation({
     required String operationSystemName,
     required Map<String, dynamic> operationBody,
-    Function(String)? onSuccess,
+    Function(String? success, String? error)? onSuccess,
     Function(MindboxException)? onError,
   }) async {
     if (_initialized) {
@@ -140,7 +140,8 @@ class MindboxMethodHandler {
         jsonEncode(operationBody),
       ]).then((result) {
         if (onSuccess != null) {
-          onSuccess(result);
+          // TODO(me): in queue
+          onSuccess(result['success'], result['error']);
         }
       }, onError: (e) {
         if (onError != null) {

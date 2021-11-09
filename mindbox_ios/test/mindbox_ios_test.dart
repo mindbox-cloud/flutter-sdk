@@ -223,7 +223,7 @@ void main() {
       MindboxPlatform.instance.executeSyncOperation(
         operationSystemName: 'dummy-valid-name',
         operationBody: {'dummy-key': 'dummy-value'},
-        onSuccess: (response) => completer.complete(response),
+        onResponse: (response) => completer.complete(response),
       );
 
       final validConfig = Configuration(
