@@ -15,6 +15,7 @@ abstract class MindboxPlatform {
 
   /// Platform-specific plugins should set this with their own platform-specific
   /// class that extends [MindboxPlatform] when they register themselves.
+  // ignore: unnecessary_getters_setters
   static set instance(MindboxPlatform instance) {
     _instance = instance;
   }
@@ -22,6 +23,7 @@ abstract class MindboxPlatform {
   /// The instance of [MindboxPlatform] to use.
   ///
   /// Must be set before accessing.
+  // ignore: unnecessary_getters_setters
   static MindboxPlatform get instance => _instance;
 
   /// Initializes the SDK for further work
