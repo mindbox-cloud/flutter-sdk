@@ -86,23 +86,23 @@ public class SwiftMindboxIosPlugin: NSObject, FlutterPlugin {
             let args: [String] = call.arguments as! Array<String>
             Mindbox.shared.executeAsyncOperation(operationSystemName: args[0], operationBody: args[1])
             result("executed")
-        case "executeSyncOperation":
-            let args: [String] = call.arguments as! Array<String>
-            Mindbox.shared.executeSyncOperation(operationSystemName: args[0], operationBody: args[1]) { response in
-                switch response {
-                case .success(let resultSuccess):
-                    guard
-                        let jsonData = try? JSONEncoder().encode(resultSuccess),
-                        let jsonString = String(data: jsonData, encoding: .utf8)
-                    else {
-                        result(FlutterError(code: "-1", message: "Can't make json string", details: nil))
-                        return
-                    }
-                    result(jsonString)
-                case .failure(let resultError):
-                    result(FlutterError(code: "-1", message: resultError.localizedDescription, details: nil))
-                }
-            }
+//         case "executeSyncOperation":
+//             let args: [String] = call.arguments as! Array<String>
+//             Mindbox.shared.executeSyncOperation(operationSystemName: args[0], operationBody: args[1]) { response in
+//                 switch response {
+//                 case .success(let resultSuccess):
+//                     guard
+//                         let jsonData = try? JSONEncoder().encode(resultSuccess),
+//                         let jsonString = String(data: jsonData, encoding: .utf8)
+//                     else {
+//                         result(FlutterError(code: "-1", message: "Can't make json string", details: nil))
+//                         return
+//                     }
+//                     result(jsonString)
+//                 case .failure(let resultError):
+//                     result(FlutterError(code: "-1", message: resultError.localizedDescription, details: nil))
+//                 }
+//             }
         default:
             result(FlutterMethodNotImplemented)
         }
