@@ -55,17 +55,14 @@ class MindboxMethodHandler {
         }
         for (final operation in _pendingOperations) {
           channel.invokeMethod(operation.methodName, operation.parameters).then(
-                  (result) {
-                if (operation.successCallback != null) {
-                  operation.successCallback!(result);
-                }
-              }, onError: (e) {
+              (result) {
+            if (operation.successCallback != null) {
+              operation.successCallback!(result);
+            }
+          }, onError: (e) {
             if (operation.errorCallback != null) {
-              final exception = MindboxException(
-                  message: e.message ?? 'empty',
-                  code: e.code,
-                  details: e.details);
-              operation.errorCallback!(exception);
+              final mindboxError = _convertToMindboxError(e);
+              operation.errorCallback!(mindboxError);
             }
           });
         }
@@ -132,7 +129,7 @@ class MindboxMethodHandler {
     required String operationSystemName,
     required Map<String, dynamic> operationBody,
     required Function(String success) onSuccess,
-    Function(MindboxException)? onError,
+    Function(MindboxError)? onError,
   }) async {
     if (_initialized) {
       channel.invokeMethod('executeSyncOperation', [
@@ -142,9 +139,8 @@ class MindboxMethodHandler {
         onSuccess(result);
       }, onError: (e) {
         if (onError != null) {
-          final exception = MindboxException(
-              message: e.message ?? 'empty', code: e.code, details: e.details);
-          onError(exception);
+          final mindboxError = _convertToMindboxError(e);
+          onError(mindboxError);
         }
       });
     } else {
@@ -154,6 +150,42 @@ class MindboxMethodHandler {
         successCallback: onSuccess,
         errorCallback: onError,
       ));
+    }
+  }
+
+  MindboxError _convertToMindboxError(dynamic e) {
+    final PlatformException exception = e;
+    final Map body = jsonDecode(exception.message ?? '');
+    if (body.containsKey('type') && body.containsKey('data')) {
+      final type = body['type'];
+      final data = body['data'];
+      final error = body['data']['errorMessage'];
+      print(type);
+      print(data);
+      switch (type) {
+        case 'MindboxError':
+          switch (data['status']) {
+            // TODO(me): Validation
+            case 'ProtocolError':
+              return MindboxProtocolError(
+                message: error,
+                data: data.toString(),
+                code: data['httpStatusCode'].toString(),
+              );
+            // TODO(me): InternalServer
+            default:
+              return MindboxInternalError(
+                  message: 'Empty or unknown MindboxError status', data: '');
+          }
+        case 'NetworkError':
+          return MindboxNetworkError(message: error, data: data.toString());
+        default:
+          return MindboxInternalError(message: 'Empty or unknown ', data: '');
+      }
+    } else {
+      return MindboxInternalError(
+          message: 'Empty or unknown error type message',
+          data: '');
     }
   }
 }

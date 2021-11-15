@@ -97,7 +97,7 @@ class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                         { error ->
                             result.error(
                                 error.statusCode.toString(),
-                                error.toString(),
+                                error.toJson(),
                                 null
                             )
                         })

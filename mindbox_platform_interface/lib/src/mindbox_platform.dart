@@ -62,8 +62,8 @@ abstract class MindboxPlatform {
     required String operationSystemName,
     required Map<String, dynamic> operationBody,
     required Function(String success) onSuccess,
-    Function(MindboxException)? onError,
+    Function(MindboxError)? onError,
   }) =>
       throw UnimplementedError(
-          'onPushClickReceived() has not been implemented.');
+          'executeSyncOperation() has not been implemented.');
 }

@@ -3,7 +3,15 @@ import 'package:mindbox_android/mindbox_android.dart';
 import 'package:mindbox_ios/mindbox_ios.dart';
 import 'package:mindbox_platform_interface/mindbox_platform_interface.dart';
 export 'package:mindbox_platform_interface/mindbox_platform_interface.dart'
-    show MindboxException, Configuration;
+    show
+        MindboxException,
+        Configuration,
+        MindboxError,
+        MindboxProtocolError,
+        MindboxNetworkError,
+        MindboxInternalError,
+        MindboxValidationError,
+        MindboxServerError;
 
 /// Basic Mindbox API
 class Mindbox {
@@ -78,7 +86,7 @@ class Mindbox {
     required String operationSystemName,
     required Map<String, dynamic> operationBody,
     required Function(String success) onSuccess,
-    Function(MindboxException)? onError,
+    Function(MindboxError)? onError,
   }) async {
     MindboxPlatform.instance.executeSyncOperation(
       operationSystemName: operationSystemName,

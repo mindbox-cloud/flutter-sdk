@@ -58,7 +58,7 @@ class MindboxAndroidPlatform extends MindboxPlatform {
     required String operationSystemName,
     required Map<String, dynamic> operationBody,
     required Function(String succes) onSuccess,
-    Function(MindboxException)? onError,
+    Function(MindboxError)? onError,
   }) async {
     _methodHandler.executeSyncOperation(
       operationSystemName: operationSystemName,
