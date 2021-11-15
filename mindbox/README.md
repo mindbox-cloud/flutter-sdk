@@ -83,6 +83,6 @@ Mindbox.instance.getDeviceUUID((uuid) {
 ```dart
 Mindbox.instance.executeAsyncOperation(
   operationSystemName: 'operationName',
-  operationBody: {'key': 'value'},
+  operationBody: {},
 );
 ```
