@@ -16,13 +16,13 @@ public class SwiftMindboxIosPlugin: NSObject, FlutterPlugin {
         let action = response.actionIdentifier as NSString
         let request = response.notification.request
         let userInfo = request.content.userInfo
-        
+
         var link: NSString?
-        
+
         if let url = userInfo["clickUrl"] as? NSString {
             link = url
         }
-        
+
         if let buttons = userInfo["buttons"] as? NSArray {
             buttons.forEach{
                 guard
@@ -35,15 +35,15 @@ public class SwiftMindboxIosPlugin: NSObject, FlutterPlugin {
                     link = url
                 }
             }
-        }        
+        }
         channel?.invokeMethod("linkReceived", arguments: link)
     }
-    
+
     @objc
     public static func linkReceived(link: NSString){
         channel?.invokeMethod("linkReceived", arguments: link)
     }
-    
+
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         switch call.method {
         case "getSdkVersion":
@@ -79,6 +79,10 @@ public class SwiftMindboxIosPlugin: NSObject, FlutterPlugin {
             Mindbox.shared.getAPNSToken {
                 token in result(token)
             }
+        case "executeAsyncOperation":
+            let args: [String] = call.arguments as! Array<String>
+            Mindbox.shared.executeAsyncOperation(operationSystemName: args[0], json: args[1])
+            result("executed")
         default:
             result(FlutterMethodNotImplemented)
         }
