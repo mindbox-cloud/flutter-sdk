@@ -1,6 +1,6 @@
 name: mindbox
 description: Flutter Mindbox SDK.
-version: 0.1.0
+version: 0.2.0
 homepage: https://mindbox.cloud/
 repository: https://github.com/mindbox-moscow/flutter-sdk/tree/master/mindbox
 
@@ -19,9 +19,9 @@ flutter:
 dependencies:
   flutter:
     sdk: flutter
-  mindbox_android: ^0.1.0
-  mindbox_ios: ^0.1.0
-  mindbox_platform_interface: ^0.1.0
+  mindbox_android: ^0.2.0
+  mindbox_ios: ^0.2.0
+  mindbox_platform_interface: ^0.2.0
 
 dev_dependencies:
   flutter_test:
