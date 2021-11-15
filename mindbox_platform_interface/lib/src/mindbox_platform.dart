@@ -48,4 +48,12 @@ abstract class MindboxPlatform {
   void onPushClickReceived({required Function(String) callback}) =>
       throw UnimplementedError(
           'onPushClickReceived() has not been implemented.');
+
+  /// Method for register a custom event.
+  Future<void> executeAsyncOperation({
+    required String operationSystemName,
+    required Map<String, dynamic> operationBody,
+  }) =>
+      throw UnimplementedError(
+          'onPushClickReceived() has not been implemented.');
 }

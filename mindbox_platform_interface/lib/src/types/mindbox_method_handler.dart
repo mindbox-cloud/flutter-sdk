@@ -1,13 +1,32 @@
+import 'dart:convert';
+
 import 'package:flutter/services.dart';
 
 import '../../mindbox_platform_interface.dart';
 import '../channel.dart';
 
-class _MethodCallback {
-  _MethodCallback({required this.methodName, required this.callback});
+class _PendingCallbackMethod {
+  _PendingCallbackMethod({
+    required this.methodName,
+    required this.callback,
+  });
 
   final String methodName;
   final Function callback;
+}
+
+class _PendingOperations {
+  _PendingOperations({
+    required this.methodName,
+    this.parameters,
+    this.successCallback,
+    this.errorCallback,
+  });
+
+  final String methodName;
+  final dynamic parameters;
+  final Function? successCallback;
+  final Function? errorCallback;
 }
 
 /// This class contains the necessary logic of the order of method calls
@@ -16,7 +35,8 @@ class _MethodCallback {
 /// Platform implementations can use this class for platform calls.
 class MindboxMethodHandler {
   bool _initialized = false;
-  final List<_MethodCallback> _callbacks = [];
+  final List<_PendingCallbackMethod> _pendingCallbackMethods = [];
+  final List<_PendingOperations> _pendingOperations = [];
 
   /// Returns SDK version
   Future<String> get sdkVersion async =>
@@ -29,11 +49,28 @@ class MindboxMethodHandler {
     try {
       if (!_initialized) {
         await channel.invokeMethod('init', configuration.toMap());
-        for (final methodCallback in _callbacks) {
-          methodCallback.callback(
-              await channel.invokeMethod(methodCallback.methodName) ?? 'null');
+        for (final callbackMethod in _pendingCallbackMethods) {
+          callbackMethod.callback(
+              await channel.invokeMethod(callbackMethod.methodName) ?? 'null');
         }
-        _callbacks.clear();
+        for (final operation in _pendingOperations) {
+          channel.invokeMethod(operation.methodName, operation.parameters).then(
+                  (result) {
+                if (operation.successCallback != null) {
+                  operation.successCallback!(result);
+                }
+              }, onError: (e) {
+            if (operation.errorCallback != null) {
+              final exception = MindboxException(
+                  message: e.message ?? 'empty',
+                  code: e.code,
+                  details: e.details);
+              operation.errorCallback!(exception);
+            }
+          });
+        }
+        _pendingCallbackMethods.clear();
+        _pendingOperations.clear();
         _initialized = true;
       }
     } on PlatformException catch (e) {
@@ -47,8 +84,8 @@ class MindboxMethodHandler {
     if (_initialized) {
       callback(await channel.invokeMethod('getDeviceUUID'));
     } else {
-      _callbacks.add(
-          _MethodCallback(methodName: 'getDeviceUUID', callback: callback));
+      _pendingCallbackMethods.add(_PendingCallbackMethod(
+          methodName: 'getDeviceUUID', callback: callback));
     }
   }
 
@@ -57,8 +94,8 @@ class MindboxMethodHandler {
     if (_initialized) {
       callback(await channel.invokeMethod('getToken') ?? 'null');
     } else {
-      _callbacks
-          .add(_MethodCallback(methodName: 'getToken', callback: callback));
+      _pendingCallbackMethods.add(
+          _PendingCallbackMethod(methodName: 'getToken', callback: callback));
     }
   }
 
@@ -70,5 +107,23 @@ class MindboxMethodHandler {
       }
       return Future.value(true);
     });
+  }
+
+  /// Method for register a custom event.
+  Future<void> executeAsyncOperation({
+    required String operationSystemName,
+    required Map<String, dynamic> operationBody,
+  }) async {
+    if (_initialized) {
+      channel.invokeMethod('executeAsyncOperation', [
+        operationSystemName,
+        jsonEncode(operationBody),
+      ]);
+    } else {
+      _pendingOperations.add(_PendingOperations(
+        methodName: 'executeAsyncOperation',
+        parameters: [operationSystemName, jsonEncode(operationBody)],
+      ));
+    }
   }
 }
