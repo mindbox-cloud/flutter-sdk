@@ -6,9 +6,6 @@ public class SwiftMindboxIosPlugin: NSObject, FlutterPlugin {
     private static var channel: FlutterMethodChannel?
     
     public static func register(with registrar: FlutterPluginRegistrar) {
-    //TODO remove logs
-        Mindbox.logger.logLevel = .debug
-        Mindbox.logger.log(level: .default, message: "Test log")
         channel = FlutterMethodChannel(name: "mindbox.cloud/flutter-sdk", binaryMessenger: registrar.messenger())
         let instance = SwiftMindboxIosPlugin()
         registrar.addMethodCallDelegate(instance, channel: channel!)
