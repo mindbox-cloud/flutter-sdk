@@ -126,4 +126,34 @@ class MindboxMethodHandler {
       ));
     }
   }
+
+  /// Method for executing an operation synchronously.
+  Future<void> executeSyncOperation({
+    required String operationSystemName,
+    required Map<String, dynamic> operationBody,
+    required Function(String success) onSuccess,
+    Function(MindboxException)? onError,
+  }) async {
+    if (_initialized) {
+      channel.invokeMethod('executeSyncOperation', [
+        operationSystemName,
+        jsonEncode(operationBody),
+      ]).then((result) {
+        onSuccess(result);
+      }, onError: (e) {
+        if (onError != null) {
+          final exception = MindboxException(
+              message: e.message ?? 'empty', code: e.code, details: e.details);
+          onError(exception);
+        }
+      });
+    } else {
+      _pendingOperations.add(_PendingOperations(
+        methodName: 'executeSyncOperation',
+        parameters: [operationSystemName, jsonEncode(operationBody)],
+        successCallback: onSuccess,
+        errorCallback: onError,
+      ));
+    }
+  }
 }

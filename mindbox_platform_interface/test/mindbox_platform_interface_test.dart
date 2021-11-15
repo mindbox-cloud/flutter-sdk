@@ -72,6 +72,8 @@ void main() {
       );
     });
   });
+
+  // TODO(me): add sync tests
 }
 
 class ExtendsMindboxPlatform extends MindboxPlatform {}
