@@ -18,14 +18,14 @@ void main() {
 
   test(
     'getPlatformVersion',
-        () async {
+    () async {
       expect(await MindboxPlatform.instance.sdkVersion, 'dummy-sdk-version');
     },
   );
 
   test(
     'init()',
-        () async {
+    () async {
       final completer = Completer<String>();
 
       final validConfig = Configuration(
@@ -45,7 +45,7 @@ void main() {
 
   test(
     'When config is invalid, init() calling should throws MindboxException',
-        () async {
+    () async {
       final invalidConfig = Configuration(
         domain: '',
         endpointIos: '',
@@ -54,7 +54,7 @@ void main() {
       );
 
       expect(
-              () async =>
+          () async =>
               MindboxPlatform.instance.init(configuration: invalidConfig),
           throwsA(isA<MindboxException>()));
     },
@@ -62,7 +62,7 @@ void main() {
 
   test(
     'When SDK was initialized, getDeviceUUID() should return device uuid',
-        () async {
+    () async {
       final completer = Completer<String>();
 
       MindboxPlatform.instance
@@ -83,8 +83,8 @@ void main() {
 
   test(
     'When SDK was not initialized, getDeviceUUID() should not return '
-        'device uuid',
-        () async {
+    'device uuid',
+    () async {
       final completer = Completer<String>();
 
       MindboxPlatform.instance
@@ -96,7 +96,7 @@ void main() {
 
   test(
     'When SDK was initialized, getToken() should return token',
-        () async {
+    () async {
       final completer = Completer<String>();
 
       MindboxPlatform.instance
@@ -117,7 +117,7 @@ void main() {
 
   test(
     'When SDK was not initialized, getToken() should not return token',
-        () async {
+    () async {
       final completer = Completer<String>();
 
       MindboxPlatform.instance
@@ -129,7 +129,7 @@ void main() {
 
   test(
     'onPushClickReceived()',
-        () async {
+    () async {
       StubMindboxPlatform.registerPlatform();
       final completer = Completer<String>();
 
@@ -142,7 +142,7 @@ void main() {
 
   test(
     'When SDK was initialized, executeAsyncOperation() should be invoked',
-        () async {
+    () async {
       final completer = Completer<String>();
 
       final validConfig = Configuration(
@@ -165,7 +165,7 @@ void main() {
 
   test(
     'When SDK not initialized, executeAsyncOperation() should not be invoked',
-        () async {
+    () async {
       final completer = Completer<String>();
 
       MindboxPlatform.instance.executeAsyncOperation(
@@ -174,92 +174,6 @@ void main() {
       ).whenComplete(() => completer.complete('invoked'));
 
       expect(completer.isCompleted, isFalse);
-    },
-  );
-
-  test(
-    'When SDK was initialized, executeSyncOperation() should be invoked',
-        () async {
-      final completer = Completer<String>();
-
-      final validConfig = Configuration(
-        domain: 'domain',
-        endpointIos: 'endpointIos',
-        endpointAndroid: 'endpointAndroid',
-        subscribeCustomerIfCreated: true,
-      );
-
-      MindboxPlatform.instance.executeSyncOperation(
-        operationSystemName: 'dummy-name',
-        operationBody: {'dummy-key': 'dummy-value'},
-      ).whenComplete(() => completer.complete('invoked'));
-
-      await MindboxPlatform.instance.init(configuration: validConfig);
-
-      expect(completer.isCompleted, isTrue);
-    },
-  );
-
-  test(
-    'When SDK not initialized, executeSyncOperation() should not be invoked',
-        () async {
-      final completer = Completer<String>();
-
-      MindboxPlatform.instance.executeSyncOperation(
-        operationSystemName: 'dummy-name',
-        operationBody: {'dummy-key': 'dummy-value'},
-      ).whenComplete(() => completer.complete('invoked'));
-
-      expect(completer.isCompleted, isFalse);
-    },
-  );
-
-  test(
-    'When operationSystemName is valid, executeSyncOperation() should return'
-        'success response',
-        () async {
-      final completer = Completer<String>();
-
-      MindboxPlatform.instance.executeSyncOperation(
-        operationSystemName: 'dummy-valid-name',
-        operationBody: {'dummy-key': 'dummy-value'},
-        onResponse: (response) => completer.complete(response),
-      );
-
-      final validConfig = Configuration(
-        domain: 'domain',
-        endpointIos: 'endpointIos',
-        endpointAndroid: 'endpointAndroid',
-        subscribeCustomerIfCreated: true,
-      );
-
-      await MindboxPlatform.instance.init(configuration: validConfig);
-
-      expect(await completer.future, equals('dummy-response'));
-    },
-  );
-
-  test(
-    'When operationSystemName is invalid, executeSyncOperation() should return'
-        'error',
-        () async {
-      final completer = Completer<Exception>();
-
-      final validConfig = Configuration(
-        domain: 'domain',
-        endpointIos: 'endpointIos',
-        endpointAndroid: 'endpointAndroid',
-        subscribeCustomerIfCreated: true,
-      );
-
-      await MindboxPlatform.instance.init(configuration: validConfig);
-
-      MindboxPlatform.instance.executeSyncOperation(
-          operationSystemName: 'dummy-invalid-system-name',
-          operationBody: {'dummy-key': 'dummy-value'},
-          onError: (error) => completer.completeError(error));
-
-      expect(() => completer.future, throwsA(isA<MindboxException>()));
     },
   );
 }

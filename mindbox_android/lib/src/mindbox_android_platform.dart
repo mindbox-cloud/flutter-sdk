@@ -51,20 +51,4 @@ class MindboxAndroidPlatform extends MindboxPlatform {
       operationBody: operationBody,
     );
   }
-
-  /// Method for executing an operation synchronously.
-  @override
-  Future<void> executeSyncOperation({
-    required String operationSystemName,
-    required Map<String, dynamic> operationBody,
-    Function(String? succes, String? error)? onResponse,
-    Function(MindboxException)? onError,
-  }) async {
-    _methodHandler.executeSyncOperation(
-      operationSystemName: operationSystemName,
-      operationBody: operationBody,
-      onSuccess: onResponse,
-      onError: onError,
-    );
-  }
 }

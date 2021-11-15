@@ -72,19 +72,4 @@ class Mindbox {
       operationBody: operationBody,
     );
   }
-
-  /// Method for executing an operation synchronously.
-  void executeSyncOperation({
-    required String operationSystemName,
-    required Map<String, dynamic> operationBody,
-    required Function(String? success, String? error)? onResponse,
-    Function(MindboxException)? onError,
-  }) async {
-    MindboxPlatform.instance.executeSyncOperation(
-      operationSystemName: operationSystemName,
-      operationBody: operationBody,
-      onResponse: onResponse,
-      onError: onError,
-    );
-  }
 }

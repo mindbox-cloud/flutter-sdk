@@ -1,3 +1,5 @@
+[![Pub Version](https://img.shields.io/pub/v/mindbox?color=blue)](https://pub.dev/packages/mindbox)
+
 This plugin is a wrapper over the native Mindbox([iOS](https://github.com/mindbox-moscow/ios-sdk),
 [Android](https://github.com/mindbox-moscow/android-sdk)) libraries that allows to
 receive and handle push notifications.
@@ -74,4 +76,13 @@ Mindbox.instance.getDeviceUUID((uuid) {
     _deviceUUID = uuid;
   });
 });
+```
+
+### Execute async operation
+
+```dart
+Mindbox.instance.executeAsyncOperation(
+  operationSystemName: 'operationName',
+  operationBody: {'key': 'value'},
+);
 ```
