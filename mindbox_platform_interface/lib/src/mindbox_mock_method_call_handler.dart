@@ -20,12 +20,13 @@ Future mindboxMockMethodCallHandler(MethodCall methodCall) async {
     case 'executeSyncOperation':
       final String operationSystemName = methodCall.arguments[0];
       if (operationSystemName == 'dummy-invalid-system-name') {
-        throw MindboxProtocolError(
-            message: 'Operation dummy-invalid-system-name not found',
-            data:
-                '{httpStatusCode: 400, status: ProtocolError, errorId: '
-                    '819ef1a6-4a7e-44d6-b0ff-121fadbb4af2, errorMessage: '
-                    'Operation dummy-invalid-system-name not found}',
+        throw PlatformException(
+            message:
+                '{"type":"MindboxError","data":{"httpStatusCode":"400",'
+                    '"status":"ProtocolError",'
+                    '"errorId":"3a39477a-7f4e-49de-81e4-89e21f80140f",'
+                    '"errorMessage":"Operation wrongOperationName.sync not '
+                    'found"}}',
             code: '400');
       }
       return Future.value('dummy-response');

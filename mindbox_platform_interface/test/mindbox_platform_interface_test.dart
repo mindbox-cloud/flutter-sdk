@@ -71,9 +71,19 @@ void main() {
         throwsUnimplementedError,
       );
     });
-  });
 
-  // TODO(me): add sync tests
+    test(
+        'Default implementation of executeSyncOperation() '
+            'should throw unimplemented error', () {
+      expect(
+            () => mindboxPlatform.executeSyncOperation(
+            operationSystemName: 'dummy-name',
+            operationBody: {'dummy-key': 'dummy-value'},
+            onSuccess: (success){}),
+        throwsUnimplementedError,
+      );
+    });
+  });
 }
 
 class ExtendsMindboxPlatform extends MindboxPlatform {}
