@@ -18,6 +18,15 @@ abstract class MindboxError implements Exception {
   }
 }
 
+/// Initialization error.
+class MindboxInitializeError extends MindboxError {
+  /// Constructs a MindboxInitializeError.
+  MindboxInitializeError({
+    required String message,
+    required String data,
+  }) : super(message: message, data: data);
+}
+
 /// Client error.
 class MindboxValidationError extends MindboxError {
   /// Constructs a MindboxValidationError.

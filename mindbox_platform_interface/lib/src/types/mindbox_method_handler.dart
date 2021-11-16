@@ -48,6 +48,13 @@ class MindboxMethodHandler {
   Future<void> init({required Configuration configuration}) async {
     try {
       if (!_initialized) {
+        if (ServicesBinding.instance == null) {
+          throw MindboxInitializeError(
+              message: 'Initialization error',
+              data:
+                  'Try to invoke \'WidgetsFlutterBinding.ensureInitialized()\' '
+                      'before initialization.');
+        }
         await channel.invokeMethod('init', configuration.toMap());
         for (final callbackMethod in _pendingCallbackMethods) {
           callbackMethod.callback(
@@ -55,11 +62,11 @@ class MindboxMethodHandler {
         }
         for (final operation in _pendingOperations) {
           channel.invokeMethod(operation.methodName, operation.parameters).then(
-                  (result) {
-                if (operation.successCallback != null) {
-                  operation.successCallback!(result);
-                }
-              }, onError: (e) {
+              (result) {
+            if (operation.successCallback != null) {
+              operation.successCallback!(result);
+            }
+          }, onError: (e) {
             if (operation.errorCallback != null) {
               final mindboxError = _convertToMindboxError(e);
               operation.errorCallback!(mindboxError);
@@ -71,8 +78,8 @@ class MindboxMethodHandler {
         _initialized = true;
       }
     } on PlatformException catch (e) {
-      throw MindboxException(
-          message: e.message ?? '', details: e.details ?? '');
+      throw MindboxInitializeError(
+          message: e.message ?? '', data: e.details ?? '');
     }
   }
 
@@ -158,8 +165,9 @@ class MindboxMethodHandler {
     final Map body = jsonDecode(exception.message ?? '');
     if (body.containsKey('type') && body.containsKey('data')) {
       final type = body['type'];
-      final data = body['data'];
-      final error = body['data']['errorMessage'] ?? '';
+      final Map data = body['data'];
+      final error =
+          data.containsKey('errorMessage') ? data['errorMessage'] : '';
       switch (type) {
         case 'MindboxError':
           switch (data['status']) {
@@ -193,8 +201,9 @@ class MindboxMethodHandler {
           return MindboxInternalError(message: error, data: data.toString());
         default:
           return MindboxUnknownError(
-              message: exception.message ??
-                  'Empty or unknown error type message', data: '');
+              message:
+                  exception.message ?? 'Empty or unknown error type message',
+              data: '');
       }
     } else {
       return MindboxInternalError(

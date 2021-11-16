@@ -9,10 +9,8 @@ Future mindboxMockMethodCallHandler(MethodCall methodCall) async {
       final String domain = args['domain'];
       final String endpointIos = args['endpointIos'];
       final String endpointAndroid = args['endpointAndroid'];
-      if (domain.isEmpty ||
-          endpointIos.isEmpty ||
-          endpointAndroid.isEmpty) {
-        throw MindboxException(message: 'wrong configuration');
+      if (domain.isEmpty || endpointIos.isEmpty || endpointAndroid.isEmpty) {
+        throw MindboxInitializeError(message: 'wrong configuration', data: '');
       }
       return Future.value(true);
     case 'getDeviceUUID':
@@ -22,7 +20,13 @@ Future mindboxMockMethodCallHandler(MethodCall methodCall) async {
     case 'executeSyncOperation':
       final String operationSystemName = methodCall.arguments[0];
       if (operationSystemName == 'dummy-invalid-system-name') {
-        throw MindboxException(message: 'Wrong operation system name');
+        throw MindboxProtocolError(
+            message: 'Operation dummy-invalid-system-name not found',
+            data:
+                '{httpStatusCode: 400, status: ProtocolError, errorId: '
+                    '819ef1a6-4a7e-44d6-b0ff-121fadbb4af2, errorMessage: '
+                    'Operation dummy-invalid-system-name not found}',
+            code: '400');
       }
       return Future.value('dummy-response');
     default:

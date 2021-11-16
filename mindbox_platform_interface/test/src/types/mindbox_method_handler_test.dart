@@ -60,7 +60,7 @@ void main() {
       );
 
       expect(() async => handler.init(configuration: invalidConfig),
-          throwsA(isA<MindboxException>()));
+          throwsA(isA<MindboxInitializeError>()));
     },
   );
 
