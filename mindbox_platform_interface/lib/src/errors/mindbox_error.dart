@@ -75,3 +75,11 @@ class MindboxInternalError extends MindboxError {
   }) : super(message: message, data: data);
 }
 
+/// Unknown error.
+class MindboxUnknownError extends MindboxError {
+  /// Constructs a MindboxUnknownError.
+  MindboxUnknownError({
+    required String message,
+    required String data,
+  }) : super(message: message, data: data);
+}

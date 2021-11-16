@@ -55,11 +55,11 @@ class MindboxMethodHandler {
         }
         for (final operation in _pendingOperations) {
           channel.invokeMethod(operation.methodName, operation.parameters).then(
-              (result) {
-            if (operation.successCallback != null) {
-              operation.successCallback!(result);
-            }
-          }, onError: (e) {
+                  (result) {
+                if (operation.successCallback != null) {
+                  operation.successCallback!(result);
+                }
+              }, onError: (e) {
             if (operation.errorCallback != null) {
               final mindboxError = _convertToMindboxError(e);
               operation.errorCallback!(mindboxError);
@@ -159,32 +159,46 @@ class MindboxMethodHandler {
     if (body.containsKey('type') && body.containsKey('data')) {
       final type = body['type'];
       final data = body['data'];
-      final error = body['data']['errorMessage'];
-      print(type);
-      print(data);
+      final error = body['data']['errorMessage'] ?? '';
       switch (type) {
         case 'MindboxError':
           switch (data['status']) {
-            // TODO(me): Validation
+            case 'ValidationError':
+              return MindboxValidationError(
+                message: error,
+                data: data.toString(),
+                code: data['httpStatusCode'].toString(),
+              );
             case 'ProtocolError':
               return MindboxProtocolError(
                 message: error,
                 data: data.toString(),
                 code: data['httpStatusCode'].toString(),
               );
-            // TODO(me): InternalServer
+            case 'InternalServerError':
+              return MindboxServerError(
+                message: error,
+                data: data.toString(),
+                code: data['httpStatusCode'].toString(),
+              );
             default:
-              return MindboxInternalError(
-                  message: 'Empty or unknown MindboxError status', data: '');
+              return MindboxUnknownError(
+                message: exception.message ?? 'Unknown MindboxError status',
+                data: '',
+              );
           }
         case 'NetworkError':
           return MindboxNetworkError(message: error, data: data.toString());
+        case 'InternalError':
+          return MindboxInternalError(message: error, data: data.toString());
         default:
-          return MindboxInternalError(message: 'Empty or unknown ', data: '');
+          return MindboxUnknownError(
+              message: exception.message ??
+                  'Empty or unknown error type message', data: '');
       }
     } else {
       return MindboxInternalError(
-          message: 'Empty or unknown error type message',
+          message: exception.message ?? 'Empty or unknown error type message',
           data: '');
     }
   }
