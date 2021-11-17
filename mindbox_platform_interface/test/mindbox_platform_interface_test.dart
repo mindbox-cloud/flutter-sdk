@@ -74,12 +74,12 @@ void main() {
 
     test(
         'Default implementation of executeSyncOperation() '
-            'should throw unimplemented error', () {
+        'should throw unimplemented error', () {
       expect(
-            () => mindboxPlatform.executeSyncOperation(
+        () => mindboxPlatform.executeSyncOperation(
             operationSystemName: 'dummy-name',
             operationBody: {'dummy-key': 'dummy-value'},
-            onSuccess: (success){}),
+            onSuccess: (success) {}),
         throwsUnimplementedError,
       );
     });

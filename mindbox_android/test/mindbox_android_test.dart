@@ -179,7 +179,7 @@ void main() {
 
   test(
     'When SDK was initialized, executeSyncOperation() should be invoked',
-        () async {
+    () async {
       final completer = Completer<String>();
 
       final validConfig = Configuration(
@@ -191,10 +191,10 @@ void main() {
 
       MindboxPlatform.instance
           .executeSyncOperation(
-        operationSystemName: 'dummy-name',
-        operationBody: {'dummy-key': 'dummy-value'},
-        onSuccess: (success) {},
-      )
+            operationSystemName: 'dummy-name',
+            operationBody: {'dummy-key': 'dummy-value'},
+            onSuccess: (success) {},
+          )
           .whenComplete(() => completer.complete('invoked'));
 
       await MindboxPlatform.instance.init(configuration: validConfig);
@@ -205,15 +205,15 @@ void main() {
 
   test(
     'When SDK not initialized, executeSyncOperation() should not be invoked',
-        () async {
+    () async {
       final completer = Completer<String>();
 
       MindboxPlatform.instance
           .executeSyncOperation(
-        operationSystemName: 'dummy-name',
-        operationBody: {'dummy-key': 'dummy-value'},
-        onSuccess: (success) {},
-      )
+            operationSystemName: 'dummy-name',
+            operationBody: {'dummy-key': 'dummy-value'},
+            onSuccess: (success) {},
+          )
           .whenComplete(() => completer.complete('invoked'));
 
       expect(completer.isCompleted, isFalse);
@@ -222,8 +222,8 @@ void main() {
 
   test(
     'When no errors occur during execution, executeSyncOperation() should '
-        'return success response',
-        () async {
+    'return success response',
+    () async {
       final completer = Completer<String>();
 
       MindboxPlatform.instance.executeSyncOperation(
@@ -248,8 +248,8 @@ void main() {
 
   test(
     'When validation data is incorrect, executeSyncOperation() should throw'
-        'MindboxValidationError to onError callback',
-        () async {
+    'MindboxValidationError to onError callback',
+    () async {
       final completer = Completer<Exception>();
 
       final validConfig = Configuration(
@@ -274,8 +274,8 @@ void main() {
 
   test(
     'When operation data is incorrect, executeSyncOperation() should throw'
-        'MindboxProtocolError to onError callback',
-        () async {
+    'MindboxProtocolError to onError callback',
+    () async {
       final completer = Completer<Exception>();
 
       final validConfig = Configuration(
@@ -300,8 +300,8 @@ void main() {
 
   test(
     'When server returns internal error, executeSyncOperation() should throw'
-        'MindboxServerError to onError callback',
-        () async {
+    'MindboxServerError to onError callback',
+    () async {
       final completer = Completer<Exception>();
 
       final validConfig = Configuration(
@@ -326,8 +326,8 @@ void main() {
 
   test(
     'When network error occurred, executeSyncOperation() should '
-        'return MindboxNetworkError to onError callback',
-        () async {
+    'return MindboxNetworkError to onError callback',
+    () async {
       final completer = Completer<Exception>();
 
       final validConfig = Configuration(
@@ -352,8 +352,8 @@ void main() {
 
   test(
     'When Mindbox SDK internal error occurred, executeSyncOperation() should '
-        'return MindboxInternalError to onError callback',
-        () async {
+    'return MindboxInternalError to onError callback',
+    () async {
       final completer = Completer<Exception>();
 
       final validConfig = Configuration(
@@ -378,9 +378,9 @@ void main() {
 
   test(
     'When response data from native Mindbox SDK is empty or null , '
-        'executeSyncOperation() should return MindboxInternalError '
-        'to onError callback',
-        () async {
+    'executeSyncOperation() should return MindboxInternalError '
+    'to onError callback',
+    () async {
       final completer = Completer<Exception>();
 
       final validConfig = Configuration(

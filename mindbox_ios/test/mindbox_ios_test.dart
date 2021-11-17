@@ -18,14 +18,14 @@ void main() {
 
   test(
     'getPlatformVersion',
-        () async {
+    () async {
       expect(await MindboxPlatform.instance.sdkVersion, 'dummy-sdk-version');
     },
   );
 
   test(
     'init()',
-        () async {
+    () async {
       final completer = Completer<String>();
 
       final validConfig = Configuration(
@@ -45,7 +45,7 @@ void main() {
 
   test(
     'When config is invalid, init() calling should throws MindboxException',
-        () async {
+    () async {
       final invalidConfig = Configuration(
         domain: '',
         endpointIos: '',
@@ -54,7 +54,7 @@ void main() {
       );
 
       expect(
-              () async =>
+          () async =>
               MindboxPlatform.instance.init(configuration: invalidConfig),
           throwsA(isA<MindboxInitializeError>()));
     },
@@ -62,7 +62,7 @@ void main() {
 
   test(
     'When SDK was initialized, getDeviceUUID() should return device uuid',
-        () async {
+    () async {
       final completer = Completer<String>();
 
       MindboxPlatform.instance
@@ -83,8 +83,8 @@ void main() {
 
   test(
     'When SDK was not initialized, getDeviceUUID() should not return '
-        'device uuid',
-        () async {
+    'device uuid',
+    () async {
       final completer = Completer<String>();
 
       MindboxPlatform.instance
@@ -96,7 +96,7 @@ void main() {
 
   test(
     'When SDK was initialized, getToken() should return token',
-        () async {
+    () async {
       final completer = Completer<String>();
 
       MindboxPlatform.instance
@@ -117,7 +117,7 @@ void main() {
 
   test(
     'When SDK was not initialized, getToken() should not return token',
-        () async {
+    () async {
       final completer = Completer<String>();
 
       MindboxPlatform.instance
@@ -129,7 +129,7 @@ void main() {
 
   test(
     'onPushClickReceived()',
-        () async {
+    () async {
       StubMindboxPlatform.registerPlatform();
       final completer = Completer<String>();
 
@@ -142,7 +142,7 @@ void main() {
 
   test(
     'When SDK was initialized, executeAsyncOperation() should be invoked',
-        () async {
+    () async {
       final completer = Completer<String>();
 
       final validConfig = Configuration(
@@ -165,7 +165,7 @@ void main() {
 
   test(
     'When SDK not initialized, executeAsyncOperation() should not be invoked',
-        () async {
+    () async {
       final completer = Completer<String>();
 
       MindboxPlatform.instance.executeAsyncOperation(
@@ -179,7 +179,7 @@ void main() {
 
   test(
     'When SDK was initialized, executeSyncOperation() should be invoked',
-        () async {
+    () async {
       final completer = Completer<String>();
 
       final validConfig = Configuration(
@@ -191,10 +191,10 @@ void main() {
 
       MindboxPlatform.instance
           .executeSyncOperation(
-        operationSystemName: 'dummy-name',
-        operationBody: {'dummy-key': 'dummy-value'},
-        onSuccess: (success) {},
-      )
+            operationSystemName: 'dummy-name',
+            operationBody: {'dummy-key': 'dummy-value'},
+            onSuccess: (success) {},
+          )
           .whenComplete(() => completer.complete('invoked'));
 
       await MindboxPlatform.instance.init(configuration: validConfig);
@@ -205,15 +205,15 @@ void main() {
 
   test(
     'When SDK not initialized, executeSyncOperation() should not be invoked',
-        () async {
+    () async {
       final completer = Completer<String>();
 
       MindboxPlatform.instance
           .executeSyncOperation(
-        operationSystemName: 'dummy-name',
-        operationBody: {'dummy-key': 'dummy-value'},
-        onSuccess: (success) {},
-      )
+            operationSystemName: 'dummy-name',
+            operationBody: {'dummy-key': 'dummy-value'},
+            onSuccess: (success) {},
+          )
           .whenComplete(() => completer.complete('invoked'));
 
       expect(completer.isCompleted, isFalse);
@@ -222,8 +222,8 @@ void main() {
 
   test(
     'When no errors occur during execution, executeSyncOperation() should '
-        'return success response',
-        () async {
+    'return success response',
+    () async {
       final completer = Completer<String>();
 
       MindboxPlatform.instance.executeSyncOperation(
@@ -248,8 +248,8 @@ void main() {
 
   test(
     'When validation data is incorrect, executeSyncOperation() should throw'
-        'MindboxValidationError to onError callback',
-        () async {
+    'MindboxValidationError to onError callback',
+    () async {
       final completer = Completer<Exception>();
 
       final validConfig = Configuration(
@@ -274,8 +274,8 @@ void main() {
 
   test(
     'When operation data is incorrect, executeSyncOperation() should throw'
-        'MindboxProtocolError to onError callback',
-        () async {
+    'MindboxProtocolError to onError callback',
+    () async {
       final completer = Completer<Exception>();
 
       final validConfig = Configuration(
@@ -300,8 +300,8 @@ void main() {
 
   test(
     'When server returns internal error, executeSyncOperation() should throw'
-        'MindboxServerError to onError callback',
-        () async {
+    'MindboxServerError to onError callback',
+    () async {
       final completer = Completer<Exception>();
 
       final validConfig = Configuration(
@@ -326,8 +326,8 @@ void main() {
 
   test(
     'When network error occurred, executeSyncOperation() should '
-        'return MindboxNetworkError to onError callback',
-        () async {
+    'return MindboxNetworkError to onError callback',
+    () async {
       final completer = Completer<Exception>();
 
       final validConfig = Configuration(
@@ -352,8 +352,8 @@ void main() {
 
   test(
     'When Mindbox SDK internal error occurred, executeSyncOperation() should '
-        'return MindboxInternalError to onError callback',
-        () async {
+    'return MindboxInternalError to onError callback',
+    () async {
       final completer = Completer<Exception>();
 
       final validConfig = Configuration(
@@ -378,9 +378,9 @@ void main() {
 
   test(
     'When response data from native Mindbox SDK is empty or null , '
-        'executeSyncOperation() should return MindboxInternalError '
-        'to onError callback',
-        () async {
+    'executeSyncOperation() should return MindboxInternalError '
+    'to onError callback',
+    () async {
       final completer = Completer<Exception>();
 
       final validConfig = Configuration(
