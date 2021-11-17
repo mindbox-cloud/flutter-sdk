@@ -84,6 +84,25 @@ class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                     Mindbox.executeAsyncOperation(context, args[0] as String, args[1] as String)
                 }
             }
+            "executeSyncOperation" -> {
+                if (call.arguments is List<*>) {
+                    val args = call.arguments as List<*>
+                    Mindbox.executeSyncOperation(
+                        context,
+                        args[0] as String,
+                        args[1] as String,
+                        { response ->
+                            result.success(response)
+                        },
+                        { error ->
+                            result.error(
+                                error.statusCode.toString(),
+                                error.toJson(),
+                                null
+                            )
+                        })
+                }
+            }
             else -> {
                 result.notImplemented()
             }

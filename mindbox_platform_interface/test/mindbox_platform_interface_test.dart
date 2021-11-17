@@ -71,6 +71,20 @@ void main() {
         throwsUnimplementedError,
       );
     });
+
+    test(
+        'Default implementation of executeSyncOperation() '
+        'should throw unimplemented error', () {
+      expect(
+        () => mindboxPlatform.executeSyncOperation(
+          operationSystemName: 'dummy-name',
+          operationBody: {'dummy-key': 'dummy-value'},
+          onSuccess: (success) {},
+          onError: (error) {},
+        ),
+        throwsUnimplementedError,
+      );
+    });
   });
 }
 
