@@ -1,39 +1,16 @@
 import 'dart:async';
 
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mindbox/mindbox.dart';
 import 'package:mindbox_ios/mindbox_ios.dart';
 import 'package:mindbox_platform_interface/mindbox_platform_interface.dart';
 
 void main() {
-  const MethodChannel channel = MethodChannel('mindbox.cloud/flutter-sdk');
-
   TestWidgetsFlutterBinding.ensureInitialized();
 
   setUp(() {
     MindboxIosPlatform.registerPlatform();
-    channel.setMockMethodCallHandler((MethodCall methodCall) async {
-      switch (methodCall.method) {
-        case 'init':
-          final args = methodCall.arguments;
-          final String domain = args['domain'];
-          final String endpointIos = args['endpointIos'];
-          final String endpointAndroid = args['endpointAndroid'];
-          if (domain.isEmpty ||
-              endpointIos.isEmpty ||
-              endpointAndroid.isEmpty) {
-            throw MindboxException(message: 'wrong configuration');
-          }
-          return Future.value(true);
-        case 'getDeviceUUID':
-          return Future.value('dummy-device-uuid');
-        case 'getToken':
-          return Future.value('dummy-token');
-        default:
-          return '1.2.0';
-      }
-    });
+    channel.setMockMethodCallHandler(mindboxMockMethodCallHandler);
   });
 
   tearDown(() {
@@ -41,7 +18,7 @@ void main() {
   });
 
   test('getPlatformVersion', () async {
-    expect(await Mindbox.instance.sdkVersion, '1.2.0');
+    expect(await Mindbox.instance.sdkVersion, 'dummy-sdk-version');
   });
 
   test('init()', () async {
@@ -63,7 +40,7 @@ void main() {
         subscribeCustomerIfCreated: true);
 
     expect(() async => Mindbox.instance.init(configuration: invalidConfig),
-        throwsA(isA<MindboxException>()));
+        throwsA(isA<MindboxInitializeError>()));
   });
 
   test('When SDK was initialized, getDeviceUUID() should return device uuid',
