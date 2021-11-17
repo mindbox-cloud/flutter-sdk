@@ -136,7 +136,7 @@ class MindboxMethodHandler {
     required String operationSystemName,
     required Map<String, dynamic> operationBody,
     required Function(String success) onSuccess,
-    Function(MindboxError)? onError,
+    required Function(MindboxError) onError,
   }) async {
     if (_initialized) {
       channel.invokeMethod('executeSyncOperation', [
@@ -145,10 +145,8 @@ class MindboxMethodHandler {
       ]).then((result) {
         onSuccess(result);
       }, onError: (e) {
-        if (onError != null) {
-          final mindboxError = _convertPlatformExceptionToMindboxError(e);
-          onError(mindboxError);
-        }
+        final mindboxError = _convertPlatformExceptionToMindboxError(e);
+        onError(mindboxError);
       });
     } else {
       _pendingOperations.add(_PendingOperations(

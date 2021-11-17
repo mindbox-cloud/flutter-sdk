@@ -195,6 +195,7 @@ void main() {
             operationSystemName: 'dummy-name',
             operationBody: {'dummy-key': 'dummy-value'},
             onSuccess: (success) {},
+            onError: (error) {},
           )
           .whenComplete(() => completer.complete('invoked'));
 
@@ -214,6 +215,7 @@ void main() {
             operationSystemName: 'dummy-name',
             operationBody: {'dummy-key': 'dummy-value'},
             onSuccess: (success) {},
+            onError: (error) {},
           )
           .whenComplete(() => completer.complete('invoked'));
 

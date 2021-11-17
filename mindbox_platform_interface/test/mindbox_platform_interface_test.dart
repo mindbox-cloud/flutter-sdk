@@ -77,9 +77,11 @@ void main() {
         'should throw unimplemented error', () {
       expect(
         () => mindboxPlatform.executeSyncOperation(
-            operationSystemName: 'dummy-name',
-            operationBody: {'dummy-key': 'dummy-value'},
-            onSuccess: (success) {}),
+          operationSystemName: 'dummy-name',
+          operationBody: {'dummy-key': 'dummy-value'},
+          onSuccess: (success) {},
+          onError: (error) {},
+        ),
         throwsUnimplementedError,
       );
     });

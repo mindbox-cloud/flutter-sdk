@@ -84,8 +84,8 @@ class Mindbox {
   void executeSyncOperation({
     required String operationSystemName,
     required Map<String, dynamic> operationBody,
-    required Function(String success) onSuccess,
-    Function(MindboxError)? onError,
+    required Function(String response) onSuccess,
+    required Function(MindboxError error) onError,
   }) async {
     MindboxPlatform.instance.executeSyncOperation(
       operationSystemName: operationSystemName,

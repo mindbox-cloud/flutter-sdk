@@ -57,8 +57,8 @@ class MindboxIosPlatform extends MindboxPlatform {
   Future<void> executeSyncOperation({
     required String operationSystemName,
     required Map<String, dynamic> operationBody,
-    required Function(String succes) onSuccess,
-    Function(MindboxError)? onError,
+    required Function(String response) onSuccess,
+    required Function(MindboxError error) onError,
   }) async {
     _methodHandler.executeSyncOperation(
       operationSystemName: operationSystemName,

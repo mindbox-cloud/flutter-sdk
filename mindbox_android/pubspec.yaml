@@ -1,8 +1,9 @@
 name: mindbox_android
-description: An implementation of 'mindbox' plugin for the Android platform.
-version: 0.2.0
+description: The implementation of 'mindbox' plugin for the Android platform.
+version: 1.0.0
 homepage: https://mindbox.cloud/
 repository: https://github.com/mindbox-moscow/flutter-sdk/tree/master/mindbox_android
+#TODO remove before release
 publish_to: none
 
 environment:
