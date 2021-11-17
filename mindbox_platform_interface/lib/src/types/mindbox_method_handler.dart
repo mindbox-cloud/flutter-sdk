@@ -53,7 +53,7 @@ class MindboxMethodHandler {
               message: 'Initialization error',
               data:
                   'Try to invoke \'WidgetsFlutterBinding.ensureInitialized()\' '
-                      'before initialization.');
+                  'before initialization.');
         }
         await channel.invokeMethod('init', configuration.toMap());
         for (final callbackMethod in _pendingCallbackMethods) {
@@ -68,7 +68,7 @@ class MindboxMethodHandler {
             }
           }, onError: (e) {
             if (operation.errorCallback != null) {
-              final mindboxError = _convertToMindboxError(e);
+              final mindboxError = _convertPlatformExceptionToMindboxError(e);
               operation.errorCallback!(mindboxError);
             }
           });
@@ -146,7 +146,7 @@ class MindboxMethodHandler {
         onSuccess(result);
       }, onError: (e) {
         if (onError != null) {
-          final mindboxError = _convertToMindboxError(e);
+          final mindboxError = _convertPlatformExceptionToMindboxError(e);
           onError(mindboxError);
         }
       });
@@ -160,55 +160,66 @@ class MindboxMethodHandler {
     }
   }
 
-  MindboxError _convertToMindboxError(dynamic e) {
+  MindboxError _convertPlatformExceptionToMindboxError(dynamic e) {
     final PlatformException exception = e;
-    final Map body = jsonDecode(exception.message ?? '');
-    if (body.containsKey('type') && body.containsKey('data')) {
-      final type = body['type'];
-      final Map data = body['data'];
-      final error =
-          data.containsKey('errorMessage') ? data['errorMessage'] : '';
+    Map response;
+    if (exception.message == null || exception.message == '') {
+      return MindboxInternalError(
+          message: 'Empty or null error message', data: '');
+    }
+    try {
+      response = jsonDecode(exception.message!);
+    } on FormatException catch (e) {
+      return MindboxInternalError(message: e.message, data: '');
+    } on Exception {
+      return MindboxInternalError(message: 'Data parsing error', data: '');
+    }
+    if (response.containsKey('type') && response.containsKey('data')) {
+      final type = response['type'];
+      final Map data = response['data'];
       switch (type) {
         case 'MindboxError':
           switch (data['status']) {
             case 'ValidationError':
               return MindboxValidationError(
-                message: error,
+                message: data['validationMessages'].toString(),
                 data: data.toString(),
-                code: data['httpStatusCode'].toString(),
+                code: '200',
               );
             case 'ProtocolError':
               return MindboxProtocolError(
-                message: error,
+                message: data['errorMessage'].toString(),
                 data: data.toString(),
                 code: data['httpStatusCode'].toString(),
               );
             case 'InternalServerError':
               return MindboxServerError(
-                message: error,
+                message: data['errorMessage'].toString(),
                 data: data.toString(),
                 code: data['httpStatusCode'].toString(),
               );
             default:
-              return MindboxUnknownError(
-                message: exception.message ?? 'Unknown MindboxError status',
-                data: '',
+              return MindboxInternalError(
+                message: 'Unknown error status',
+                data: data.toString(),
               );
           }
         case 'NetworkError':
-          return MindboxNetworkError(message: error, data: data.toString());
+          return MindboxNetworkError(
+              message: data['errorMessage'].toString(), data: data.toString());
         case 'InternalError':
-          return MindboxInternalError(message: error, data: data.toString());
+          return MindboxInternalError(
+              message: data['errorMessage'].toString(), data: data.toString());
         default:
-          return MindboxUnknownError(
-              message:
-                  exception.message ?? 'Empty or unknown error type message',
-              data: '');
+          return MindboxInternalError(
+            message: 'Empty or unknown error type',
+            data: data.toString(),
+          );
       }
     } else {
       return MindboxInternalError(
-          message: exception.message ?? 'Empty or unknown error type message',
-          data: '');
+          message: 'Response does not contain the required keys',
+          data: exception.message!);
     }
   }
 }

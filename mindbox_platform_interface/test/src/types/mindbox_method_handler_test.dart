@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mindbox_platform_interface/mindbox_platform_interface.dart';
 import 'package:mindbox_platform_interface/src/channel.dart';
-import 'package:mindbox_platform_interface/src/mindbox_mock_method_call_handler.dart';
 import 'package:mindbox_platform_interface/src/types/mindbox_method_handler.dart';
+import 'package:mindbox_platform_interface/src/types/mindbox_mock_method_call_handler.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -209,19 +209,21 @@ void main() {
     () async {
       final completer = Completer<String>();
 
-      handler.executeSyncOperation(
-        operationSystemName: 'dummy-name',
-        operationBody: {'dummy-key': 'dummy-value'},
-        onSuccess: (success) {},
-      ).whenComplete(() => completer.complete('invoked'));
+      handler
+          .executeSyncOperation(
+            operationSystemName: 'dummy-name',
+            operationBody: {'dummy-key': 'dummy-value'},
+            onSuccess: (success) {},
+          )
+          .whenComplete(() => completer.complete('invoked'));
 
       expect(completer.isCompleted, isFalse);
     },
   );
 
   test(
-    'When operationSystemName is valid, executeSyncOperation() should return'
-    'success response',
+    'When no errors occur during execution, executeSyncOperation() should '
+    'return success response',
     () async {
       final completer = Completer<String>();
 
@@ -229,6 +231,7 @@ void main() {
         operationSystemName: 'dummy-valid-name',
         operationBody: {'dummy-key': 'dummy-value'},
         onSuccess: (response) => completer.complete(response),
+        onError: (error) => completer.complete(error.toString()),
       );
 
       final validConfig = Configuration(
@@ -245,8 +248,8 @@ void main() {
   );
 
   test(
-    'When operationSystemName is invalid, executeSyncOperation() should return'
-    'error',
+    'When validation data is incorrect, executeSyncOperation() should throw'
+    'MindboxValidationError to onError callback',
     () async {
       final completer = Completer<Exception>();
 
@@ -260,12 +263,144 @@ void main() {
       await handler.init(configuration: validConfig);
 
       handler.executeSyncOperation(
-          operationSystemName: 'dummy-invalid-system-name',
-          operationBody: {'dummy-key': 'dummy-value'},
-          onSuccess: (success) {},
-          onError: (error) => completer.completeError(error));
+        operationSystemName: 'dummy-validation-error',
+        operationBody: {'dummy-key': 'dummy-value'},
+        onSuccess: (success) {},
+        onError: (error) => completer.completeError(error),
+      );
+
+      expect(() => completer.future, throwsA(isA<MindboxValidationError>()));
+    },
+  );
+
+  test(
+    'When operation data is incorrect, executeSyncOperation() should throw'
+    'MindboxProtocolError to onError callback',
+    () async {
+      final completer = Completer<Exception>();
+
+      final validConfig = Configuration(
+        domain: 'domain',
+        endpointIos: 'endpointIos',
+        endpointAndroid: 'endpointAndroid',
+        subscribeCustomerIfCreated: true,
+      );
+
+      await handler.init(configuration: validConfig);
+
+      handler.executeSyncOperation(
+        operationSystemName: 'dummy-invalid-system-name',
+        operationBody: {'dummy-key': 'dummy-value'},
+        onSuccess: (success) {},
+        onError: (error) => completer.completeError(error),
+      );
 
       expect(() => completer.future, throwsA(isA<MindboxProtocolError>()));
+    },
+  );
+
+  test(
+    'When server returns internal error, executeSyncOperation() should throw'
+    'MindboxServerError to onError callback',
+    () async {
+      final completer = Completer<Exception>();
+
+      final validConfig = Configuration(
+        domain: 'domain',
+        endpointIos: 'endpointIos',
+        endpointAndroid: 'endpointAndroid',
+        subscribeCustomerIfCreated: true,
+      );
+
+      await handler.init(configuration: validConfig);
+
+      handler.executeSyncOperation(
+        operationSystemName: 'dummy-server-error',
+        operationBody: {'dummy-key': 'dummy-value'},
+        onSuccess: (success) {},
+        onError: (error) => completer.completeError(error),
+      );
+
+      expect(() => completer.future, throwsA(isA<MindboxServerError>()));
+    },
+  );
+
+  test(
+    'When network error occurred, executeSyncOperation() should '
+    'return MindboxNetworkError to onError callback',
+    () async {
+      final completer = Completer<Exception>();
+
+      final validConfig = Configuration(
+        domain: 'domain',
+        endpointIos: 'endpointIos',
+        endpointAndroid: 'endpointAndroid',
+        subscribeCustomerIfCreated: true,
+      );
+
+      await handler.init(configuration: validConfig);
+
+      handler.executeSyncOperation(
+        operationSystemName: 'dummy-network-error',
+        operationBody: {'dummy-key': 'dummy-value'},
+        onSuccess: (success) {},
+        onError: (error) => completer.completeError(error),
+      );
+
+      expect(() => completer.future, throwsA(isA<MindboxNetworkError>()));
+    },
+  );
+
+  test(
+    'When Mindbox SDK internal error occurred, executeSyncOperation() should '
+    'return MindboxInternalError to onError callback',
+    () async {
+      final completer = Completer<Exception>();
+
+      final validConfig = Configuration(
+        domain: 'domain',
+        endpointIos: 'endpointIos',
+        endpointAndroid: 'endpointAndroid',
+        subscribeCustomerIfCreated: true,
+      );
+
+      await handler.init(configuration: validConfig);
+
+      handler.executeSyncOperation(
+        operationSystemName: 'dummy-internal-error',
+        operationBody: {'dummy-key': 'dummy-value'},
+        onSuccess: (success) {},
+        onError: (error) => completer.completeError(error),
+      );
+
+      expect(() => completer.future, throwsA(isA<MindboxInternalError>()));
+    },
+  );
+
+  test(
+    'When response data from native Mindbox SDK is empty or null , '
+    'executeSyncOperation() should return MindboxInternalError '
+    'to onError callback',
+    () async {
+      final completer = Completer<Exception>();
+
+      final validConfig = Configuration(
+        domain: 'domain',
+        endpointIos: 'endpointIos',
+        endpointAndroid: 'endpointAndroid',
+        subscribeCustomerIfCreated: true,
+      );
+
+      await handler.init(configuration: validConfig);
+
+      handler.executeSyncOperation(
+        operationSystemName: 'dummy-null-error-message',
+        operationBody: {'dummy-key': 'dummy-value'},
+        onSuccess: (success) {},
+        onError: (error) => completer.completeError(error),
+      );
+
+      expect(() => completer.future, throwsA(isA<MindboxInternalError>()));
     },
   );
 }
