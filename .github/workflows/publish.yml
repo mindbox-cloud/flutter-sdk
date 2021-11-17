@@ -1,10 +1,11 @@
 name: publish
 
 on:
-  push:
+  pull_request:
+    types: [closed]
     branches:
       - master
-
+      
 jobs:
   publish:
     timeout-minutes: 4
