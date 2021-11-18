@@ -8,6 +8,7 @@ on:
 
 jobs:
   publish:
+    if: github.event.pull_request.merged
     timeout-minutes: 4
     runs-on: ubuntu-latest
     name: ${{ matrix.package }} publishing
