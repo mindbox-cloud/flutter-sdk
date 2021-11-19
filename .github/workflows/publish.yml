@@ -2,7 +2,8 @@ name: publish
 
 on:
   push:
-      
+    branches:
+      - master      
 jobs:
   publish:
     if: github.event.pull_request.merged
