@@ -1,8 +1,9 @@
 name: mindbox
-description: Flutter Mindbox SDK.
-version: 0.2.0
+description: Flutter Mindbox SDK. Plugin wrapper over of Mindbox iOS/Android SDK.
+version: 1.0.0
 homepage: https://mindbox.cloud/
 repository: https://github.com/mindbox-moscow/flutter-sdk/tree/master/mindbox
+#TODO remove before release
 publish_to: none
 
 environment:

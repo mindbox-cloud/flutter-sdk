@@ -83,6 +83,16 @@ public class SwiftMindboxIosPlugin: NSObject, FlutterPlugin {
             let args: [String] = call.arguments as! Array<String>
             Mindbox.shared.executeAsyncOperation(operationSystemName: args[0], json: args[1])
             result("executed")
+        case "executeSyncOperation":
+            let args: [String] = call.arguments as! Array<String>
+            Mindbox.shared.executeSyncOperation(operationSystemName: args[0], json: args[1]) { response in
+                switch response {
+                case .success(let resultSuccess):
+                    result(resultSuccess.createJSON())
+                case .failure(let resultError):
+                    result(FlutterError(code: "-1", message: resultError.createJSON(), details: nil))
+                }
+            }
         default:
             result(FlutterMethodNotImplemented)
         }
