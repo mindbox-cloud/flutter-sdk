@@ -28,19 +28,7 @@ void main() {
         endpointAndroid: 'endpointAndroid',
         subscribeCustomerIfCreated: true);
 
-    await Mindbox.instance.init(configuration: validConfig);
-  });
-
-  test('When config is invalid, init() calling should throws MindboxException',
-      () async {
-    final invalidConfig = Configuration(
-        domain: '',
-        endpointIos: '',
-        endpointAndroid: '',
-        subscribeCustomerIfCreated: true);
-
-    expect(() async => Mindbox.instance.init(configuration: invalidConfig),
-        throwsA(isA<MindboxInitializeError>()));
+    Mindbox.instance.init(configuration: validConfig);
   });
 
   test('When SDK was initialized, getDeviceUUID() should return device uuid',
@@ -55,9 +43,8 @@ void main() {
         endpointAndroid: 'endpointAndroid',
         subscribeCustomerIfCreated: true);
 
-    await Mindbox.instance.init(configuration: validConfig);
+    Mindbox.instance.init(configuration: validConfig);
 
-    expect(completer.isCompleted, isTrue);
     expect(await completer.future, equals('dummy-device-uuid'));
   });
 
@@ -82,9 +69,8 @@ void main() {
         endpointAndroid: 'endpointAndroid',
         subscribeCustomerIfCreated: true);
 
-    await Mindbox.instance.init(configuration: validConfig);
+    Mindbox.instance.init(configuration: validConfig);
 
-    expect(completer.isCompleted, isTrue);
     expect(await completer.future, equals('dummy-token'));
   });
 
@@ -103,7 +89,6 @@ void main() {
 
     Mindbox.instance.onPushClickReceived((url) => completer.complete(url));
 
-    expect(completer.isCompleted, isTrue);
     expect(await completer.future, equals('dummy-url'));
   });
 }

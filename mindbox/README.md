@@ -25,7 +25,7 @@ to follow the steps specified in the guide:
 // Import `mindbox.dart`
 import 'package:mindbox/mindbox.dart';
 
-void main() async {
+void main() {
    WidgetsFlutterBinding.ensureInitialized();
    // Initialization configuration
    final config = Configuration(
@@ -34,7 +34,7 @@ void main() async {
            endpointAndroid: "Android endpoint",
            subscribeCustomerIfCreated: true);
    // Initialization
-   await Mindbox.instance.init(configuration: config);
+   Mindbox.instance.init(configuration: config);
 
    runApp(MyApp());
 }

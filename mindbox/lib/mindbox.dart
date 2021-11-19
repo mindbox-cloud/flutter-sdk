@@ -44,8 +44,8 @@ class Mindbox {
   /// Initializes the SDK for further work
   ///
   /// Read more about parameter [Configuration].
-  Future<void> init({required Configuration configuration}) async {
-    await MindboxPlatform.instance.init(configuration: configuration);
+  void init({required Configuration configuration}) {
+    MindboxPlatform.instance.init(configuration: configuration);
   }
 
   /// Method to obtain device UUID.
