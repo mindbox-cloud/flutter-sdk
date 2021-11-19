@@ -56,4 +56,14 @@ abstract class MindboxPlatform {
   }) =>
       throw UnimplementedError(
           'onPushClickReceived() has not been implemented.');
+
+  /// Method for executing an operation synchronously.
+  Future<void> executeSyncOperation({
+    required String operationSystemName,
+    required Map<String, dynamic> operationBody,
+    required Function(String response) onSuccess,
+    required Function(MindboxError error) onError,
+  }) =>
+      throw UnimplementedError(
+          'executeSyncOperation() has not been implemented.');
 }

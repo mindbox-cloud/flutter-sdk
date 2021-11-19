@@ -4,12 +4,11 @@ This plugin is a wrapper over the native Mindbox([iOS](https://github.com/mindbo
 [Android](https://github.com/mindbox-moscow/android-sdk)) libraries that allows to
 receive and handle push notifications.
 
-> Flutter Mindbox plugin is in beta.
->
 ## Features
 
 * Receive and show push notification in both mobile platforms.
 * Receive push notification data(links) in Flutter.
+* Execute sync/async operations
 
 ## Getting started
 
@@ -83,6 +82,25 @@ Mindbox.instance.getDeviceUUID((uuid) {
 ```dart
 Mindbox.instance.executeAsyncOperation(
   operationSystemName: 'operationName',
-  operationBody: {},
+  operationBody: {'example': 'body'},
+);
+```
+
+### Execute sync operation
+
+```dart
+Mindbox.instance.executeSyncOperation(
+  operationSystemName: 'operationName',
+  operationBody: {'example': 'body'},
+  onSuccess: (String response) {
+    jsonDecode(response);
+  },
+  onError: (MindboxError error){
+    if (error is MindboxProtocolError) {
+      print(error.code);
+    }
+    print(error.message);
+    jsonDecode(error.data);
+  },
 );
 ```

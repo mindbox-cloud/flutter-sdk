@@ -58,12 +58,8 @@ class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                         .subscribeCustomerIfCreated(subscribeIfCreated)
                         .shouldCreateCustomer(shouldCreateCustomer)
                         .build()
-                    try {
-                        Mindbox.init(context, config)
-                        result.success("initialized")
-                    } catch (e: Exception) {
-                        result.error("-1", e.message, e.localizedMessage)
-                    }
+                    Mindbox.init(context, config)
+                    result.success("initialized")
                 } else {
                     result.error("-1", "Initialization error", "Wrong argument type")
                 }
@@ -82,6 +78,26 @@ class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                 if (call.arguments is List<*>) {
                     val args = call.arguments as List<*>
                     Mindbox.executeAsyncOperation(context, args[0] as String, args[1] as String)
+                    result.success("executed")
+                }
+            }
+            "executeSyncOperation" -> {
+                if (call.arguments is List<*>) {
+                    val args = call.arguments as List<*>
+                    Mindbox.executeSyncOperation(
+                        context,
+                        args[0] as String,
+                        args[1] as String,
+                        { response ->
+                            result.success(response)
+                        },
+                        { error ->
+                            result.error(
+                                error.statusCode.toString(),
+                                error.toJson(),
+                                null
+                            )
+                        })
                 }
             }
             else -> {

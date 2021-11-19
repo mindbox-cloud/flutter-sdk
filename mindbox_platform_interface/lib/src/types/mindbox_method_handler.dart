@@ -48,6 +48,13 @@ class MindboxMethodHandler {
   Future<void> init({required Configuration configuration}) async {
     try {
       if (!_initialized) {
+        if (ServicesBinding.instance == null) {
+          throw MindboxInitializeError(
+              message: 'Initialization error',
+              data:
+                  'Try to invoke \'WidgetsFlutterBinding.ensureInitialized()\' '
+                  'before initialization.');
+        }
         await channel.invokeMethod('init', configuration.toMap());
         for (final callbackMethod in _pendingCallbackMethods) {
           callbackMethod.callback(
@@ -55,17 +62,14 @@ class MindboxMethodHandler {
         }
         for (final operation in _pendingOperations) {
           channel.invokeMethod(operation.methodName, operation.parameters).then(
-                  (result) {
-                if (operation.successCallback != null) {
-                  operation.successCallback!(result);
-                }
-              }, onError: (e) {
+              (result) {
+            if (operation.successCallback != null) {
+              operation.successCallback!(result);
+            }
+          }, onError: (e) {
             if (operation.errorCallback != null) {
-              final exception = MindboxException(
-                  message: e.message ?? 'empty',
-                  code: e.code,
-                  details: e.details);
-              operation.errorCallback!(exception);
+              final mindboxError = _convertPlatformExceptionToMindboxError(e);
+              operation.errorCallback!(mindboxError);
             }
           });
         }
@@ -74,8 +78,8 @@ class MindboxMethodHandler {
         _initialized = true;
       }
     } on PlatformException catch (e) {
-      throw MindboxException(
-          message: e.message ?? '', details: e.details ?? '');
+      throw MindboxInitializeError(
+          message: e.message ?? '', data: e.details ?? '');
     }
   }
 
@@ -124,6 +128,96 @@ class MindboxMethodHandler {
         methodName: 'executeAsyncOperation',
         parameters: [operationSystemName, jsonEncode(operationBody)],
       ));
+    }
+  }
+
+  /// Method for executing an operation synchronously.
+  Future<void> executeSyncOperation({
+    required String operationSystemName,
+    required Map<String, dynamic> operationBody,
+    required Function(String success) onSuccess,
+    required Function(MindboxError) onError,
+  }) async {
+    if (_initialized) {
+      channel.invokeMethod('executeSyncOperation', [
+        operationSystemName,
+        jsonEncode(operationBody),
+      ]).then((result) {
+        onSuccess(result);
+      }, onError: (e) {
+        final mindboxError = _convertPlatformExceptionToMindboxError(e);
+        onError(mindboxError);
+      });
+    } else {
+      _pendingOperations.add(_PendingOperations(
+        methodName: 'executeSyncOperation',
+        parameters: [operationSystemName, jsonEncode(operationBody)],
+        successCallback: onSuccess,
+        errorCallback: onError,
+      ));
+    }
+  }
+
+  MindboxError _convertPlatformExceptionToMindboxError(dynamic e) {
+    final PlatformException exception = e;
+    Map response;
+    if (exception.message == null || exception.message == '') {
+      return MindboxInternalError(
+          message: 'Empty or null error message', data: '');
+    }
+    try {
+      response = jsonDecode(exception.message!);
+    } on FormatException catch (e) {
+      return MindboxInternalError(message: e.message, data: '');
+    } on Exception {
+      return MindboxInternalError(message: 'Data parsing error', data: '');
+    }
+    if (response.containsKey('type') && response.containsKey('data')) {
+      final type = response['type'];
+      final Map data = response['data'];
+      switch (type) {
+        case 'MindboxError':
+          switch (data['status']) {
+            case 'ValidationError':
+              return MindboxValidationError(
+                message: data['validationMessages'].toString(),
+                data: data.toString(),
+                code: '200',
+              );
+            case 'ProtocolError':
+              return MindboxProtocolError(
+                message: data['errorMessage'].toString(),
+                data: data.toString(),
+                code: data['httpStatusCode'].toString(),
+              );
+            case 'InternalServerError':
+              return MindboxServerError(
+                message: data['errorMessage'].toString(),
+                data: data.toString(),
+                code: data['httpStatusCode'].toString(),
+              );
+            default:
+              return MindboxInternalError(
+                message: 'Unknown error status',
+                data: data.toString(),
+              );
+          }
+        case 'NetworkError':
+          return MindboxNetworkError(
+              message: data['errorMessage'].toString(), data: data.toString());
+        case 'InternalError':
+          return MindboxInternalError(
+              message: data['errorMessage'].toString(), data: data.toString());
+        default:
+          return MindboxInternalError(
+            message: 'Empty or unknown error type',
+            data: data.toString(),
+          );
+      }
+    } else {
+      return MindboxInternalError(
+          message: 'Response does not contain the required keys',
+          data: exception.message!);
     }
   }
 }
