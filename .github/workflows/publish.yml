@@ -38,6 +38,13 @@ jobs:
         run: |
           cd ${{ matrix.package }}
           echo "VERSION=$(awk '{if ($1 ~ /^version:/) print $2}' pubspec.yaml)" >> $GITHUB_ENV
+      - uses: sakebook/actions-flutter-pub-publisher@v1.3.1
+#         if: steps.pubspec.outputs.changed == 0
+        with:
+          package_directory: ${{ matrix.package }}
+          credential: ${{ secrets.PUB_CREDENTIALS }}
+          flutter_package: true
+          skip_test: true
       - name: Create Release
         if: steps.pubspec.outputs.changed == 0
         id: create_release
