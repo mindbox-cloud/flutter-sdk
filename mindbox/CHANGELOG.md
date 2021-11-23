@@ -1,3 +1,7 @@
+## 1.0.1
+
+* Change native Mindbox iOS SDK version to 1.3.2.
+
 ## 1.0.0
 
 * Stable release of 'mindbox' plugin. Features:

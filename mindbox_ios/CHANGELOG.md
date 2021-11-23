@@ -1,3 +1,7 @@
+## 1.0.1
+
+* Change Mindbox iOS SDK dependency version to 1.3.2.
+
 ## 1.0.0
 
 * Add execute sync operation.
