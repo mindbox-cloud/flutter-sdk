@@ -1,3 +1,7 @@
+## 1.0.1
+
+* Change platform interface version.
+
 ## 1.0.0
 
 * Add execute sync operation.

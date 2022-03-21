@@ -3,7 +3,6 @@ description: Flutter Mindbox SDK. Plugin wrapper over of Mindbox iOS/Android SDK
 version: 1.0.2
 homepage: https://mindbox.cloud/
 repository: https://github.com/mindbox-moscow/flutter-sdk/tree/master/mindbox
-publish_to: none
 
 environment:
   sdk: ">=2.12.0 <3.0.0"
@@ -20,10 +19,9 @@ flutter:
 dependencies:
   flutter:
     sdk: flutter
-  mindbox_android: ^1.0.0
-  mindbox_ios:
-    path: ../mindbox_ios
-  mindbox_platform_interface: ^1.0.0
+  mindbox_android: ^1.0.1
+  mindbox_ios: ^1.0.2
+  mindbox_platform_interface: ^1.0.1
 
 dev_dependencies:
   flutter_test:
