@@ -1,3 +1,7 @@
+## 1.0.1
+
+* Remove unnecessary imports.
+
 ## 1.0.0
 
 * Add execute sync operation.
