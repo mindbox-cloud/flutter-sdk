@@ -10,19 +10,24 @@ public class SwiftMindboxIosPlugin: NSObject, FlutterPlugin {
         let instance = SwiftMindboxIosPlugin()
         registrar.addMethodCallDelegate(instance, channel: channel!)
     }
-
+    
     @objc
     public static func pushClicked(response: UNNotificationResponse){
         let action = response.actionIdentifier as NSString
         let request = response.notification.request
         let userInfo = request.content.userInfo
-
+        
         var link: NSString?
-
+        
         if let url = userInfo["clickUrl"] as? NSString {
             link = url
         }
-
+        
+        if(link == nil){
+            let aps = userInfo["aps"] as? NSDictionary
+            link = aps?["clickUrl"] as? NSString
+        }
+        
         if let buttons = userInfo["buttons"] as? NSArray {
             buttons.forEach{
                 guard
@@ -38,12 +43,12 @@ public class SwiftMindboxIosPlugin: NSObject, FlutterPlugin {
         }
         channel?.invokeMethod("linkReceived", arguments: link)
     }
-
+    
     @objc
     public static func linkReceived(link: NSString){
         channel?.invokeMethod("linkReceived", arguments: link)
     }
-
+    
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         switch call.method {
         case "getSdkVersion":

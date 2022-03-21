@@ -1,7 +1,5 @@
 import '../mindbox_platform_interface.dart';
 
-import 'types/configuration.dart';
-
 /// The interface that implementations of 'mindbox' must implement.
 ///
 /// Platform implementations should extend this class rather than implement it

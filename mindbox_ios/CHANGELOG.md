@@ -1,3 +1,7 @@
+## 1.0.2
+
+* Add iOS old format push notifications support.
+
 ## 1.0.1
 
 * Change Mindbox iOS SDK dependency version to 1.3.2.
