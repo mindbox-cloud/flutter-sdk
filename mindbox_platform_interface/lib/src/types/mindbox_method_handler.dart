@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:flutter/services.dart';
 
 import '../../mindbox_platform_interface.dart';
-import '../channel.dart';
 
 class _PendingCallbackMethod {
   _PendingCallbackMethod({
