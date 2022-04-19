@@ -75,7 +75,7 @@ class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
             }
             "getToken" -> {
                 if (tokenSubscription != null) {
-                    Mindbox.disposeFmsTokenSubscription(tokenSubscription!!)
+                    Mindbox.disposePushTokenSubscription(tokenSubscription!!)
                 }
                 tokenSubscription = Mindbox.subscribePushToken { token ->
                     result.success(token)
