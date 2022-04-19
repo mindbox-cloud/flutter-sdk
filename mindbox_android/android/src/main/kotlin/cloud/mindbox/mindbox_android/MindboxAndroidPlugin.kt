@@ -25,10 +25,9 @@ class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
 
     companion object {
         lateinit var channel: MethodChannel
-        //TODO payload
-        fun pushClicked(url: String) {
+        fun pushClicked(link: String, payload: String) {
             Handler(Looper.getMainLooper()).post {
-                channel.invokeMethod("linkReceived", url)
+                channel.invokeMethod("pushClicked", listOf(link, payload))
             }
         }
     }

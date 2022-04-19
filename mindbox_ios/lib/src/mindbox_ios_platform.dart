@@ -12,9 +12,9 @@ class MindboxIosPlatform extends MindboxPlatform {
     MindboxPlatform.instance = MindboxIosPlatform._();
   }
 
-  /// Returns SDK version or "Unknown" on error.
+  /// Returns native SDK version or "Unknown" on error.
   @override
-  Future<String> get sdkVersion async => _methodHandler.sdkVersion;
+  Future<String> get nativeSdkVersion async => _methodHandler.nativeSdkVersion;
 
   /// Initializes the SDK for further work.
   @override
@@ -36,7 +36,9 @@ class MindboxIosPlatform extends MindboxPlatform {
 
   /// Returns link from push to callback.
   @override
-  void onPushClickReceived({required Function(String link) callback}) {
+  void onPushClickReceived({
+    required Function(String link, String payload) callback,
+  }) {
     _methodHandler.handlePushClick(callback: callback);
   }
 

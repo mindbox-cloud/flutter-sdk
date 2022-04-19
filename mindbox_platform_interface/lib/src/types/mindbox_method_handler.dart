@@ -37,8 +37,8 @@ class MindboxMethodHandler {
   final List<_PendingCallbackMethod> _pendingCallbackMethods = [];
   final List<_PendingOperations> _pendingOperations = [];
 
-  /// Returns SDK version
-  Future<String> get sdkVersion async =>
+  /// Returns native SDK version
+  Future<String> get nativeSdkVersion async =>
       await channel.invokeMethod('getSdkVersion');
 
   /// Initializes the SDK for further work
@@ -103,10 +103,14 @@ class MindboxMethodHandler {
   }
 
   /// Method for handling push-notification click
-  void handlePushClick({required Function(String) callback}) {
+  void handlePushClick({
+    required Function(String link, String payload) callback,
+  }) {
     channel.setMethodCallHandler((call) {
-      if (call.method == 'linkReceived') {
-        callback(call.arguments);
+      if (call.method == 'pushClicked') {
+        if (call.arguments is List) {
+          callback(call.arguments[0], call.arguments[1]);
+        }
       }
       return Future.value(true);
     });

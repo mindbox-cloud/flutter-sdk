@@ -15,7 +15,7 @@ void main() {
         'Default implementation of sdkVersion should throw unimplemented error',
         () {
       expect(
-        () => mindboxPlatform.sdkVersion,
+        () => mindboxPlatform.nativeSdkVersion,
         throwsUnimplementedError,
       );
     });
@@ -56,7 +56,7 @@ void main() {
         'Default implementation of onPushClickReceived() '
         'should throw unimplemented error', () {
       expect(
-        () => mindboxPlatform.onPushClickReceived(callback: (link) {}),
+        () => mindboxPlatform.onPushClickReceived(callback: (link, payload) {}),
         throwsUnimplementedError,
       );
     });

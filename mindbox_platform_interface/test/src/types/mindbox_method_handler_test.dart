@@ -22,7 +22,7 @@ void main() {
   test(
     'getPlatformVersion',
     () async {
-      expect(await handler.sdkVersion, 'dummy-sdk-version');
+      expect(await handler.nativeSdkVersion, 'dummy-sdk-version');
     },
   );
 

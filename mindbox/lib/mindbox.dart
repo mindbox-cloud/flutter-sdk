@@ -39,7 +39,8 @@ class Mindbox {
   /// Returns SDK version
   ///
   /// On error returns "Unknown" on iOS platform and empty string("") on Android
-  Future<String> get sdkVersion async => MindboxPlatform.instance.sdkVersion;
+  Future<String> get nativeSdkVersion async =>
+      MindboxPlatform.instance.nativeSdkVersion;
 
   /// Initializes the SDK for further work
   ///
@@ -65,7 +66,7 @@ class Mindbox {
   /// Method for handling push-notification click.
   ///
   /// Returns link from push-notification to callback.
-  void onPushClickReceived(Function(String link) callback) {
+  void onPushClickReceived(Function(String link, String payload) callback) {
     MindboxPlatform.instance.onPushClickReceived(callback: callback);
   }
 

@@ -24,7 +24,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> getSdkVersion() async {
-    String sdkVersion = await Mindbox.instance.sdkVersion;
+    String sdkVersion = await Mindbox.instance.nativeSdkVersion;
 
     if (!mounted) return;
 

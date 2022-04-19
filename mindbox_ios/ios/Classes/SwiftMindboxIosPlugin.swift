@@ -18,14 +18,20 @@ public class SwiftMindboxIosPlugin: NSObject, FlutterPlugin {
         let userInfo = request.content.userInfo
         
         var link: NSString?
-        
+        var payload: NSString?
+
         if let url = userInfo["clickUrl"] as? NSString {
             link = url
         }
-        
+
+        if let payloadData = userInfo["payload"] as? NSString {
+            payload = payloadData
+        }
+
         if(link == nil){
             let aps = userInfo["aps"] as? NSDictionary
             link = aps?["clickUrl"] as? NSString
+            payload = aps?["payload"] as? NSString
         }
         
         if let buttons = userInfo["buttons"] as? NSArray {
@@ -41,12 +47,7 @@ public class SwiftMindboxIosPlugin: NSObject, FlutterPlugin {
                 }
             }
         }
-        channel?.invokeMethod("linkReceived", arguments: link)
-    }
-    
-    @objc
-    public static func linkReceived(link: NSString){
-        channel?.invokeMethod("linkReceived", arguments: link)
+        channel?.invokeMethod("pushClicked", arguments: [link, payload])
     }
     
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
