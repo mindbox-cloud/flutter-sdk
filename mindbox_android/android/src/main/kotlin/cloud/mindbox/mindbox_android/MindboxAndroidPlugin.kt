@@ -25,7 +25,7 @@ class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
 
     companion object {
         lateinit var channel: MethodChannel
-
+        //TODO payload
         fun pushClicked(url: String) {
             Handler(Looper.getMainLooper()).post {
                 channel.invokeMethod("linkReceived", url)
@@ -39,6 +39,8 @@ class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     }
 
     override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
+        // TODO update token
+        // TODO
         when (call.method) {
             "getSdkVersion" -> {
                 result.success(Mindbox.getSdkVersion())
@@ -58,7 +60,7 @@ class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                         .subscribeCustomerIfCreated(subscribeIfCreated)
                         .shouldCreateCustomer(shouldCreateCustomer)
                         .build()
-                    Mindbox.init(context, config)
+                    Mindbox.init(context, config, listOf())
                     result.success("initialized")
                 } else {
                     result.error("-1", "Initialization error", "Wrong argument type")
@@ -70,7 +72,7 @@ class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                 }
             }
             "getToken" -> {
-                Mindbox.subscribeFmsToken { token ->
+                Mindbox.subscribePushToken { token ->
                     result.success(token)
                 }
             }
@@ -115,14 +117,14 @@ class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     }
 
     override fun onDetachedFromActivityForConfigChanges() {
-        Log.i("MindboxAndroidPlugin", "Not yet implemented")
+        Log.i("MindboxAndroidPlugin", "onDetachedFromActivityForConfigChanges not yet implemented")
     }
 
     override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
-        Log.i("MindboxAndroidPlugin", "Not yet implemented")
+        Log.i("MindboxAndroidPlugin", "onReattachedToActivityForConfigChanges not yet implemented")
     }
 
     override fun onDetachedFromActivity() {
-        Log.i("MindboxAndroidPlugin", "Not yet implemented")
+        Log.i("MindboxAndroidPlugin", "onDetachedFromActivity not yet implemented")
     }
 }

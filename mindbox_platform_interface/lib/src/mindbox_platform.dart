@@ -30,7 +30,7 @@ abstract class MindboxPlatform {
   Future<void> init({required Configuration configuration}) =>
       throw UnimplementedError('init() has not been implemented.');
 
-  /// Returns SDK version.
+  /// Returns native SDK version.
   Future<String> get sdkVersion =>
       throw UnimplementedError('sdkVersion has not been implemented.');
 
