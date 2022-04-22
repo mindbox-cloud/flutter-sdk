@@ -1,3 +1,8 @@
+# 2.0.0
+
+* Upgrade native SDK dependency to v2.0.1.
+* Update onPushClickReceived method: add second argument with push payload.
+
 ## 1.0.1
 
 * Change platform interface version.

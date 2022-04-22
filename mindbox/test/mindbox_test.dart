@@ -18,7 +18,7 @@ void main() {
   });
 
   test('getPlatformVersion', () async {
-    expect(await Mindbox.instance.sdkVersion, 'dummy-sdk-version');
+    expect(await Mindbox.instance.nativeSdkVersion, 'dummy-sdk-version');
   });
 
   test('init()', () async {
@@ -85,11 +85,12 @@ void main() {
 
   test('onPushClickReceived()', () async {
     StubMindboxPlatform.registerPlatform();
-    final completer = Completer<String>();
+    final completer = Completer<List<String>>();
 
-    Mindbox.instance.onPushClickReceived((url) => completer.complete(url));
+    Mindbox.instance.onPushClickReceived(
+        (url, payload) => completer.complete([url, payload]));
 
-    expect(await completer.future, equals('dummy-url'));
+    expect(await completer.future, equals(['dummy-url', 'dummy-payload']));
   });
 }
 
@@ -101,7 +102,9 @@ class StubMindboxPlatform extends MindboxPlatform {
   }
 
   @override
-  void onPushClickReceived({required Function(String url) callback}) {
-    callback('dummy-url');
+  void onPushClickReceived({
+    required Function(String url, String payload) callback,
+  }) {
+    callback('dummy-url', 'dummy-payload');
   }
 }

@@ -22,13 +22,14 @@ import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 /** MindboxAndroidPlugin */
 class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     private lateinit var context: Context
+    private var deviceUuidSubscription: String? = null
+    private var tokenSubscription: String? = null
 
     companion object {
         lateinit var channel: MethodChannel
-        //TODO payload
-        fun pushClicked(url: String) {
+        fun pushClicked(link: String, payload: String) {
             Handler(Looper.getMainLooper()).post {
-                channel.invokeMethod("linkReceived", url)
+                channel.invokeMethod("pushClicked", listOf(link, payload))
             }
         }
     }
@@ -39,8 +40,6 @@ class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     }
 
     override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
-        // TODO update token
-        // TODO
         when (call.method) {
             "getSdkVersion" -> {
                 result.success(Mindbox.getSdkVersion())
@@ -67,12 +66,18 @@ class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                 }
             }
             "getDeviceUUID" -> {
-                Mindbox.subscribeDeviceUuid { uuid ->
+                if (deviceUuidSubscription != null) {
+                    Mindbox.disposeDeviceUuidSubscription(deviceUuidSubscription!!)
+                }
+                deviceUuidSubscription = Mindbox.subscribeDeviceUuid { uuid ->
                     result.success(uuid)
                 }
             }
             "getToken" -> {
-                Mindbox.subscribePushToken { token ->
+                if (tokenSubscription != null) {
+                    Mindbox.disposePushTokenSubscription(tokenSubscription!!)
+                }
+                tokenSubscription = Mindbox.subscribePushToken { token ->
                     result.success(token)
                 }
             }
