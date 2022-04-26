@@ -44,6 +44,7 @@ void main() {
 
 ```dart
 Mindbox.instance.onPushClickReceived((link, payload) {
+  print(payload);
   switch (link) {
     case 'mindbox.cloud':
       Navigator.push(context, MaterialPageRoute(builder: (context) => ContentPage()));
