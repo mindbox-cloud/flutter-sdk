@@ -3,6 +3,7 @@ description: Flutter Mindbox SDK. Plugin wrapper over of Mindbox iOS/Android SDK
 version: 2.0.0
 homepage: https://mindbox.cloud/
 repository: https://github.com/mindbox-moscow/flutter-sdk/tree/master/mindbox
+publish_to: none
 
 environment:
   sdk: ">=2.12.0 <3.0.0"
