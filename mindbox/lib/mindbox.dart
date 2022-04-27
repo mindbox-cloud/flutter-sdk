@@ -12,7 +12,7 @@ export 'package:mindbox_platform_interface/mindbox_platform_interface.dart'
         MindboxValidationError,
         MindboxServerError;
 
-/// Basic Mindbox API
+/// Basic Mindbox API.
 class Mindbox {
   Mindbox._();
 
@@ -36,12 +36,13 @@ class Mindbox {
     return _instance!;
   }
 
-  /// Returns SDK version
+  /// Returns SDK version.
   ///
-  /// On error returns "Unknown" on iOS platform and empty string("") on Android
-  Future<String> get sdkVersion async => MindboxPlatform.instance.sdkVersion;
+  /// On error returns "Unknown" on iOS platform and empty string on Android.
+  Future<String> get nativeSdkVersion async =>
+      MindboxPlatform.instance.nativeSdkVersion;
 
-  /// Initializes the SDK for further work
+  /// Initializes the SDK for further work.
   ///
   /// Read more about parameter [Configuration].
   void init({required Configuration configuration}) {
@@ -65,7 +66,7 @@ class Mindbox {
   /// Method for handling push-notification click.
   ///
   /// Returns link from push-notification to callback.
-  void onPushClickReceived(Function(String link) callback) {
+  void onPushClickReceived(Function(String link, String payload) callback) {
     MindboxPlatform.instance.onPushClickReceived(callback: callback);
   }
 

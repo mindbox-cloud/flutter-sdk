@@ -32,7 +32,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> initPlatformState() async {
-    String sdkVersion = await MindboxPlatform.instance.sdkVersion;
+    String sdkVersion = await MindboxPlatform.instance.nativeSdkVersion;
 
     if (!mounted) return;
 

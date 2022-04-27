@@ -22,13 +22,14 @@ import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 /** MindboxAndroidPlugin */
 class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     private lateinit var context: Context
+    private var deviceUuidSubscription: String? = null
+    private var tokenSubscription: String? = null
 
     companion object {
         lateinit var channel: MethodChannel
-
-        fun pushClicked(url: String) {
+        fun pushClicked(link: String, payload: String) {
             Handler(Looper.getMainLooper()).post {
-                channel.invokeMethod("linkReceived", url)
+                channel.invokeMethod("pushClicked", listOf(link, payload))
             }
         }
     }
@@ -58,19 +59,25 @@ class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                         .subscribeCustomerIfCreated(subscribeIfCreated)
                         .shouldCreateCustomer(shouldCreateCustomer)
                         .build()
-                    Mindbox.init(context, config)
+                    Mindbox.init(context, config, listOf())
                     result.success("initialized")
                 } else {
                     result.error("-1", "Initialization error", "Wrong argument type")
                 }
             }
             "getDeviceUUID" -> {
-                Mindbox.subscribeDeviceUuid { uuid ->
+                if (deviceUuidSubscription != null) {
+                    Mindbox.disposeDeviceUuidSubscription(deviceUuidSubscription!!)
+                }
+                deviceUuidSubscription = Mindbox.subscribeDeviceUuid { uuid ->
                     result.success(uuid)
                 }
             }
             "getToken" -> {
-                Mindbox.subscribeFmsToken { token ->
+                if (tokenSubscription != null) {
+                    Mindbox.disposePushTokenSubscription(tokenSubscription!!)
+                }
+                tokenSubscription = Mindbox.subscribePushToken { token ->
                     result.success(token)
                 }
             }
@@ -115,14 +122,14 @@ class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     }
 
     override fun onDetachedFromActivityForConfigChanges() {
-        Log.i("MindboxAndroidPlugin", "Not yet implemented")
+        Log.i("MindboxAndroidPlugin", "onDetachedFromActivityForConfigChanges not yet implemented")
     }
 
     override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
-        Log.i("MindboxAndroidPlugin", "Not yet implemented")
+        Log.i("MindboxAndroidPlugin", "onReattachedToActivityForConfigChanges not yet implemented")
     }
 
     override fun onDetachedFromActivity() {
-        Log.i("MindboxAndroidPlugin", "Not yet implemented")
+        Log.i("MindboxAndroidPlugin", "onDetachedFromActivity not yet implemented")
     }
 }

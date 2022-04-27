@@ -1,3 +1,7 @@
+## 2.0.0
+
+* Update onPushClickReceived method: add second argument with push payload.
+
 ## 1.0.1
 
 * Remove unnecessary imports.

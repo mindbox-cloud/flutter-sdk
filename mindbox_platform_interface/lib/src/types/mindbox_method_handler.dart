@@ -37,13 +37,13 @@ class MindboxMethodHandler {
   final List<_PendingCallbackMethod> _pendingCallbackMethods = [];
   final List<_PendingOperations> _pendingOperations = [];
 
-  /// Returns SDK version
-  Future<String> get sdkVersion async =>
+  /// Returns native SDK version.
+  Future<String> get nativeSdkVersion async =>
       await channel.invokeMethod('getSdkVersion');
 
-  /// Initializes the SDK for further work
+  /// Initializes the SDK for further work.
   ///
-  /// Read more about parameter [Configuration]
+  /// Read more about parameter [Configuration].
   Future<void> init({required Configuration configuration}) async {
     try {
       if (!_initialized) {
@@ -82,7 +82,7 @@ class MindboxMethodHandler {
     }
   }
 
-  /// Returns device UUID to callback
+  /// Returns device UUID to callback.
   void getDeviceUUID({required Function(String uuid) callback}) async {
     if (_initialized) {
       callback(await channel.invokeMethod('getDeviceUUID'));
@@ -92,7 +92,7 @@ class MindboxMethodHandler {
     }
   }
 
-  /// Returns token to callback
+  /// Returns token to callback.
   void getToken({required Function(String token) callback}) async {
     if (_initialized) {
       callback(await channel.invokeMethod('getToken') ?? 'null');
@@ -102,11 +102,15 @@ class MindboxMethodHandler {
     }
   }
 
-  /// Method for handling push-notification click
-  void handlePushClick({required Function(String) callback}) {
+  /// Method for handling push-notification click.
+  void handlePushClick({
+    required Function(String link, String payload) callback,
+  }) {
     channel.setMethodCallHandler((call) {
-      if (call.method == 'linkReceived') {
-        callback(call.arguments);
+      if (call.method == 'pushClicked') {
+        if (call.arguments is List) {
+          callback(call.arguments[0], call.arguments[1]);
+        }
       }
       return Future.value(true);
     });

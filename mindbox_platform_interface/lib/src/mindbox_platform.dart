@@ -30,8 +30,8 @@ abstract class MindboxPlatform {
   Future<void> init({required Configuration configuration}) =>
       throw UnimplementedError('init() has not been implemented.');
 
-  /// Returns SDK version.
-  Future<String> get sdkVersion =>
+  /// Returns native SDK version.
+  Future<String> get nativeSdkVersion =>
       throw UnimplementedError('sdkVersion has not been implemented.');
 
   /// Method to obtain device UUID.
@@ -42,8 +42,11 @@ abstract class MindboxPlatform {
   void getToken({required Function(String) callback}) =>
       throw UnimplementedError('getToken() has not been implemented.');
 
-  /// Method for handling push-notification click. Returns link to callback.
-  void onPushClickReceived({required Function(String) callback}) =>
+  /// Method for handling push-notification click. Returns link and payload to
+  /// callback.
+  void onPushClickReceived({
+    required Function(String link, String payload) callback,
+  }) =>
       throw UnimplementedError(
           'onPushClickReceived() has not been implemented.');
 

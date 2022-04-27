@@ -7,8 +7,8 @@ receive and handle push notifications.
 ## Features
 
 * Receive and show push notification in both mobile platforms.
-* Receive push notification data(links) in Flutter.
-* Execute sync/async operations
+* Receive push notification data(link, payload) in Flutter.
+* Execute sync/async operations.
 
 ## Getting started
 
@@ -22,18 +22,18 @@ to follow the steps specified in the guide:
 ### Initialization
 
 ```dart
-// Import `mindbox.dart`
 import 'package:mindbox/mindbox.dart';
 
 void main() {
    WidgetsFlutterBinding.ensureInitialized();
-   // Initialization configuration
+
    final config = Configuration(
-           domain: "your domain",
-           endpointIos: "iOs endpoint",
-           endpointAndroid: "Android endpoint",
-           subscribeCustomerIfCreated: true);
-   // Initialization
+     domain: "your domain",
+     endpointIos: "iOs endpoint",
+     endpointAndroid: "Android endpoint",
+     subscribeCustomerIfCreated: true,
+   );
+ 
    Mindbox.instance.init(configuration: config);
 
    runApp(MyApp());
@@ -43,7 +43,8 @@ void main() {
 ### Handling push click
 
 ```dart
-Mindbox.instance.onPushClickReceived((link) {
+Mindbox.instance.onPushClickReceived((link, payload) {
+  print(payload);
   switch (link) {
     case 'mindbox.cloud':
       Navigator.push(context, MaterialPageRoute(builder: (context) => ContentPage()));
@@ -60,21 +61,13 @@ Mindbox.instance.onPushClickReceived((link) {
 ### Getting device UUID
 
 ```dart
-Mindbox.instance.getDeviceUUID((uuid) {
-  setState(() {
-    _deviceUUID = uuid;
-  });
-});
+Mindbox.instance.getDeviceUUID((uuid) => print(uuid));
 ```
 
-### Getting APNS/FMS token
+### Getting APNS/FMS/HMS token
 
 ```dart
-Mindbox.instance.getDeviceUUID((uuid) {
-  setState(() {
-    _deviceUUID = uuid;
-  });
-});
+Mindbox.instance.getToken((token) => print(token));
 ```
 
 ### Execute async operation
