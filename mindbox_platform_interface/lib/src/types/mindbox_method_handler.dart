@@ -46,36 +46,33 @@ class MindboxMethodHandler {
   /// Read more about parameter [Configuration].
   Future<void> init({required Configuration configuration}) async {
     try {
-      if (!_initialized) {
-        if (ServicesBinding.instance == null) {
-          throw MindboxInitializeError(
-              message: 'Initialization error',
-              data:
-                  'Try to invoke \'WidgetsFlutterBinding.ensureInitialized()\' '
-                  'before initialization.');
-        }
-        await channel.invokeMethod('init', configuration.toMap());
-        for (final callbackMethod in _pendingCallbackMethods) {
-          callbackMethod.callback(
-              await channel.invokeMethod(callbackMethod.methodName) ?? 'null');
-        }
-        for (final operation in _pendingOperations) {
-          channel.invokeMethod(operation.methodName, operation.parameters).then(
-              (result) {
-            if (operation.successCallback != null) {
-              operation.successCallback!(result);
-            }
-          }, onError: (e) {
-            if (operation.errorCallback != null) {
-              final mindboxError = _convertPlatformExceptionToMindboxError(e);
-              operation.errorCallback!(mindboxError);
-            }
-          });
-        }
-        _pendingCallbackMethods.clear();
-        _pendingOperations.clear();
-        _initialized = true;
+      if (ServicesBinding.instance == null) {
+        throw MindboxInitializeError(
+            message: 'Initialization error',
+            data: 'Try to invoke \'WidgetsFlutterBinding.ensureInitialized()\' '
+                'before initialization.');
       }
+      await channel.invokeMethod('init', configuration.toMap());
+      for (final callbackMethod in _pendingCallbackMethods) {
+        callbackMethod.callback(
+            await channel.invokeMethod(callbackMethod.methodName) ?? 'null');
+      }
+      for (final operation in _pendingOperations) {
+        channel.invokeMethod(operation.methodName, operation.parameters).then(
+            (result) {
+          if (operation.successCallback != null) {
+            operation.successCallback!(result);
+          }
+        }, onError: (e) {
+          if (operation.errorCallback != null) {
+            final mindboxError = _convertPlatformExceptionToMindboxError(e);
+            operation.errorCallback!(mindboxError);
+          }
+        });
+      }
+      _pendingCallbackMethods.clear();
+      _pendingOperations.clear();
+      _initialized = true;
     } on PlatformException catch (e) {
       throw MindboxInitializeError(
           message: e.message ?? '', data: e.details ?? '');
