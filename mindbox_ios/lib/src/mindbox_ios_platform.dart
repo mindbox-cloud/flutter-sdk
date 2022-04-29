@@ -17,6 +17,9 @@ class MindboxIosPlatform extends MindboxPlatform {
   Future<String> get nativeSdkVersion async => _methodHandler.nativeSdkVersion;
 
   /// Initializes the SDK for further work.
+  ///
+  /// You can call this method multiple times to set new configuration params.
+  /// Read more about [Configuration] parameter.
   @override
   Future<void> init({required Configuration configuration}) async {
     await _methodHandler.init(configuration: configuration);
