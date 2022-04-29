@@ -1,7 +1,11 @@
+## 2.1.0
+
+* Upgrade native SDK dependency to v.2.1.0.
+* Update init method: you can change sdk configuration without reinstallation of app.
+
 ## 2.0.0
 
 * Upgrade native SDK dependency to v2.0.1.
-* Add support of Huawei Push Kit.
 * Update onPushClickReceived method: add second argument with push payload.
 
 ## 1.0.2

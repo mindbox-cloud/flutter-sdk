@@ -44,7 +44,8 @@ class Mindbox {
 
   /// Initializes the SDK for further work.
   ///
-  /// Read more about parameter [Configuration].
+  /// You can call this method multiple times to set new configuration params.
+  /// Read more about [Configuration] parameter.
   void init({required Configuration configuration}) {
     MindboxPlatform.instance.init(configuration: configuration);
   }

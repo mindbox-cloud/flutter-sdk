@@ -26,7 +26,8 @@ abstract class MindboxPlatform {
 
   /// Initializes the SDK for further work
   ///
-  /// Read more about parameter [Configuration]
+  /// You can call this method multiple times to set new configuration params.
+  /// Read more about [Configuration] parameter.
   Future<void> init({required Configuration configuration}) =>
       throw UnimplementedError('init() has not been implemented.');
 
