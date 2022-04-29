@@ -1,4 +1,10 @@
-# 2.0.0
+## 2.1.0
+
+* Upgrade iOS SDK dependency to v.2.1.0.
+* Upgrade Android SDK dependency to v2.1.3.
+* Update init method: you can change sdk configuration without reinstallation of app.
+
+## 2.0.0
 
 * Upgrade iOS SDK dependency to v2.0.1.
 * Upgrade Android SDK dependency to v2.1.2. 

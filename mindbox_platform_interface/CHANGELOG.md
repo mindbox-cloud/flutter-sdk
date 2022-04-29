@@ -1,3 +1,7 @@
+## 2.1.0
+
+* Update MindboxMethodHandler init method: you can change sdk configuration without reinstallation of app.
+
 ## 2.0.0
 
 * Update onPushClickReceived method: add second argument with push payload.
