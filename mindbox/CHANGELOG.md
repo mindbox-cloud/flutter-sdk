@@ -1,3 +1,8 @@
+## 2.1.1
+
+* Upgrade iOS SDK dependency to v.2.1.1.
+* Upgrade Android SDK dependency to v2.1.4.
+
 ## 2.1.0
 
 * Upgrade iOS SDK dependency to v.2.1.0.

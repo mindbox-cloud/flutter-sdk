@@ -1,5 +1,9 @@
 ## 2.1.0
 
+* Upgrade native SDK dependency to v2.1.4.
+
+## 2.1.0
+
 * Upgrade native SDK dependency to v2.1.3.
 * Update init method: you can change sdk configuration without reinstallation of app.
 

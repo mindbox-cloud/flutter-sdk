@@ -1,3 +1,7 @@
+## 2.1.1
+
+* Upgrade native SDK dependency to v.2.1.1.
+
 ## 2.1.0
 
 * Upgrade native SDK dependency to v.2.1.0.
