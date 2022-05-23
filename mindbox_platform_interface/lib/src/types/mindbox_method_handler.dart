@@ -47,6 +47,7 @@ class MindboxMethodHandler {
   /// Read more about [Configuration] parameter.
   Future<void> init({required Configuration configuration}) async {
     try {
+      //ignore: unnecessary_null_comparison
       if (ServicesBinding.instance == null) {
         throw MindboxInitializeError(
             message: 'Initialization error',
