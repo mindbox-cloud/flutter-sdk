@@ -19,9 +19,9 @@ flutter:
 dependencies:
   flutter:
     sdk: flutter
-  mindbox_android: 2.1.2
-  mindbox_ios: 2.1.1
-  mindbox_platform_interface: 2.1.0
+  mindbox_android: ^2.1.2
+  mindbox_ios: ^2.1.1
+  mindbox_platform_interface: ^2.1.0
 
 dev_dependencies:
   flutter_test:
