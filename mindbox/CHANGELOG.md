@@ -1,3 +1,8 @@
+## 2.1.3
+
+* Upgrade iOS Mindbox SDK dependency to v2.1.2.
+* Minor iOS changes on to the CodingKey value for the customAction variable in the OperationBodyRequest class.
+
 ## 2.1.2
 
 * Upgrade Android SDK dependency to v2.1.5.

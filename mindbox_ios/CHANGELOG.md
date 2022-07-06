@@ -1,3 +1,8 @@
+## 2.1.2
+
+* Upgrade Native SDK dependency to v2.1.2.
+* Minor changes to the CodingKey value for the customAction variable in the OperationBodyRequest class.
+
 ## 2.1.1
 
 * Upgrade native SDK dependency to v.2.1.1.
