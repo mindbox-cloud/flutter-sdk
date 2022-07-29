@@ -1,6 +1,9 @@
+## 2.1.3
+* Upgrade native SDK dependency to v2.1.6.
+
 ## 2.1.2
 
-* Upgrade Native SDK dependency to v2.1.5.
+* Upgrade native SDK dependency to v2.1.5.
 * Upgrade HMS upgraded to 6.5.0.300.
 * Fix bug on Android after reinitialization (changing your domain, endpoint and shouldCreateCustomer parameters in existing SDK integration).
 
