@@ -1,3 +1,6 @@
+## 2.1.4
+* Upgrade Android SDK dependency to v2.1.6.
+
 ## 2.1.3
 
 * Upgrade iOS Mindbox SDK dependency to v2.1.2.
