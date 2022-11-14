@@ -4,7 +4,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'mindbox_ios'
-  s.version          = '2.1.5'
+  s.version          = '2.1.3'
   s.summary          = 'Mindbox Flutter SDK'
   s.description      = <<-DESC
 The implementation of 'mindbox' plugin for the iOS platform

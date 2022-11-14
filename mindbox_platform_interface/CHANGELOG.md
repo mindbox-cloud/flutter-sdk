@@ -1,3 +1,7 @@
+## 2.1.1
+
+* Update linter flutter_lints to 2.0.1
+
 ## 2.1.0
 
 * Update MindboxMethodHandler init method: you can change sdk configuration without reinstallation of app.
