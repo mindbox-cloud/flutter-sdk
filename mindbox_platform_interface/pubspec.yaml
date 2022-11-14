@@ -1,6 +1,6 @@
 name: mindbox_platform_interface
 description: Mindbox platform interface.
-version: 2.1.0
+version: 2.1.1
 homepage: https://mindbox.cloud/
 repository: https://github.com/mindbox-moscow/flutter-sdk/tree/master/mindbox_platform_interface
 
@@ -15,4 +15,4 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^1.0.4
+  flutter_lints: ^2.0.1
