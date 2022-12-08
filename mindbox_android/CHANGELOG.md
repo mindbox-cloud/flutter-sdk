@@ -1,3 +1,8 @@
+## 2.1.5
+
+* Upgrade native SDK dependency to v2.1.10.
+* Previously, in some cases the picture in rich-push notifications was not displayed when the phone was turned off. Now we fixed it.
+
 ## 2.1.4
 
 * Upgrade native SDK dependency to v2.1.9.
