@@ -124,7 +124,6 @@ class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, Ne
         handleIntent(binding.activity.intent)
     }
 
-
     override fun onDetachedFromActivityForConfigChanges() {
         binding?.removeOnNewIntentListener(this)
     }
@@ -149,9 +148,7 @@ class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, Ne
                 Handler(Looper.getMainLooper()).post {
                     channel.invokeMethod("pushClicked", listOf(link, payload))
                 }
-                channel.invokeMethod("pushClicked", listOf(link, payload))
             }
-
         }
     }
 
