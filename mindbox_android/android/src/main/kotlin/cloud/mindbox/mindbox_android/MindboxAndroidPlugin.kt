@@ -1,36 +1,36 @@
 package cloud.mindbox.mindbox_android
 
 import android.content.Context
+import android.content.Intent
 import android.os.Handler
 import android.os.Looper
-
 import androidx.annotation.NonNull
 import cloud.mindbox.mobile_sdk.Mindbox
 import cloud.mindbox.mobile_sdk.MindboxConfiguration
-import cloud.mindbox.mobile_sdk.models.MindboxError
-import cloud.mindbox.mobile_sdk.models.operation.response.OperationResponse
-import io.flutter.Log
-
 import io.flutter.embedding.engine.plugins.FlutterPlugin
+import io.flutter.embedding.engine.plugins.activity.ActivityAware
+import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
-import io.flutter.embedding.engine.plugins.activity.ActivityAware
-import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
+import io.flutter.plugin.common.PluginRegistry.NewIntentListener
 
 /** MindboxAndroidPlugin */
-class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
+class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, NewIntentListener {
     private lateinit var context: Context
+    private var binding: ActivityPluginBinding? = null
     private var deviceUuidSubscription: String? = null
     private var tokenSubscription: String? = null
+    lateinit var channel: MethodChannel
 
     companion object {
-        lateinit var channel: MethodChannel
+        @Deprecated(
+            "Push clicks are processed inside the library now. This method will be removed in future release." +
+                    " Please abort changes you make following points 3.3 and 5 of Mindbox API intructions",
+            level = DeprecationLevel.WARNING
+        )
         fun pushClicked(link: String, payload: String) {
-            Handler(Looper.getMainLooper()).post {
-                channel.invokeMethod("pushClicked", listOf(link, payload))
-            }
         }
     }
 
@@ -119,17 +119,41 @@ class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
         context = binding.activity
+        this.binding = binding
+        binding.addOnNewIntentListener(this)
+        handleIntent(binding.activity.intent)
     }
 
     override fun onDetachedFromActivityForConfigChanges() {
-        Log.i("MindboxAndroidPlugin", "onDetachedFromActivityForConfigChanges not yet implemented")
+        binding?.removeOnNewIntentListener(this)
     }
 
     override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
-        Log.i("MindboxAndroidPlugin", "onReattachedToActivityForConfigChanges not yet implemented")
+        this.binding = binding
+        binding.addOnNewIntentListener(this)
     }
 
     override fun onDetachedFromActivity() {
-        Log.i("MindboxAndroidPlugin", "onDetachedFromActivity not yet implemented")
+        binding?.removeOnNewIntentListener(this)
+    }
+
+    private fun handleIntent(intent: Intent) {
+        intent.let {
+            val uniqueKey = intent.getStringExtra("uniq_push_key")
+            if (uniqueKey != null) {
+                Mindbox.onPushClicked(context, it)
+                Mindbox.onNewIntent(intent)
+                val link = Mindbox.getUrlFromPushIntent(intent) ?: ""
+                val payload = Mindbox.getPayloadFromPushIntent(intent) ?: ""
+                Handler(Looper.getMainLooper()).post {
+                    channel.invokeMethod("pushClicked", listOf(link, payload))
+                }
+            }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent): Boolean {
+        handleIntent(intent)
+        return false
     }
 }

@@ -1,3 +1,8 @@
+## 2.2.0
+
+* Fix issue when using Firebase onBackgroundMessage handler breaks android part of plugin
+* Optimize integration for Android
+
 ## 2.1.6
 
 * Upgrade Android SDK dependency to v2.1.10.
@@ -37,7 +42,7 @@
 ## 2.0.0
 
 * Upgrade iOS SDK dependency to v2.0.1.
-* Upgrade Android SDK dependency to v2.1.2. 
+* Upgrade Android SDK dependency to v2.1.2.
 * Add support of Huawei Push Kit.
 * Update onPushClickReceived method: add second argument with push payload.
 
