@@ -1,3 +1,8 @@
+## 2.2.0
+
+* Fix issue when using Firebase onBackgroundMessage handler breaks android part of plugin
+* Optimize integration for Android
+
 ## 2.1.5
 
 * Upgrade Android SDK dependency to v2.1.10.
