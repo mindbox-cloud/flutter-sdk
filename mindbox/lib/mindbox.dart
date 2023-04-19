@@ -71,6 +71,20 @@ class Mindbox {
     MindboxPlatform.instance.onPushClickReceived(handler: handler);
   }
 
+  /// Method for handling In-app click.
+  ///
+  /// Returns id, redirectUrl and payload from In-app to callback.
+  void onInAppClickRecieved(InAppClickHandler handler) {
+    MindboxPlatform.instance.onInAppClickRecieved(handler: handler);
+  }
+
+  /// Method for handling In-app dismiss.
+  ///
+  /// Returns id when In-app dismiss to callback.
+  void onInAppDismissed(InAppDismissedHandler handler) {
+    MindboxPlatform.instance.onInAppismissed(handler: handler);
+  }
+
   /// Method for register a custom event.
   void executeAsyncOperation({
     required String operationSystemName,

@@ -34,7 +34,7 @@ class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, Ne
 
         override fun onInAppDismissed(id: String) {
             Handler(Looper.getMainLooper()).post {
-                channel.invokeMethod("onInAppDismissed", listOf(id))
+                channel.invokeMethod("onInAppDismissed", id)
             }
         }
     }

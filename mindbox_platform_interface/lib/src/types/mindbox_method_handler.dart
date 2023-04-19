@@ -33,7 +33,6 @@ class _PendingOperations {
 ///
 /// Platform implementations can use this class for platform calls.
 class MindboxMethodHandler {
-
   /// Default constructor
   MindboxMethodHandler() {
     _setMethodCallHandler();
@@ -43,6 +42,8 @@ class MindboxMethodHandler {
   final List<_PendingCallbackMethod> _pendingCallbackMethods = [];
   final List<_PendingOperations> _pendingOperations = [];
   PushClickHandler? _pushClickHandler;
+  InAppClickHandler? _inAppClickHandler;
+  InAppDismissedHandler? _inAppDismissedHandler;
 
   /// Returns native SDK version.
   Future<String> get nativeSdkVersion async =>
@@ -113,6 +114,20 @@ class MindboxMethodHandler {
     required PushClickHandler handler,
   }) {
     _pushClickHandler = handler;
+  }
+
+  /// Method for handling In-app click.
+  void handleInAppClick({
+    required InAppClickHandler handler,
+  }) {
+    _inAppClickHandler = handler;
+  }
+
+  /// Method for handling In-app dismiss.
+  void handleInAppDismiss({
+    required InAppDismissedHandler handler,
+  }) {
+    _inAppDismissedHandler = handler;
   }
 
   /// Method for register a custom event.
@@ -228,6 +243,17 @@ class MindboxMethodHandler {
       if (call.method == 'pushClicked') {
         if (call.arguments is List) {
           _pushClickHandler?.call(call.arguments[0], call.arguments[1]);
+        }
+      }
+      if (call.method == 'onInAppClick') {
+        if (call.arguments is List) {
+          _inAppClickHandler?.call(
+              call.arguments[0], call.arguments[1], call.arguments[2]);
+        }
+      }
+      if (call.method == 'onInAppDismissed') {
+        if (call.arguments is String) {
+          _inAppDismissedHandler?.call(call.arguments);
         }
       }
       return Future.value(true);

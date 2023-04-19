@@ -51,6 +51,22 @@ abstract class MindboxPlatform {
       throw UnimplementedError(
           'onPushClickReceived() has not been implemented.');
 
+   /// Method for handling In-app click. Returns id, payload and url to
+  /// callback.
+  void onInAppClickRecieved({
+    required InAppClickHandler handler,
+  }) =>
+      throw UnimplementedError(
+          'onPushClickReceived() has not been implemented.');
+
+  /// Method for handling In-app dismiss. Returns id to
+  /// callback.
+  void onInAppismissed({
+    required InAppDismissedHandler handler,
+  }) =>
+      throw UnimplementedError(
+          'onPushClickReceived() has not been implemented.');
+
   /// Method for register a custom event.
   Future<void> executeAsyncOperation({
     required String operationSystemName,
