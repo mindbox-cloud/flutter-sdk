@@ -137,7 +137,7 @@ void main() {
       final completer = Completer<List<String>>();
 
       MindboxPlatform.instance.onPushClickReceived(
-          callback: (link, payload) => completer.complete([link, payload]));
+          handler: (link, payload) => completer.complete([link, payload]));
 
       expect(await completer.future, equals(['dummy-url', 'dummy-payload']));
     },
@@ -418,8 +418,8 @@ class StubMindboxPlatform extends MindboxPlatform {
 
   @override
   void onPushClickReceived({
-    required Function(String link, String payload) callback,
+    required PushClickHandler handler,
   }) {
-    callback('dummy-url', 'dummy-payload');
+    handler('dummy-url', 'dummy-payload');
   }
 }
