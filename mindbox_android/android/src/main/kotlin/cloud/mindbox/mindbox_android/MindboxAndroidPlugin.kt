@@ -7,6 +7,7 @@ import android.os.Looper
 import androidx.annotation.NonNull
 import cloud.mindbox.mobile_sdk.Mindbox
 import cloud.mindbox.mobile_sdk.MindboxConfiguration
+import cloud.mindbox.mobile_sdk.inapp.presentation.InAppCallback
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
@@ -22,24 +23,28 @@ class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, Ne
     private var binding: ActivityPluginBinding? = null
     private var deviceUuidSubscription: String? = null
     private var tokenSubscription: String? = null
-    lateinit var channel: MethodChannel
+    private lateinit var channel: MethodChannel
 
-    companion object {
-        @Deprecated(
-            "Push clicks are processed inside the library now. This method will be removed in future release." +
-                    " Please abort changes you make following points 3.3 and 5 of Mindbox API intructions",
-            level = DeprecationLevel.WARNING
-        )
-        fun pushClicked(link: String, payload: String) {
+    inner class InAppCallbackImpl : InAppCallback {
+        override fun onInAppClick(id: String, redirectUrl: String, payload: String) {
+            Handler(Looper.getMainLooper()).post {
+                channel.invokeMethod("onInAppClick", listOf(id, redirectUrl, payload))
+            }
+        }
+
+        override fun onInAppDismissed(id: String) {
+            Handler(Looper.getMainLooper()).post {
+                channel.invokeMethod("onInAppDismissed", listOf(id))
+            }
         }
     }
 
-    override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
+    override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         channel = MethodChannel(flutterPluginBinding.binaryMessenger, "mindbox.cloud/flutter-sdk")
         channel.setMethodCallHandler(this)
     }
 
-    override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
+    override fun onMethodCall(call: MethodCall, result: Result) {
         when (call.method) {
             "getSdkVersion" -> {
                 result.success(Mindbox.getSdkVersion())
@@ -60,6 +65,7 @@ class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, Ne
                         .shouldCreateCustomer(shouldCreateCustomer)
                         .build()
                     Mindbox.init(context, config, listOf())
+                    Mindbox.registerInAppCallback(InAppCallbackImpl())
                     result.success("initialized")
                 } else {
                     result.error("-1", "Initialization error", "Wrong argument type")
@@ -113,7 +119,7 @@ class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, Ne
         }
     }
 
-    override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
+    override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         channel.setMethodCallHandler(null)
     }
 

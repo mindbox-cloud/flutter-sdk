@@ -46,7 +46,7 @@ abstract class MindboxPlatform {
   /// Method for handling push-notification click. Returns link and payload to
   /// callback.
   void onPushClickReceived({
-    required Function(String link, String payload) callback,
+    required PushClickHandler handler,
   }) =>
       throw UnimplementedError(
           'onPushClickReceived() has not been implemented.');

@@ -40,9 +40,9 @@ class MindboxIosPlatform extends MindboxPlatform {
   /// Returns link from push to callback.
   @override
   void onPushClickReceived({
-    required Function(String link, String payload) callback,
+    required PushClickHandler handler,
   }) {
-    _methodHandler.handlePushClick(callback: callback);
+    _methodHandler.handlePushClick(handler: handler);
   }
 
   /// Method for register a custom event.

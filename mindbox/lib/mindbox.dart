@@ -67,8 +67,8 @@ class Mindbox {
   /// Method for handling push-notification click.
   ///
   /// Returns link from push-notification to callback.
-  void onPushClickReceived(Function(String link, String payload) callback) {
-    MindboxPlatform.instance.onPushClickReceived(callback: callback);
+  void onPushClickReceived(PushClickHandler handler) {
+    MindboxPlatform.instance.onPushClickReceived(handler: handler);
   }
 
   /// Method for register a custom event.

@@ -33,9 +33,16 @@ class _PendingOperations {
 ///
 /// Platform implementations can use this class for platform calls.
 class MindboxMethodHandler {
+
+  /// Default constructor
+  MindboxMethodHandler() {
+    _setMethodCallHandler();
+  }
+
   bool _initialized = false;
   final List<_PendingCallbackMethod> _pendingCallbackMethods = [];
   final List<_PendingOperations> _pendingOperations = [];
+  PushClickHandler? _pushClickHandler;
 
   /// Returns native SDK version.
   Future<String> get nativeSdkVersion async =>
@@ -103,16 +110,9 @@ class MindboxMethodHandler {
 
   /// Method for handling push-notification click.
   void handlePushClick({
-    required Function(String link, String payload) callback,
+    required PushClickHandler handler,
   }) {
-    channel.setMethodCallHandler((call) {
-      if (call.method == 'pushClicked') {
-        if (call.arguments is List) {
-          callback(call.arguments[0], call.arguments[1]);
-        }
-      }
-      return Future.value(true);
-    });
+    _pushClickHandler = handler;
   }
 
   /// Method for register a custom event.
@@ -221,5 +221,16 @@ class MindboxMethodHandler {
           message: 'Response does not contain the required keys',
           data: exception.message!);
     }
+  }
+
+  void _setMethodCallHandler() {
+    channel.setMethodCallHandler((call) {
+      if (call.method == 'pushClicked') {
+        if (call.arguments is List) {
+          _pushClickHandler?.call(call.arguments[0], call.arguments[1]);
+        }
+      }
+      return Future.value(true);
+    });
   }
 }

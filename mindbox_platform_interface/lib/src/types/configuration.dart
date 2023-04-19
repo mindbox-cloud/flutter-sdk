@@ -14,7 +14,7 @@ class Configuration {
   /// Used for generating baseurl for REST.
   final String domain;
 
-  /// Used for app identification on iOs.
+  /// Used for app identification on iOS.
   final String endpointIos;
 
   /// Used for app identification on Android.
