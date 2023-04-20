@@ -2,32 +2,48 @@ import Flutter
 import UIKit
 import Mindbox
 
+
+
 public class SwiftMindboxIosPlugin: NSObject, FlutterPlugin {
-    private static var channel: FlutterMethodChannel?
+    private final var channel: FlutterMethodChannel
+    
     
     public static func register(with registrar: FlutterPluginRegistrar) {
-        channel = FlutterMethodChannel(name: "mindbox.cloud/flutter-sdk", binaryMessenger: registrar.messenger())
-        let instance = SwiftMindboxIosPlugin()
-        registrar.addMethodCallDelegate(instance, channel: channel!)
+        let channel = FlutterMethodChannel(name: "mindbox.cloud/flutter-sdk", binaryMessenger: registrar.messenger())
+        let instance = SwiftMindboxIosPlugin(channel: channel)
+        registrar.addMethodCallDelegate(instance, channel: channel)
+        registrar.addApplicationDelegate(instance)
     }
     
-    @objc
-    public static func pushClicked(response: UNNotificationResponse){
+    init(channel: FlutterMethodChannel) {
+        self.channel = channel
+        super.init()
+        Mindbox.shared.inAppMessagesDelegate = self
+        NotificationCenter.default.addObserver(forName: NSNotification.Name(rawValue: "receivedPushNotification"), object: nil, queue: nil) { [self] notification in
+            if let response = notification.object as? UNNotificationResponse {
+                pushClicked(response: response)
+            }
+            
+        }
+    }
+    
+    
+    private func pushClicked(response: UNNotificationResponse){
         let action = response.actionIdentifier as NSString
         let request = response.notification.request
         let userInfo = request.content.userInfo
         
         var link: NSString?
         var payload: NSString?
-
+        
         if let url = userInfo["clickUrl"] as? NSString {
             link = url
         }
-
+        
         if let payloadData = userInfo["payload"] as? NSString {
             payload = payloadData
         }
-
+        
         if(link == nil){
             let aps = userInfo["aps"] as? NSDictionary
             link = aps?["clickUrl"] as? NSString
@@ -47,7 +63,7 @@ public class SwiftMindboxIosPlugin: NSObject, FlutterPlugin {
                 }
             }
         }
-        channel?.invokeMethod("pushClicked", arguments: [link, payload])
+        channel.invokeMethod("pushClicked", arguments: [link, payload])
     }
     
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -103,4 +119,23 @@ public class SwiftMindboxIosPlugin: NSObject, FlutterPlugin {
             result(FlutterMethodNotImplemented)
         }
     }
+}
+
+extension SwiftMindboxIosPlugin: UNUserNotificationCenterDelegate {
+    public func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+        pushClicked(response: response)
+        completionHandler()
+    }
+}
+
+extension SwiftMindboxIosPlugin: InAppMessagesDelegate {
+    public func inAppMessageTapAction(id: String, url: URL?, payload: String) {
+        channel.invokeMethod("onInAppClick", arguments: [id, url?.absoluteString, payload])
+    }
+    
+    public func inAppMessageDismissed(id: String) {
+        channel.invokeMethod("onInAppDismissed", arguments: id)
+    }
+    
+    
 }

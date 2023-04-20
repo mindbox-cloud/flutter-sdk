@@ -45,13 +45,13 @@ class MindboxAndroidPlatform extends MindboxPlatform {
     _methodHandler.handlePushClick(handler: handler);
   }
 
-  /// Returns data from In-app to callback.
+  /// Returns id, redirectUrl and payload from In-app to callback.
   @override
   void onInAppClickRecieved({required InAppClickHandler handler}) {
     _methodHandler.handleInAppClick(handler: handler);
   }
 
-  /// Returns data when In-app dismiss to callback.
+  /// Returns id from In-app to callback.
   @override
   void onInAppismissed({required InAppDismissedHandler handler}) {
     _methodHandler.handleInAppDismiss(handler: handler);

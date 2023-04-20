@@ -4,11 +4,11 @@ import Mindbox
 import MindboxNotifications
 
 open class MindboxFlutterAppDelegate: FlutterAppDelegate{
-   open override func application(
+    open override func application(
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
-                
+        
         if #available(iOS 10.0, *) {
             UNUserNotificationCenter.current().delegate = self
         }
@@ -31,15 +31,17 @@ open class MindboxFlutterAppDelegate: FlutterAppDelegate{
     open override func application(
         _ application: UIApplication,
         didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
-        Mindbox.shared.apnsTokenUpdate(deviceToken: deviceToken)
-    }
+            Mindbox.shared.apnsTokenUpdate(deviceToken: deviceToken)
+            super.application(application, didRegisterForRemoteNotificationsWithDeviceToken: deviceToken)
+        }
     
     // Регистрация фоновых задач для iOS до 13
     open override func application(
         _ application: UIApplication,
         performFetchWithCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
-        Mindbox.shared.application(application, performFetchWithCompletionHandler: completionHandler)
-    }
+            Mindbox.shared.application(application, performFetchWithCompletionHandler: completionHandler)
+            super.application(application, performFetchWithCompletionHandler: completionHandler)
+        }
     
     //    MARK: registerForRemoteNotifications
     //    Функция запроса разрешения на уведомления. В комплишн блоке надо передать статус разрешения в SDK Mindbox
@@ -64,15 +66,15 @@ open class MindboxFlutterAppDelegate: FlutterAppDelegate{
     ) -> Bool {
         // Передача ссылки, если приложение открыто через universalLink
         Mindbox.shared.track(.universalLink(userActivity))
-        return true
+        return super.application(application, continue: userActivity, restorationHandler: restorationHandler)
     }
     
     open override func userNotificationCenter(
         _ center: UNUserNotificationCenter,
         willPresent notification: UNNotification,
         withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
-        completionHandler([.alert, .badge, .sound])
-    }
+            completionHandler([.alert, .badge, .sound])
+        }
     
     //    MARK: didReceive response
     //    Функция обработки кликов по нотификации
@@ -80,16 +82,13 @@ open class MindboxFlutterAppDelegate: FlutterAppDelegate{
         _ center: UNUserNotificationCenter,
         didReceive response: UNNotificationResponse,
         withCompletionHandler completionHandler: @escaping () -> Void) {
-        
-        // передача данных с клика по пушу во Flutter
-        SwiftMindboxIosPlugin.pushClicked(response: response)
-        
-        // передача факта клика по пушу
-        Mindbox.shared.pushClicked(response: response)
-        
-        // передача факта открытия приложения по переходу на пуш
-        Mindbox.shared.track(.push(response))
-        
-        completionHandler()
-    }
+            
+            // передача факта клика по пушу
+            Mindbox.shared.pushClicked(response: response)
+            
+            // передача факта открытия приложения по переходу на пуш
+            Mindbox.shared.track(.push(response))
+            
+            completionHandler()
+        }
 }

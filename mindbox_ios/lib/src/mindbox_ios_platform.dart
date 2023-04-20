@@ -45,6 +45,18 @@ class MindboxIosPlatform extends MindboxPlatform {
     _methodHandler.handlePushClick(handler: handler);
   }
 
+  /// Returns id, redirectUrl and payload from In-app to callback.
+  @override
+  void onInAppClickRecieved({required InAppClickHandler handler}) {
+    _methodHandler.handleInAppClick(handler: handler);
+  }
+
+  /// Returns id from In-app to callback.
+  @override
+  void onInAppismissed({required InAppDismissedHandler handler}) {
+    _methodHandler.handleInAppDismiss(handler: handler);
+  }
+
   /// Method for register a custom event.
   @override
   Future<void> executeAsyncOperation({

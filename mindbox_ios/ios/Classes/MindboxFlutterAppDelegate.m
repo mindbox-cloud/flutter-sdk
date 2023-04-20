@@ -49,9 +49,8 @@ didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
 
 // MINDBOX INTEGRATION
 - (void)userNotificationCenter:(UNUserNotificationCenter *)center didReceiveNotificationResponse:(UNNotificationResponse *)response withCompletionHandler:(void (^)(void))completionHandler {
-    // SENDING RESPONSE TO FLUTTER
-    [MindboxIosPlugin pushClicked:response];
-    
+    // SENDING RESPONSE TO FLUTTER PLUGIN
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"receivedPushNotification" object:response];
     TrackVisitData *data = [[TrackVisitData alloc] init];
     data.push = response;
     [[Mindbox shared] trackWithData:data];

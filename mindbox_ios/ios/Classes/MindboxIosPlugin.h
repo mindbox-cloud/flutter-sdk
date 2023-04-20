@@ -2,6 +2,4 @@
 
 @interface MindboxIosPlugin : NSObject<FlutterPlugin>
 
-+ (void)pushClicked:(UNNotificationResponse*)response;
-
 @end
