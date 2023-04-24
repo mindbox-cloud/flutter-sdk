@@ -32,7 +32,6 @@ open class MindboxFlutterAppDelegate: FlutterAppDelegate{
         _ application: UIApplication,
         didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
             Mindbox.shared.apnsTokenUpdate(deviceToken: deviceToken)
-            super.application(application, didRegisterForRemoteNotificationsWithDeviceToken: deviceToken)
         }
     
     // Регистрация фоновых задач для iOS до 13
@@ -90,5 +89,6 @@ open class MindboxFlutterAppDelegate: FlutterAppDelegate{
             Mindbox.shared.track(.push(response))
             
             completionHandler()
+            super.userNotificationCenter(center, didReceive: response, withCompletionHandler: completionHandler)
         }
 }
