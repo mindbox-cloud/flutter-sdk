@@ -51,6 +51,7 @@ didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
 - (void)userNotificationCenter:(UNUserNotificationCenter *)center didReceiveNotificationResponse:(UNNotificationResponse *)response withCompletionHandler:(void (^)(void))completionHandler {
     // SENDING RESPONSE TO FLUTTER PLUGIN
     [[NSNotificationCenter defaultCenter] postNotificationName:@"receivedPushNotification" object:response];
+    [[Mindbox shared] pushClickedWithResponse:response];
     TrackVisitData *data = [[TrackVisitData alloc] init];
     data.push = response;
     [[Mindbox shared] trackWithData:data];
