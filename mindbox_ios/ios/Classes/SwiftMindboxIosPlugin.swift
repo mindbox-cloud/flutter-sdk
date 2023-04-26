@@ -7,27 +7,26 @@ import Mindbox
 public class SwiftMindboxIosPlugin: NSObject, FlutterPlugin {
     private final var channel: FlutterMethodChannel
     
+    private var methodHandlerReady: Bool = false
+    private var lastNotificationReponse: UNNotificationResponse?
+    
     public static func register(with registrar: FlutterPluginRegistrar) {
         let channel = FlutterMethodChannel(name: Constants.pluginChannelName, binaryMessenger: registrar.messenger())
         let instance = SwiftMindboxIosPlugin(channel: channel)
         registrar.addMethodCallDelegate(instance, channel: channel)
         registrar.addApplicationDelegate(instance)
+        
     }
     
     init(channel: FlutterMethodChannel) {
         self.channel = channel
+        channel.invokeMethod("pushClicked", arguments: ["link", "payload"])
         super.init()
         Mindbox.shared.inAppMessagesDelegate = self
-        NotificationCenter.default.addObserver(forName: NSNotification.Name(rawValue: Constants.pushDataObserverName), object: nil, queue: nil) { [self] notification in
-            if let response = notification.object as? UNNotificationResponse {
-                pushClicked(response: response)
-            }
-            
-        }
     }
     
     
-    @objc public func pushClicked(response: UNNotificationResponse){
+    public func pushClicked(response: UNNotificationResponse){
         let action = response.actionIdentifier as NSString
         let request = response.notification.request
         let userInfo = request.content.userInfo
@@ -62,7 +61,13 @@ public class SwiftMindboxIosPlugin: NSObject, FlutterPlugin {
                 }
             }
         }
-        channel.invokeMethod("pushClicked", arguments: [link, payload])
+        
+        if(methodHandlerReady){
+            channel.invokeMethod("pushClicked", arguments: [link, payload])
+        }
+        else {
+            lastNotificationReponse = response
+        }
     }
     
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -134,6 +139,13 @@ public class SwiftMindboxIosPlugin: NSObject, FlutterPlugin {
                     result(FlutterError(code: "-1", message: resultError.createJSON(), details: nil))
                 }
             }
+        case "methodHandlerReady":
+            self.methodHandlerReady = true
+            if(lastNotificationReponse != nil) {
+                pushClicked(response: lastNotificationReponse!)
+            }
+            
+            lastNotificationReponse = nil
         default:
             result(FlutterMethodNotImplemented)
         }
@@ -142,8 +154,8 @@ public class SwiftMindboxIosPlugin: NSObject, FlutterPlugin {
 
 extension SwiftMindboxIosPlugin: UNUserNotificationCenterDelegate {
     public func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
-        pushClicked(response: response)
         completionHandler()
+        pushClicked(response: response)
     }
 }
 
@@ -155,6 +167,4 @@ extension SwiftMindboxIosPlugin: InAppMessagesDelegate {
     public func inAppMessageDismissed(id: String) {
         channel.invokeMethod("onInAppDismissed", arguments: id)
     }
-    
-    
 }

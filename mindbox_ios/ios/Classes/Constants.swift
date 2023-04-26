@@ -9,5 +9,4 @@ import Foundation
 
 enum Constants {
     static let pluginChannelName = "mindbox.cloud/flutter-sdk";
-    static let pushDataObserverName = "receivedPushNotification"
 }

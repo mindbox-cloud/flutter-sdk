@@ -69,11 +69,11 @@ class MindboxMethodHandler {
       }
       for (final operation in _pendingOperations) {
         channel.invokeMethod(operation.methodName, operation.parameters).then(
-            (result) {
-          if (operation.successCallback != null) {
-            operation.successCallback!(result);
-          }
-        }, onError: (e) {
+                (result) {
+              if (operation.successCallback != null) {
+                operation.successCallback!(result);
+              }
+            }, onError: (e) {
           if (operation.errorCallback != null) {
             final mindboxError = _convertPlatformExceptionToMindboxError(e);
             operation.errorCallback!(mindboxError);
@@ -111,7 +111,7 @@ class MindboxMethodHandler {
 
   /// Method for managing SDK logging
   void setLogLevel({required LogLevel logLevel}) async {
-      await channel.invokeMethod('setLogLevel', logLevel.index);
+    await channel.invokeMethod('setLogLevel', logLevel.index);
   }
 
   /// Method for handling push-notification click.
@@ -119,6 +119,8 @@ class MindboxMethodHandler {
     required PushClickHandler handler,
   }) {
     _pushClickHandler = handler;
+    _setMethodCallHandler();
+    channel.invokeMethod('methodHandlerReady');
   }
 
   /// Method for handling In-app click.
