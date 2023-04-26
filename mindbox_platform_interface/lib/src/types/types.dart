@@ -14,10 +14,22 @@ typedef InAppDismissedHandler = void Function(String id);
 
 /// SDK logging levels
 enum LogLevel {
+  ///
   verbose,
+
+  ///
   debug,
+
+  ///
   info,
+
+  ///
   warn,
+
+  ///
+
   error,
-  none,
+
+  ///
+  none
 }

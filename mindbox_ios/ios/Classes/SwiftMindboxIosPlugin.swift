@@ -7,9 +7,8 @@ import Mindbox
 public class SwiftMindboxIosPlugin: NSObject, FlutterPlugin {
     private final var channel: FlutterMethodChannel
     
-    
     public static func register(with registrar: FlutterPluginRegistrar) {
-        let channel = FlutterMethodChannel(name: "mindbox.cloud/flutter-sdk", binaryMessenger: registrar.messenger())
+        let channel = FlutterMethodChannel(name: Constants.pluginChannelName, binaryMessenger: registrar.messenger())
         let instance = SwiftMindboxIosPlugin(channel: channel)
         registrar.addMethodCallDelegate(instance, channel: channel)
         registrar.addApplicationDelegate(instance)
@@ -19,7 +18,7 @@ public class SwiftMindboxIosPlugin: NSObject, FlutterPlugin {
         self.channel = channel
         super.init()
         Mindbox.shared.inAppMessagesDelegate = self
-        NotificationCenter.default.addObserver(forName: NSNotification.Name(rawValue: "receivedPushNotification"), object: nil, queue: nil) { [self] notification in
+        NotificationCenter.default.addObserver(forName: NSNotification.Name(rawValue: Constants.pushDataObserverName), object: nil, queue: nil) { [self] notification in
             if let response = notification.object as? UNNotificationResponse {
                 pushClicked(response: response)
             }
@@ -28,7 +27,7 @@ public class SwiftMindboxIosPlugin: NSObject, FlutterPlugin {
     }
     
     
-    private func pushClicked(response: UNNotificationResponse){
+    @objc public func pushClicked(response: UNNotificationResponse){
         let action = response.actionIdentifier as NSString
         let request = response.notification.request
         let userInfo = request.content.userInfo
