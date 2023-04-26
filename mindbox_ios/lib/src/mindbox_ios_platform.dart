@@ -37,6 +37,12 @@ class MindboxIosPlatform extends MindboxPlatform {
     _methodHandler.getToken(callback: callback);
   }
 
+  /// Method for managing sdk logging
+  @override
+  void setLogLevel({required LogLevel logLevel}) {
+    _methodHandler.setLogLevel(logLevel: logLevel);
+  }
+
   /// Returns link from push to callback.
   @override
   void onPushClickReceived({

@@ -109,6 +109,11 @@ class MindboxMethodHandler {
     }
   }
 
+  /// Method for managing SDK logging
+  void setLogLevel({required LogLevel logLevel}) async {
+      await channel.invokeMethod('setLogLevel', logLevel.index);
+  }
+
   /// Method for handling push-notification click.
   void handlePushClick({
     required PushClickHandler handler,

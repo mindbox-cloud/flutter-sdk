@@ -84,4 +84,12 @@ abstract class MindboxPlatform {
   }) =>
       throw UnimplementedError(
           'executeSyncOperation() has not been implemented.');
+  
+  /// Method for managing SDK logging
+  void setLogLevel({required LogLevel logLevel}) =>
+      throw UnimplementedError(
+          'setLogLevel() has not been implemented.');
 }
+
+
+

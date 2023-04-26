@@ -10,7 +10,7 @@ export 'package:mindbox_platform_interface/mindbox_platform_interface.dart'
         MindboxNetworkError,
         MindboxInternalError,
         MindboxValidationError,
-        MindboxServerError;
+        MindboxServerError, LogLevel;
 
 /// Basic Mindbox API.
 class Mindbox {
@@ -62,6 +62,11 @@ class Mindbox {
   /// Callback returns token when Mindbox SDK is initialized. See also [init].
   void getToken(Function(String token) callback) {
     MindboxPlatform.instance.getToken(callback: callback);
+  }
+
+  /// Method for managing sdk logging
+  void setLogLevel({required LogLevel logLevel}) {
+    MindboxPlatform.instance.setLogLevel(logLevel: logLevel);
   }
 
   /// Method for handling push-notification click.

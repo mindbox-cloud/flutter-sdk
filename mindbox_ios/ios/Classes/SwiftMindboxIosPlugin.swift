@@ -101,6 +101,26 @@ public class SwiftMindboxIosPlugin: NSObject, FlutterPlugin {
             Mindbox.shared.getAPNSToken {
                 token in result(token)
             }
+        case "setLogLevel":
+            guard call.arguments is Int else {
+                return
+            }
+            let levelIndex = call.arguments as! Int
+            switch (levelIndex) {
+            case 0:
+                Mindbox.logger.logLevel = .debug
+            case 1:
+                Mindbox.logger.logLevel = .info
+            case 2:
+                Mindbox.logger.logLevel = .default
+            case 3:
+                Mindbox.logger.logLevel = .error
+            case 4:
+                Mindbox.logger.logLevel = .fault
+            default:
+                Mindbox.logger.logLevel = .none
+            }
+            result(0)
         case "executeAsyncOperation":
             let args: [String] = call.arguments as! Array<String>
             Mindbox.shared.executeAsyncOperation(operationSystemName: args[0], json: args[1])

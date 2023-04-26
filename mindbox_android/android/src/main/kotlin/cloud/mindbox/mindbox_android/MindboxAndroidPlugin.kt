@@ -8,6 +8,7 @@ import androidx.annotation.NonNull
 import cloud.mindbox.mobile_sdk.Mindbox
 import cloud.mindbox.mobile_sdk.MindboxConfiguration
 import cloud.mindbox.mobile_sdk.inapp.presentation.InAppCallback
+import cloud.mindbox.mobile_sdk.logger.Level
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
@@ -111,6 +112,17 @@ class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, Ne
                                 null
                             )
                         })
+                }
+            }
+            "setLogLevel" -> {
+                if(call.arguments is Int)
+                {
+                    val logIndex: Int = call.arguments as Int
+                    val logLevel : Level = Level.values()[logIndex]
+                    Mindbox.setLogLevel(logLevel)
+                    result.success(0)
+                } else {
+                     result.error("-1", "Initialization error", "Wrong argument type")
                 }
             }
             else -> {

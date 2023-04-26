@@ -11,3 +11,13 @@ typedef InAppClickHandler = void Function(
 
 /// Defines a handler for In-app dismiss
 typedef InAppDismissedHandler = void Function(String id);
+
+/// SDK logging levels
+enum LogLevel {
+  verbose,
+  debug,
+  info,
+  warn,
+  error,
+  none,
+}
