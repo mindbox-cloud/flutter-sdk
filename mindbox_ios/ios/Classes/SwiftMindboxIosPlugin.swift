@@ -145,7 +145,7 @@ extension SwiftMindboxIosPlugin: UNUserNotificationCenterDelegate {
 
 extension SwiftMindboxIosPlugin: InAppMessagesDelegate {
     public func inAppMessageTapAction(id: String, url: URL?, payload: String) {
-        channel.invokeMethod("onInAppClick", arguments: [id, url?.absoluteString, payload])
+        channel.invokeMethod("onInAppClick", arguments: [id, url?.absoluteString ?? "", payload])
     }
     
     public func inAppMessageDismissed(id: String) {

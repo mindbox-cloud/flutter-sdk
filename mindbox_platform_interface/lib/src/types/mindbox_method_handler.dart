@@ -65,11 +65,11 @@ class MindboxMethodHandler {
       }
       for (final operation in _pendingOperations) {
         channel.invokeMethod(operation.methodName, operation.parameters).then(
-            (result) {
-          if (operation.successCallback != null) {
-            operation.successCallback!(result);
-          }
-        }, onError: (e) {
+                (result) {
+              if (operation.successCallback != null) {
+                operation.successCallback!(result);
+              }
+            }, onError: (e) {
           if (operation.errorCallback != null) {
             final mindboxError = _convertPlatformExceptionToMindboxError(e);
             operation.errorCallback!(mindboxError);
