@@ -33,17 +33,13 @@ class _PendingOperations {
 ///
 /// Platform implementations can use this class for platform calls.
 class MindboxMethodHandler {
-  /// Default constructor
-  MindboxMethodHandler() {
-    _setMethodCallHandler();
-  }
-
   bool _initialized = false;
   final List<_PendingCallbackMethod> _pendingCallbackMethods = [];
   final List<_PendingOperations> _pendingOperations = [];
   PushClickHandler? _pushClickHandler;
   InAppClickHandler? _inAppClickHandler;
   InAppDismissedHandler? _inAppDismissedHandler;
+  bool _methodHandlerSet = false;
 
   /// Returns native SDK version.
   Future<String> get nativeSdkVersion async =>
@@ -69,11 +65,11 @@ class MindboxMethodHandler {
       }
       for (final operation in _pendingOperations) {
         channel.invokeMethod(operation.methodName, operation.parameters).then(
-                (result) {
-              if (operation.successCallback != null) {
-                operation.successCallback!(result);
-              }
-            }, onError: (e) {
+            (result) {
+          if (operation.successCallback != null) {
+            operation.successCallback!(result);
+          }
+        }, onError: (e) {
           if (operation.errorCallback != null) {
             final mindboxError = _convertPlatformExceptionToMindboxError(e);
             operation.errorCallback!(mindboxError);
@@ -119,8 +115,9 @@ class MindboxMethodHandler {
     required PushClickHandler handler,
   }) {
     _pushClickHandler = handler;
-    _setMethodCallHandler();
-    channel.invokeMethod('methodHandlerReady');
+    if (!_methodHandlerSet) {
+      _setMethodCallHandler();
+    }
   }
 
   /// Method for handling In-app click.
@@ -128,6 +125,9 @@ class MindboxMethodHandler {
     required InAppClickHandler handler,
   }) {
     _inAppClickHandler = handler;
+    if (!_methodHandlerSet) {
+      _setMethodCallHandler();
+    }
   }
 
   /// Method for handling In-app dismiss.
@@ -135,6 +135,9 @@ class MindboxMethodHandler {
     required InAppDismissedHandler handler,
   }) {
     _inAppDismissedHandler = handler;
+    if (!_methodHandlerSet) {
+      _setMethodCallHandler();
+    }
   }
 
   /// Method for register a custom event.
@@ -265,5 +268,6 @@ class MindboxMethodHandler {
       }
       return Future.value(true);
     });
+    _methodHandlerSet = true;
   }
 }

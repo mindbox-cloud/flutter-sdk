@@ -7,8 +7,6 @@ import Mindbox
 public class SwiftMindboxIosPlugin: NSObject, FlutterPlugin {
     private final var channel: FlutterMethodChannel
     
-    private var methodHandlerReady: Bool = false
-    private var lastNotificationReponse: UNNotificationResponse?
     
     public static func register(with registrar: FlutterPluginRegistrar) {
         let channel = FlutterMethodChannel(name: Constants.pluginChannelName, binaryMessenger: registrar.messenger())
@@ -20,7 +18,6 @@ public class SwiftMindboxIosPlugin: NSObject, FlutterPlugin {
     
     init(channel: FlutterMethodChannel) {
         self.channel = channel
-        channel.invokeMethod("pushClicked", arguments: ["link", "payload"])
         super.init()
         Mindbox.shared.inAppMessagesDelegate = self
     }
@@ -61,13 +58,7 @@ public class SwiftMindboxIosPlugin: NSObject, FlutterPlugin {
                 }
             }
         }
-        
-        if(methodHandlerReady){
-            channel.invokeMethod("pushClicked", arguments: [link, payload])
-        }
-        else {
-            lastNotificationReponse = response
-        }
+        channel.invokeMethod("pushClicked", arguments: [link, payload])
     }
     
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -139,13 +130,6 @@ public class SwiftMindboxIosPlugin: NSObject, FlutterPlugin {
                     result(FlutterError(code: "-1", message: resultError.createJSON(), details: nil))
                 }
             }
-        case "methodHandlerReady":
-            self.methodHandlerReady = true
-            if(lastNotificationReponse != nil) {
-                pushClicked(response: lastNotificationReponse!)
-            }
-            
-            lastNotificationReponse = nil
         default:
             result(FlutterMethodNotImplemented)
         }
