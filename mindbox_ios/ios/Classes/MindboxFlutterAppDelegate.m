@@ -52,6 +52,7 @@ didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     TrackVisitData *data = [[TrackVisitData alloc] init];
     data.push = response;
     [[Mindbox shared] trackWithData:data];
+    [Mindbox.shared pushClickedWithResponse:response];
     completionHandler();
     [super userNotificationCenter:center didReceiveNotificationResponse:response withCompletionHandler:completionHandler];
 }
