@@ -37,12 +37,30 @@ class MindboxIosPlatform extends MindboxPlatform {
     _methodHandler.getToken(callback: callback);
   }
 
+  /// Method for managing sdk logging
+  @override
+  void setLogLevel({required LogLevel logLevel}) {
+    _methodHandler.setLogLevel(logLevel: logLevel);
+  }
+
   /// Returns link from push to callback.
   @override
   void onPushClickReceived({
-    required Function(String link, String payload) callback,
+    required PushClickHandler handler,
   }) {
-    _methodHandler.handlePushClick(callback: callback);
+    _methodHandler.handlePushClick(handler: handler);
+  }
+
+  /// Returns id, redirectUrl and payload from In-app to callback.
+  @override
+  void onInAppClickRecieved({required InAppClickHandler handler}) {
+    _methodHandler.handleInAppClick(handler: handler);
+  }
+
+  /// Returns id from In-app to callback.
+  @override
+  void onInAppismissed({required InAppDismissedHandler handler}) {
+    _methodHandler.handleInAppDismiss(handler: handler);
   }
 
   /// Method for register a custom event.

@@ -49,13 +49,12 @@ didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
 
 // MINDBOX INTEGRATION
 - (void)userNotificationCenter:(UNUserNotificationCenter *)center didReceiveNotificationResponse:(UNNotificationResponse *)response withCompletionHandler:(void (^)(void))completionHandler {
-    // SENDING RESPONSE TO FLUTTER
-    [MindboxIosPlugin pushClicked:response];
-    
     TrackVisitData *data = [[TrackVisitData alloc] init];
     data.push = response;
     [[Mindbox shared] trackWithData:data];
+    [Mindbox.shared pushClickedWithResponse:response];
     completionHandler();
+    [super userNotificationCenter:center didReceiveNotificationResponse:response withCompletionHandler:completionHandler];
 }
 
 // MINDBOX INTEGRATION

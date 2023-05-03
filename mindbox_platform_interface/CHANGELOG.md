@@ -1,3 +1,8 @@
+## 2.2.0
+
+* Refactored MindboxMethodHandler class
+* Added new methods: handleInAppClick, handleInAppDismiss
+
 ## 2.1.1
 
 * Update linter flutter_lints to 2.0.1

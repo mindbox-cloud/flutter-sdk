@@ -56,7 +56,7 @@ void main() {
         'Default implementation of onPushClickReceived() '
         'should throw unimplemented error', () {
       expect(
-        () => mindboxPlatform.onPushClickReceived(callback: (link, payload) {}),
+        () => mindboxPlatform.onPushClickReceived(handler: (link, payload) {}),
         throwsUnimplementedError,
       );
     });

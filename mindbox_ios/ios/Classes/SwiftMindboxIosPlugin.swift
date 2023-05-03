@@ -2,32 +2,43 @@ import Flutter
 import UIKit
 import Mindbox
 
+
+
 public class SwiftMindboxIosPlugin: NSObject, FlutterPlugin {
-    private static var channel: FlutterMethodChannel?
+    private final var channel: FlutterMethodChannel
+    
     
     public static func register(with registrar: FlutterPluginRegistrar) {
-        channel = FlutterMethodChannel(name: "mindbox.cloud/flutter-sdk", binaryMessenger: registrar.messenger())
-        let instance = SwiftMindboxIosPlugin()
-        registrar.addMethodCallDelegate(instance, channel: channel!)
+        let channel = FlutterMethodChannel(name: Constants.pluginChannelName, binaryMessenger: registrar.messenger())
+        let instance = SwiftMindboxIosPlugin(channel: channel)
+        registrar.addMethodCallDelegate(instance, channel: channel)
+        registrar.addApplicationDelegate(instance)
+        
     }
     
-    @objc
-    public static func pushClicked(response: UNNotificationResponse){
+    init(channel: FlutterMethodChannel) {
+        self.channel = channel
+        super.init()
+        Mindbox.shared.inAppMessagesDelegate = self
+    }
+    
+    
+    public func pushClicked(response: UNNotificationResponse){
         let action = response.actionIdentifier as NSString
         let request = response.notification.request
         let userInfo = request.content.userInfo
         
         var link: NSString?
         var payload: NSString?
-
+        
         if let url = userInfo["clickUrl"] as? NSString {
             link = url
         }
-
+        
         if let payloadData = userInfo["payload"] as? NSString {
             payload = payloadData
         }
-
+        
         if(link == nil){
             let aps = userInfo["aps"] as? NSDictionary
             link = aps?["clickUrl"] as? NSString
@@ -47,7 +58,7 @@ public class SwiftMindboxIosPlugin: NSObject, FlutterPlugin {
                 }
             }
         }
-        channel?.invokeMethod("pushClicked", arguments: [link, payload])
+        channel.invokeMethod("pushClicked", arguments: [link, payload])
     }
     
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -85,6 +96,26 @@ public class SwiftMindboxIosPlugin: NSObject, FlutterPlugin {
             Mindbox.shared.getAPNSToken {
                 token in result(token)
             }
+        case "setLogLevel":
+            guard call.arguments is Int else {
+                return
+            }
+            let levelIndex = call.arguments as! Int
+            switch (levelIndex) {
+            case 0:
+                Mindbox.logger.logLevel = .debug
+            case 1:
+                Mindbox.logger.logLevel = .info
+            case 2:
+                Mindbox.logger.logLevel = .default
+            case 3:
+                Mindbox.logger.logLevel = .error
+            case 4:
+                Mindbox.logger.logLevel = .fault
+            default:
+                Mindbox.logger.logLevel = .none
+            }
+            result(0)
         case "executeAsyncOperation":
             let args: [String] = call.arguments as! Array<String>
             Mindbox.shared.executeAsyncOperation(operationSystemName: args[0], json: args[1])
@@ -102,5 +133,22 @@ public class SwiftMindboxIosPlugin: NSObject, FlutterPlugin {
         default:
             result(FlutterMethodNotImplemented)
         }
+    }
+}
+
+extension SwiftMindboxIosPlugin: UNUserNotificationCenterDelegate {
+    public func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+        completionHandler()
+        pushClicked(response: response)
+    }
+}
+
+extension SwiftMindboxIosPlugin: InAppMessagesDelegate {
+    public func inAppMessageTapAction(id: String, url: URL?, payload: String) {
+        channel.invokeMethod("onInAppClick", arguments: [id, url?.absoluteString ?? "", payload])
+    }
+    
+    public func inAppMessageDismissed(id: String) {
+        channel.invokeMethod("onInAppDismissed", arguments: id)
     }
 }

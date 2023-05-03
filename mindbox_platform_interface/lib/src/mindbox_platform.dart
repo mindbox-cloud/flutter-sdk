@@ -46,7 +46,23 @@ abstract class MindboxPlatform {
   /// Method for handling push-notification click. Returns link and payload to
   /// callback.
   void onPushClickReceived({
-    required Function(String link, String payload) callback,
+    required PushClickHandler handler,
+  }) =>
+      throw UnimplementedError(
+          'onPushClickReceived() has not been implemented.');
+
+   /// Method for handling In-app click. Returns id, payload and url to
+  /// callback.
+  void onInAppClickRecieved({
+    required InAppClickHandler handler,
+  }) =>
+      throw UnimplementedError(
+          'onPushClickReceived() has not been implemented.');
+
+  /// Method for handling In-app dismiss. Returns id to
+  /// callback.
+  void onInAppismissed({
+    required InAppDismissedHandler handler,
   }) =>
       throw UnimplementedError(
           'onPushClickReceived() has not been implemented.');
@@ -68,4 +84,12 @@ abstract class MindboxPlatform {
   }) =>
       throw UnimplementedError(
           'executeSyncOperation() has not been implemented.');
+  
+  /// Method for managing SDK logging
+  void setLogLevel({required LogLevel logLevel}) =>
+      throw UnimplementedError(
+          'setLogLevel() has not been implemented.');
 }
+
+
+
