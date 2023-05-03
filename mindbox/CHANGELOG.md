@@ -18,11 +18,6 @@ Also in this release we added logging of important events in the sdk.
 
 ## 2.1.5
 
-* Upgrade Android SDK dependency to v2.1.10.
-* Previously, in some cases on Android the picture in rich-push notifications was not displayed when the phone was turned off. Now we fixed it.
-
-## 2.1.5
-
 * Upgrade Android SDK dependency to v2.1.9.
 * Upgrade iOS Mindbox SDK dependency to v2.1.5.
 
