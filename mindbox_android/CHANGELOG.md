@@ -1,4 +1,4 @@
-## 2.5.0
+## 2.5.0-rc
 
 * Upgrade native SDK dependency to v2.5.0.
 * Add new methods for In-app functionality support
