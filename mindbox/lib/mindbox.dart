@@ -10,7 +10,7 @@ export 'package:mindbox_platform_interface/mindbox_platform_interface.dart'
         MindboxNetworkError,
         MindboxInternalError,
         MindboxValidationError,
-        MindboxServerError;
+        MindboxServerError, LogLevel;
 
 /// Basic Mindbox API.
 class Mindbox {
@@ -64,11 +64,30 @@ class Mindbox {
     MindboxPlatform.instance.getToken(callback: callback);
   }
 
+  /// Method for managing sdk logging
+  void setLogLevel({required LogLevel logLevel}) {
+    MindboxPlatform.instance.setLogLevel(logLevel: logLevel);
+  }
+
   /// Method for handling push-notification click.
   ///
   /// Returns link from push-notification to callback.
-  void onPushClickReceived(Function(String link, String payload) callback) {
-    MindboxPlatform.instance.onPushClickReceived(callback: callback);
+  void onPushClickReceived(PushClickHandler handler) {
+    MindboxPlatform.instance.onPushClickReceived(handler: handler);
+  }
+
+  /// Method for handling In-app click.
+  ///
+  /// Returns id, redirectUrl and payload from In-app to callback.
+  void onInAppClickRecieved(InAppClickHandler handler) {
+    MindboxPlatform.instance.onInAppClickRecieved(handler: handler);
+  }
+
+  /// Method for handling In-app dismiss.
+  ///
+  /// Returns id when In-app dismiss to callback.
+  void onInAppDismissed(InAppDismissedHandler handler) {
+    MindboxPlatform.instance.onInAppismissed(handler: handler);
   }
 
   /// Method for register a custom event.

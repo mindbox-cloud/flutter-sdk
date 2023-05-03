@@ -1,3 +1,8 @@
+## 2.5.0
+
+* Upgrade native SDK dependency to v2.5.0.
+* Add new methods for In-app functionality support
+
 ## 2.1.3
 * Upgrade Native SDK dependency to v2.1.5.
 

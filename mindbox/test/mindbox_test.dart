@@ -103,8 +103,8 @@ class StubMindboxPlatform extends MindboxPlatform {
 
   @override
   void onPushClickReceived({
-    required Function(String url, String payload) callback,
+    required PushClickHandler handler,
   }) {
-    callback('dummy-url', 'dummy-payload');
+    handler('dummy-url', 'dummy-payload');
   }
 }

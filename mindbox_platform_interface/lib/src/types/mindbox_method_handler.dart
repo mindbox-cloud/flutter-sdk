@@ -36,6 +36,10 @@ class MindboxMethodHandler {
   bool _initialized = false;
   final List<_PendingCallbackMethod> _pendingCallbackMethods = [];
   final List<_PendingOperations> _pendingOperations = [];
+  PushClickHandler? _pushClickHandler;
+  InAppClickHandler? _inAppClickHandler;
+  InAppDismissedHandler? _inAppDismissedHandler;
+  bool _methodHandlerSet = false;
 
   /// Returns native SDK version.
   Future<String> get nativeSdkVersion async =>
@@ -61,11 +65,11 @@ class MindboxMethodHandler {
       }
       for (final operation in _pendingOperations) {
         channel.invokeMethod(operation.methodName, operation.parameters).then(
-            (result) {
-          if (operation.successCallback != null) {
-            operation.successCallback!(result);
-          }
-        }, onError: (e) {
+                (result) {
+              if (operation.successCallback != null) {
+                operation.successCallback!(result);
+              }
+            }, onError: (e) {
           if (operation.errorCallback != null) {
             final mindboxError = _convertPlatformExceptionToMindboxError(e);
             operation.errorCallback!(mindboxError);
@@ -101,18 +105,39 @@ class MindboxMethodHandler {
     }
   }
 
+  /// Method for managing SDK logging
+  void setLogLevel({required LogLevel logLevel}) async {
+    await channel.invokeMethod('setLogLevel', logLevel.index);
+  }
+
   /// Method for handling push-notification click.
   void handlePushClick({
-    required Function(String link, String payload) callback,
+    required PushClickHandler handler,
   }) {
-    channel.setMethodCallHandler((call) {
-      if (call.method == 'pushClicked') {
-        if (call.arguments is List) {
-          callback(call.arguments[0], call.arguments[1]);
-        }
-      }
-      return Future.value(true);
-    });
+    _pushClickHandler = handler;
+    if (!_methodHandlerSet) {
+      _setMethodCallHandler();
+    }
+  }
+
+  /// Method for handling In-app click.
+  void handleInAppClick({
+    required InAppClickHandler handler,
+  }) {
+    _inAppClickHandler = handler;
+    if (!_methodHandlerSet) {
+      _setMethodCallHandler();
+    }
+  }
+
+  /// Method for handling In-app dismiss.
+  void handleInAppDismiss({
+    required InAppDismissedHandler handler,
+  }) {
+    _inAppDismissedHandler = handler;
+    if (!_methodHandlerSet) {
+      _setMethodCallHandler();
+    }
   }
 
   /// Method for register a custom event.
@@ -221,5 +246,28 @@ class MindboxMethodHandler {
           message: 'Response does not contain the required keys',
           data: exception.message!);
     }
+  }
+
+  void _setMethodCallHandler() {
+    channel.setMethodCallHandler((call) {
+      if (call.method == 'pushClicked') {
+        if (call.arguments is List) {
+          _pushClickHandler?.call(call.arguments[0], call.arguments[1]);
+        }
+      }
+      if (call.method == 'onInAppClick') {
+        if (call.arguments is List) {
+          _inAppClickHandler?.call(
+              call.arguments[0], call.arguments[1], call.arguments[2]);
+        }
+      }
+      if (call.method == 'onInAppDismissed') {
+        if (call.arguments is String) {
+          _inAppDismissedHandler?.call(call.arguments);
+        }
+      }
+      return Future.value(true);
+    });
+    _methodHandlerSet = true;
   }
 }
