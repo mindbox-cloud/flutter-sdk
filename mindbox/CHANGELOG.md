@@ -1,4 +1,4 @@
-## 2.5.0
+## 2.5.0-rc
 
 This version of the SDK includes support for in-app messages. You will now be able to personalize your app by showing users appropriate campaigns based on their actions in the app, on the website, or purchases in retail stores.
 You can now launch in-app notifications for users from a certain city, region, or country or exclude the segment of users who should not see the in-app notification.
@@ -12,11 +12,6 @@ Also in this release we added logging of important events in the sdk.
 * Optimize integration for Android
 
 ## 2.1.6
-
-* Upgrade Android SDK dependency to v2.1.10.
-* Previously, in some cases on Android the picture in rich-push notifications was not displayed when the phone was turned off. Now we fixed it.
-
-## 2.1.5
 
 * Upgrade Android SDK dependency to v2.1.10.
 * Previously, in some cases on Android the picture in rich-push notifications was not displayed when the phone was turned off. Now we fixed it.
