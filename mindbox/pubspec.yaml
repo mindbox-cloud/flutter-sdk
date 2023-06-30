@@ -20,10 +20,8 @@ flutter:
 dependencies:
   flutter:
     sdk: flutter
-  mindbox_android:
-    path: ../mindbox_android
-  mindbox_ios:
-    path: ../mindbox_ios
+  mindbox_android: ^2.6.2
+  mindbox_ios: ^2.6.3
   mindbox_platform_interface: ^2.2.0
 
 dev_dependencies:
