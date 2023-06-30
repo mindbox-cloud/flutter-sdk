@@ -40,6 +40,16 @@ class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, Ne
         }
     }
 
+    companion object {
+        @Deprecated(
+            "Push clicks are processed inside the library now. This method will be removed in future release." +
+                    " Please abort changes you make following points 3.3 and 5 of Mindbox API intructions",
+            level = DeprecationLevel.WARNING
+        )
+        fun pushClicked(link: String, payload: String) {
+        }
+    }
+
     override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         channel = MethodChannel(flutterPluginBinding.binaryMessenger, "mindbox.cloud/flutter-sdk")
         channel.setMethodCallHandler(this)
