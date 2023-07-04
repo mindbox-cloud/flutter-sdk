@@ -9,13 +9,14 @@ receive and handle push notifications.
 * Receive and show push notification in both mobile platforms.
 * Receive push notification data(link, payload) in Flutter.
 * Execute sync/async operations.
+* Display In-App
 
 ## Getting started
 
 This plugin depends on the configuration of push notifications on native platforms. It's necessary
 to follow the steps specified in the guide:
 
-* [Mindbox Flutter SDK](https://developers.mindbox.ru/docs/flutter-sdk)
+* [Mindbox Flutter SDK](https://developers.mindbox.ru/docs/flutter-sdk-integration)
 
 ## Usage
 
@@ -96,4 +97,22 @@ Mindbox.instance.executeSyncOperation(
     jsonDecode(error.data);
   },
 );
+```
+
+### In-App click handling
+
+```dart
+ Mindbox.instance.onInAppClickRecieved((id, redirectUrl, payload) {
+  print(id);
+  print(redirectUrl);
+  print(payload);
+});
+```
+
+### In-App dismiss handling
+
+```dart
+ Mindbox.instance.onInAppDismissed((id){
+  print(id);
+});
 ```

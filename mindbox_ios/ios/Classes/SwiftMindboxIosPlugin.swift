@@ -22,6 +22,11 @@ public class SwiftMindboxIosPlugin: NSObject, FlutterPlugin {
         Mindbox.shared.inAppMessagesDelegate = self
     }
     
+    @available(*, deprecated)
+    @objc
+    public static func pushClicked(response: UNNotificationResponse){
+    }
+    
     
     public func pushClicked(response: UNNotificationResponse){
         let action = response.actionIdentifier as NSString
