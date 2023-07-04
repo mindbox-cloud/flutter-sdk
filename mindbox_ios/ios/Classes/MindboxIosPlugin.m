@@ -13,4 +13,7 @@
     [SwiftMindboxIosPlugin registerWithRegistrar:registrar];
 }
 
++ (void)pushClicked:(UNNotificationResponse *)response __attribute__((deprecated(""))) {
+}
+
 @end

@@ -1,3 +1,7 @@
+## 2.6.3
+
+* Upgrade native SDK dependency to v2.6.3.
+
 ## 2.5.0-rc
 
 * Upgrade native SDK dependency to v2.5.0.
