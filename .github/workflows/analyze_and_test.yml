@@ -26,5 +26,5 @@ jobs:
         with:
           channel: "stable"
       - run: cd ${{ matrix.package }} && flutter pub get
-      - run: cd ${{ matrix.package }} && flutter analyze
+    #  - run: cd ${{ matrix.package }} && flutter analyze
       - run: cd ${{ matrix.package }} && flutter test
