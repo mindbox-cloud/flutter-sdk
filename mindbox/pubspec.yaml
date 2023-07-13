@@ -17,6 +17,7 @@ flutter:
       ios:
         default_package: mindbox_ios
 
+
 dependencies:
   flutter:
     sdk: flutter
