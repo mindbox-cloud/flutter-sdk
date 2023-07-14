@@ -42,7 +42,7 @@ jobs:
          cd mindbox_android && echo "publish_to: 'none'" | cat - pubspec.yaml > temp && mv temp pubspec.yaml
       - name: Replace version to local path
         run: |
-          cd mindbox_android && cat pubspec.yaml | sed 's/^mindbox_platform_interface.*/mindbox_platform_interface:\n  path: ..\/mindbox_platform_interface/' > pubspec.yaml.tmp && mv pubspec.yaml.tmp pubspec.yaml && cat pubspec.yaml
+              sed -i '/^  mindbox_platform_interface:/d' mindbox_android/pubspec.yaml
       - run: |
          cd mindbox_android && cat pubspec.yaml
 #       - run: cd mindbox_android && flutter pub get
