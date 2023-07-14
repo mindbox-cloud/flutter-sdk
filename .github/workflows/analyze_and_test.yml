@@ -41,9 +41,9 @@ jobs:
       - name: Replace version to local path
         run: |
          cd mindbox_android && sed -i 's/^mindbox_platform_interface.*/mindbox_platform_interface:\n  path: ..\/mindbox_platform_interface/' pubspec.yaml
-      - run: cd mindbox_platform_interface && flutter pub get
-      - run: cd mindbox_platform_interface && flutter analyze
-      - run: cd mindbox_platform_interface && flutter test   
+      - run: cd mindbox_android && flutter pub get
+      - run: cd mindbox_android && flutter analyze
+      - run: cd mindbox_android && flutter test   
       
 #   flutter_test:
 #     name: ${{ matrix.package }} running analyze and tests
