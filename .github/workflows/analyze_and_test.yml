@@ -20,11 +20,9 @@ jobs:
       - name: Add publish_to tag
         run: |
          cd mindbox_platform_interface && echo "publish_to: 'none'" | cat - pubspec.yaml > temp && mv temp pubspec.yaml
-      - run: | 
-            cd mindbox_platform_interface && cat pubspec.yaml
-#       - run: cd mindbox_platform_interface && flutter pub get
-#       - run: cd mindbox_platform_interface && flutter analyze
-#       - run: cd mindbox_platform_interface && flutter test
+      - run: cd mindbox_platform_interface && flutter pub get
+      - run: cd mindbox_platform_interface && flutter analyze
+      - run: cd mindbox_platform_interface && flutter test
       
   android_component_flutter_test:
     name:  android_component running analyze and tests
@@ -43,59 +41,57 @@ jobs:
       - name: Replace version to local path
         run: |
               sed -i 's/^  mindbox_platform_interface:.*$/  mindbox_platform_interface:\n    path: ..\/mindbox_platform_interface/g' mindbox_android/pubspec.yaml
-      - run: |
-         cd mindbox_android && cat pubspec.yaml
-#       - run: cd mindbox_android && flutter pub get
-#       - run: cd mindbox_android && flutter analyze
-#       - run: cd mindbox_android && flutter test
+      - run: cd mindbox_android && flutter pub get
+      - run: cd mindbox_android && flutter analyze
+      - run: cd mindbox_android && flutter test
   
-#   ios_component_flutter_test:
-#     name:  ios_component running analyze and tests
-#     runs-on: ubuntu-latest
-#     steps:
-#       - uses: actions/checkout@v3
-#       - uses: actions/setup-java@v1
-#         with:
-#           java-version: "12.x"
-#       - uses: subosito/flutter-action@v2
-#         with:
-#           channel: "stable"
-#       - name: Add publish_to tag
-#         run: |
-#          cd mindbox_ios && echo "publish_to: 'none'" | cat - pubspec.yaml > temp && mv temp pubspec.yaml
-#       - name: Replace version to local path
-#         run: |
-#          cd mindbox_ios && sed -i 's/^mindbox_platform_interface.*/mindbox_platform_interface:\n  path: ..\/mindbox_platform_interface/' pubspec.yaml
-#       - run: cd mindbox_ios && flutter pub get
-#       - run: cd mindbox_ios && flutter analyze
-#       - run: cd mindbox_ios && flutter test
+  ios_component_flutter_test:
+    name:  ios_component running analyze and tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-java@v1
+        with:
+          java-version: "12.x"
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+      - name: Add publish_to tag
+        run: |
+         cd mindbox_ios && echo "publish_to: 'none'" | cat - pubspec.yaml > temp && mv temp pubspec.yaml
+      - name: Replace version to local path
+        run: |
+              sed -i 's/^  mindbox_platform_interface:.*$/  mindbox_platform_interface:\n    path: ..\/mindbox_platform_interface/g' mindbox_ios/pubspec.yaml
+      - run: cd mindbox_ios && flutter pub get
+      - run: cd mindbox_ios && flutter analyze
+      - run: cd mindbox_ios && flutter test
    
-#   plugin_flutter_test:
-#     name:  plugin running analyze and tests
-#     runs-on: ubuntu-latest
-#     steps:
-#       - uses: actions/checkout@v3
-#       - uses: actions/setup-java@v1
-#         with:
-#           java-version: "12.x"
-#       - uses: subosito/flutter-action@v2
-#         with:
-#           channel: "stable"
-#       - name: Add publish_to tag
-#         run: |
-#          cd mindbox && echo "publish_to: 'none'" | cat - pubspec.yaml > temp && mv temp pubspec.yaml
-#       - name: Replace platform_interface version to local path
-#         run: |
-#          cd mindbox && sed -i 's/^mindbox_platform_interface.*/mindbox_platform_interface:\n  path: ..\/mindbox_platform_interface/' pubspec.yaml
-#       - name: Replace mindbox_android version to local path
-#         run: |
-#          cd mindbox && sed -i 's/^mindbox_android.*/mindbox_android:\n  path: ..\/mindbox_android/' pubspec.yaml
-#       - name: Replace mindbox_ios version to local path
-#         run: |
-#          cd mindbox && sed -i 's/^mindbox_ios.*/mindbox_ios:\n  path: ..\/mindbox_ios/' pubspec.yaml   
-#       - run: cd mindbox && flutter pub get
-#       - run: cd mindbox && flutter analyze
-#       - run: cd mindbox && flutter test
+  plugin_flutter_test:
+    name:  plugin running analyze and tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-java@v1
+        with:
+          java-version: "12.x"
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+      - name: Add publish_to tag
+        run: |
+         cd mindbox && echo "publish_to: 'none'" | cat - pubspec.yaml > temp && mv temp pubspec.yaml
+      - name: Replace platform_interface version to local path
+        run: |
+         sed -i 's/^  mindbox_platform_interface:.*$/  mindbox_platform_interface:\n    path: ..\/mindbox_platform_interface/g' mindbox/pubspec.yaml
+      - name: Replace mindbox_android version to local path
+        run: |
+         sed -i 's/^  mindbox_android:.*$/  mindbox_android:\n    path: ..\/mindbox_android/g' mindbox/pubspec.yaml
+      - name: Replace mindbox_ios version to local path
+        run: |
+         sed -i 's/^  mindbox_ios:.*$/  mindbox_ios:\n    path: ..\/mindbox_ios/g' mindbox/pubspec.yaml   
+      - run: cd mindbox && flutter pub get
+      - run: cd mindbox && flutter analyze
+      - run: cd mindbox && flutter test
       
 #   flutter_test:
 #     name: ${{ matrix.package }} running analyze and tests
