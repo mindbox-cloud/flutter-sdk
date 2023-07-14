@@ -24,7 +24,6 @@ dependencies:
   mindbox_ios: ^2.7.0
   mindbox_platform_interface: ^2.2.0
 
-  
 dev_dependencies:
   flutter_test:
     sdk: flutter
