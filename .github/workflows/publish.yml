@@ -7,10 +7,10 @@ on:
 jobs:
  analyze_and_test:
   runs-on: ubuntu-latest
-  name: Analyza code and run tests before publishing
+  name: Analyze code and run tests before publishing
   steps:
    - uses: actions/checkout@v2
-   - uses: ./.github/workflows/workflow-a.yml
+   - uses: ./.github/workflows/analyze_and_test.yml
    
  platform_interface_publish:
     needs: [analyze_and_test]
