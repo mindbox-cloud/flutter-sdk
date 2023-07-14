@@ -5,7 +5,15 @@ on:
     branches: [ develop ]
 
 jobs:
+ analyze_and_test:
+  runs-on: ubuntu-latest
+  name: Analyza code and run tests before publishing
+  steps:
+   - uses: actions/checkout@v2
+   - uses: ./.github/workflows/workflow-a.yml
+   
  platform_interface_publish:
+    needs: [analyze_and_test]
     if: github.event.pull_request.merged
     timeout-minutes: 4
     runs-on: ubuntu-latest
@@ -50,7 +58,7 @@ jobs:
 #           prerelease: false
 
  native_components_publish:
-    needs: [platform_interface_publish]
+    needs: [analyze_and_test,platform_interface_publish]
     if: github.event.pull_request.merged
     timeout-minutes: 4
     runs-on: ubuntu-latest
@@ -100,7 +108,7 @@ jobs:
 #           draft: false
 #           prerelease: false
  plugin_publish:
-    needs: [platform_interface_publish, native_components_publish]
+    needs: [analyze_and_test,platform_interface_publish, native_components_publish]
     if: github.event.pull_request.merged
     timeout-minutes: 4
     runs-on: ubuntu-latest
