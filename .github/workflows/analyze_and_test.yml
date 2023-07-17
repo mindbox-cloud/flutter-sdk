@@ -3,6 +3,7 @@ name: analyze_and_test
 on:
   pull_request:
     branches: [ develop ]
+  workflow_call:
 
 jobs:
   platform_interface_flutter_test:
