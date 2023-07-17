@@ -6,10 +6,8 @@ on:
 
 jobs:
  analyze_and_test:
-  runs-on: ubuntu-latest
   name: Analyze code and run tests before publishing
-  steps:
-   - uses: ./.github/workflows/analyze_and_test.yml
+  uses: ./.github/workflows/analyze_and_test.yml
    
  platform_interface_publish:
     needs: [analyze_and_test]
