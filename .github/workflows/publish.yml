@@ -9,7 +9,6 @@ jobs:
   runs-on: ubuntu-latest
   name: Analyze code and run tests before publishing
   steps:
-   - uses: actions/checkout@v2
    - uses: ./.github/workflows/analyze_and_test.yml
    
  platform_interface_publish:
