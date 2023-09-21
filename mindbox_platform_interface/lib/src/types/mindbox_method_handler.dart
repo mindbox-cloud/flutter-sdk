@@ -152,6 +152,12 @@ class MindboxMethodHandler {
     if (!_methodHandlerSet) {
       _setMethodCallHandler();
     }
+    registerInAppCallback(callbacks: [
+      CustomInAppCallback(
+          _inAppClickHandler ?? (id, redirectUrl, payload) => {},
+          _inAppDismissedHandler ?? (id) => {}
+      )
+    ]);
   }
 
   /// Method for handling In-app dismiss.
@@ -162,6 +168,12 @@ class MindboxMethodHandler {
     if (!_methodHandlerSet) {
       _setMethodCallHandler();
     }
+    registerInAppCallback(callbacks: [
+      CustomInAppCallback(
+          _inAppClickHandler ?? (id, redirectUrl, payload) => {},
+          _inAppDismissedHandler ?? (id) => {}
+      )
+    ]);
   }
 
   /// Method for register a custom event.
