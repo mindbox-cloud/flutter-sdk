@@ -112,7 +112,7 @@ class MindboxMethodHandler {
 
   /// Method for registers a list of InAppCallback instances to handle clicks
   /// and dismiss in in-apps.
-  void registerInAppCallback({required List<InAppCallback> callbacks}) async {
+  void registerInAppCallbacks({required List<InAppCallback> callbacks}) async {
    final List<String> types = [];
    bool custom = false;
    for (var element in callbacks) {
@@ -130,7 +130,7 @@ class MindboxMethodHandler {
    }
 
    if (types.isNotEmpty) {
-     await channel.invokeMethod('registerInAppCallback', types);
+     await channel.invokeMethod('registerInAppCallbacks', types);
    }
   }
 
@@ -152,7 +152,7 @@ class MindboxMethodHandler {
     if (!_methodHandlerSet) {
       _setMethodCallHandler();
     }
-    registerInAppCallback(callbacks: [
+    registerInAppCallbacks(callbacks: [
       CustomInAppCallback(
           _inAppClickHandler ?? (id, redirectUrl, payload) => {},
           _inAppDismissedHandler ?? (id) => {}
@@ -168,7 +168,7 @@ class MindboxMethodHandler {
     if (!_methodHandlerSet) {
       _setMethodCallHandler();
     }
-    registerInAppCallback(callbacks: [
+    registerInAppCallbacks(callbacks: [
       CustomInAppCallback(
           _inAppClickHandler ?? (id, redirectUrl, payload) => {},
           _inAppDismissedHandler ?? (id) => {}

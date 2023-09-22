@@ -135,7 +135,7 @@ public class SwiftMindboxIosPlugin: NSObject, FlutterPlugin {
                     result(FlutterError(code: "-1", message: resultError.createJSON(), details: nil))
                 }
             }
-        case "registerInAppCallback":
+        case "registerInAppCallbacks":
             let args: [String] = call.arguments as! Array<String>
             let callbacks: [InAppMessagesDelegate] = args.compactMap { callback -> InAppMessagesDelegate? in
                 switch callback {

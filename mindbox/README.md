@@ -109,7 +109,7 @@ Mindbox.instance.registerInAppCallbacks(inAppCallbacks: [
       print(redirectUrl);
       print(payload);
     },
-    dismissedHandler: () => {
+    dismissedHandler: (id) => {
       print(id);
     }
   )

@@ -77,8 +77,8 @@ class CopyPayloadInAppCallback extends InAppCallback {
 /// Example usage:
 ///
 /// CustomInAppCallback(
-///   clickHandler: (payload) => { /* your custom click handling logic */ },
-///   dismissedHandler: () => { /* your custom dismiss handling logic */ },
+///   clickHandler: (id, redirectUrl, payload) => { /* your custom click handling logic */ },
+///   dismissedHandler: (id) => { /* your custom dismiss handling logic */ },
 /// )
 ///
 class CustomInAppCallback extends InAppCallback {

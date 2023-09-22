@@ -134,7 +134,7 @@ class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, Ne
                      result.error("-1", "Initialization error", "Wrong argument type")
                 }
             }
-            "registerInAppCallback" -> {
+            "registerInAppCallbacks" -> {
                 if (call.arguments is List<*>) {
                     val args = call.arguments as List<*>
                     val callbacks = args.filterIsInstance<String>()
