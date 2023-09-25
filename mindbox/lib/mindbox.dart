@@ -10,7 +10,17 @@ export 'package:mindbox_platform_interface/mindbox_platform_interface.dart'
         MindboxNetworkError,
         MindboxInternalError,
         MindboxValidationError,
-        MindboxServerError, LogLevel;
+        MindboxServerError,
+        LogLevel,
+        InAppCallback,
+        UrlInAppCallback,
+        LoggingInAppCallback,
+        EmptyInAppCallback,
+        DeepLinkInAppCallback,
+        CopyPayloadInAppCallback,
+        CustomInAppCallback,
+        InAppClickHandler,
+        InAppDismissedHandler;
 
 /// Basic Mindbox API.
 class Mindbox {
@@ -114,5 +124,11 @@ class Mindbox {
       onSuccess: onSuccess,
       onError: onError,
     );
+  }
+
+  /// Method for handling In-app click and dismiss. Returns id, payload and url
+  /// to callback.
+  void registerInAppCallback({required List<InAppCallback> callbacks}) {
+    MindboxPlatform.instance.registerInAppCallbacks(inAppCallbacks: callbacks);
   }
 }

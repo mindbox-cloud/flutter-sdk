@@ -90,4 +90,9 @@ class MindboxAndroidPlatform extends MindboxPlatform {
       onError: onError,
     );
   }
+
+  @override
+  void registerInAppCallbacks({required List<InAppCallback> inAppCallbacks}) {
+    _methodHandler.registerInAppCallbacks(callbacks: inAppCallbacks);
+  }
 }

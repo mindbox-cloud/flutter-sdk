@@ -110,6 +110,30 @@ class MindboxMethodHandler {
     await channel.invokeMethod('setLogLevel', logLevel.index);
   }
 
+  /// Method for registers a list of InAppCallback instances to handle clicks
+  /// and dismiss in in-apps.
+  void registerInAppCallbacks({required List<InAppCallback> callbacks}) async {
+   final List<String> types = [];
+   bool custom = false;
+   for (var element in callbacks) {
+     if (element is CustomInAppCallback) {
+       _inAppClickHandler = element.clickHandler;
+       _inAppDismissedHandler = element.dismissedHandler;
+       custom = true;
+     }
+     types.add(element.type);
+   }
+
+   if (custom == false
+       && (_inAppClickHandler != null || _inAppDismissedHandler != null)) {
+     types.add('CustomInAppCallback');
+   }
+
+   if (types.isNotEmpty) {
+     await channel.invokeMethod('registerInAppCallbacks', types);
+   }
+  }
+
   /// Method for handling push-notification click.
   void handlePushClick({
     required PushClickHandler handler,
@@ -128,6 +152,12 @@ class MindboxMethodHandler {
     if (!_methodHandlerSet) {
       _setMethodCallHandler();
     }
+    registerInAppCallbacks(callbacks: [
+      CustomInAppCallback(
+          _inAppClickHandler ?? (id, redirectUrl, payload) => {},
+          _inAppDismissedHandler ?? (id) => {}
+      )
+    ]);
   }
 
   /// Method for handling In-app dismiss.
@@ -138,6 +168,12 @@ class MindboxMethodHandler {
     if (!_methodHandlerSet) {
       _setMethodCallHandler();
     }
+    registerInAppCallbacks(callbacks: [
+      CustomInAppCallback(
+          _inAppClickHandler ?? (id, redirectUrl, payload) => {},
+          _inAppDismissedHandler ?? (id) => {}
+      )
+    ]);
   }
 
   /// Method for register a custom event.

@@ -409,6 +409,29 @@ void main() {
       expect(() => completer.future, throwsA(isA<MindboxInternalError>()));
     },
   );
+
+  test(
+    'registerInAppCallbacks()',
+    () async {
+      StubMindboxPlatform.registerPlatform();
+      final completerClick = Completer<List<String>>();
+      final completerDismiss = Completer<List<String>>();
+
+      MindboxPlatform.instance.registerInAppCallbacks(inAppCallbacks:[
+        CustomInAppCallback(
+            (id, redirectUrl, payload) =>
+                    completerClick.complete([id, redirectUrl, payload]),
+            (id) => completerDismiss.complete([id])
+        )
+      ]);
+
+      expect(
+          await completerClick.future,
+          equals(['dummy-id', 'dummy-url', 'dummy-payload'])
+      );
+      expect(await completerDismiss.future, equals(['dummy-id']));
+    },
+  );
 }
 
 class StubMindboxPlatform extends MindboxPlatform {
@@ -424,4 +447,13 @@ class StubMindboxPlatform extends MindboxPlatform {
   }) {
     handler('dummy-url', 'dummy-payload');
   }
+
+  @override
+  void registerInAppCallbacks({required List<InAppCallback> inAppCallbacks}) {
+    for (var element in inAppCallbacks) {
+      if (element is CustomInAppCallback) {
+        element.clickHandler('dummy-id', 'dummy-url', 'dummy-payload');
+        element.dismissedHandler('dummy-id');
+      }
+    }}
 }

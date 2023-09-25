@@ -29,7 +29,7 @@ void main() {
    WidgetsFlutterBinding.ensureInitialized();
 
    final config = Configuration(
-     domain: "your domain",
+     domain: "api.mindbox.ru/api.mindbox.cloud",
      endpointIos: "iOs endpoint",
      endpointAndroid: "Android endpoint",
      subscribeCustomerIfCreated: true,
@@ -99,20 +99,19 @@ Mindbox.instance.executeSyncOperation(
 );
 ```
 
-### In-App click handling
+### In-App click and dismiss handling
 
 ```dart
- Mindbox.instance.onInAppClickRecieved((id, redirectUrl, payload) {
-  print(id);
-  print(redirectUrl);
-  print(payload);
-});
-```
-
-### In-App dismiss handling
-
-```dart
- Mindbox.instance.onInAppDismissed((id){
-  print(id);
-});
+Mindbox.instance.registerInAppCallbacks(inAppCallbacks: [
+  CustomInAppCallback(
+    clickHandler: (id, redirectUrl, payload) {
+      print(id);
+      print(redirectUrl);
+      print(payload);
+    },
+    dismissedHandler: (id) => {
+      print(id);
+    }
+  )
+])
 ```
