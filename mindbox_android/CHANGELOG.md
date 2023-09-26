@@ -1,3 +1,8 @@
+## 2.8.0-rc
+
+* Upgrade native SDK dependency to v2.8.0-rc.
+* Updated kotlin-gradle-plugin version.
+
 ## 2.6.2
 
 * Upgrade native SDK dependency to v2.6.2.

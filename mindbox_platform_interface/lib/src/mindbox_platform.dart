@@ -51,8 +51,11 @@ abstract class MindboxPlatform {
       throw UnimplementedError(
           'onPushClickReceived() has not been implemented.');
 
-   /// Method for handling In-app click. Returns id, payload and url to
+  /// Method for handling In-app click. Returns id, payload and url to
   /// callback.
+  ///
+  /// Deprecated - Use [registerInAppCallbacks] method instead
+  @Deprecated('Use method registerInAppCallbacks')
   void onInAppClickRecieved({
     required InAppClickHandler handler,
   }) =>
@@ -61,6 +64,9 @@ abstract class MindboxPlatform {
 
   /// Method for handling In-app dismiss. Returns id to
   /// callback.
+  ///
+  /// Deprecated - Use [registerInAppCallbacks] method instead
+  @Deprecated('Use method registerInAppCallbacks')
   void onInAppismissed({
     required InAppDismissedHandler handler,
   }) =>
@@ -84,7 +90,30 @@ abstract class MindboxPlatform {
   }) =>
       throw UnimplementedError(
           'executeSyncOperation() has not been implemented.');
-  
+
+  /// Registers a list of InAppCallback instances to handle clicks and dismiss.
+  ///
+  /// This method allows you to register one or more of the following callbacks:
+  /// - [UrlInAppCallback] for handling in-app messages
+  /// by opening an associated URL.
+  /// - [EmptyInAppCallback] for handling in-app messages without performing
+  /// any actions.
+  /// - [CopyPayloadInAppCallback] for handling in-app messages by copying
+  /// the associated payload to the clipboard.
+  /// - [CustomInAppCallback] for providing custom click and dismiss handlers
+  /// for in-app messages.
+  ///
+  /// [inAppCallbacks] is a required list of InAppCallback instances
+  /// to be registered for handling in-app message events.
+  ///
+  /// If this method is not called, a default behavior will be implemented.
+  /// The default behavior will open the link from
+  /// the 'redirectUrl' parameter and copy the payload to the clipboard
+  /// if it is not in JSON or XML format.
+  void registerInAppCallbacks({required List<InAppCallback> inAppCallbacks}) =>
+      throw UnimplementedError(
+          'executeSyncOperation() has not been implemented.');
+
   /// Method for managing SDK logging
   void setLogLevel({required LogLevel logLevel}) =>
       throw UnimplementedError(

@@ -8,6 +8,7 @@ import androidx.annotation.NonNull
 import cloud.mindbox.mobile_sdk.Mindbox
 import cloud.mindbox.mobile_sdk.MindboxConfiguration
 import cloud.mindbox.mobile_sdk.inapp.presentation.InAppCallback
+import cloud.mindbox.mobile_sdk.inapp.presentation.callbacks.*
 import cloud.mindbox.mobile_sdk.logger.Level
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
@@ -76,7 +77,6 @@ class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, Ne
                         .shouldCreateCustomer(shouldCreateCustomer)
                         .build()
                     Mindbox.init(context, config, listOf())
-                    Mindbox.registerInAppCallback(InAppCallbackImpl())
                     result.success("initialized")
                 } else {
                     result.error("-1", "Initialization error", "Wrong argument type")
@@ -125,14 +125,31 @@ class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, Ne
                 }
             }
             "setLogLevel" -> {
-                if(call.arguments is Int)
-                {
+                if (call.arguments is Int) {
                     val logIndex: Int = call.arguments as Int
                     val logLevel : Level = Level.values()[logIndex]
                     Mindbox.setLogLevel(logLevel)
                     result.success(0)
                 } else {
                      result.error("-1", "Initialization error", "Wrong argument type")
+                }
+            }
+            "registerInAppCallbacks" -> {
+                if (call.arguments is List<*>) {
+                    val args = call.arguments as List<*>
+                    val callbacks = args.filterIsInstance<String>()
+                        .mapNotNull { type ->
+                            when (type) {
+                                "UrlInAppCallback" -> UrlInAppCallback()
+                                "EmptyInAppCallback" -> EmptyInAppCallback()
+                                "CopyPayloadInAppCallback" -> CopyPayloadInAppCallback()
+                                "CustomInAppCallback" -> InAppCallbackImpl()
+                                else -> null
+                            }
+                        }
+                    if (callbacks.isNotEmpty()) {
+                        Mindbox.registerInAppCallback(ComposableInAppCallback(callbacks))
+                    }
                 }
             }
             else -> {

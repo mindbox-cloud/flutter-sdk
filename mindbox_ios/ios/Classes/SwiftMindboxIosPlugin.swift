@@ -7,6 +7,7 @@ import Mindbox
 public class SwiftMindboxIosPlugin: NSObject, FlutterPlugin {
     private final var channel: FlutterMethodChannel
     
+    private final let compositeDelegate = CompositeClass()
     
     public static func register(with registrar: FlutterPluginRegistrar) {
         let channel = FlutterMethodChannel(name: Constants.pluginChannelName, binaryMessenger: registrar.messenger())
@@ -19,7 +20,6 @@ public class SwiftMindboxIosPlugin: NSObject, FlutterPlugin {
     init(channel: FlutterMethodChannel) {
         self.channel = channel
         super.init()
-        Mindbox.shared.inAppMessagesDelegate = self
     }
     
     @available(*, deprecated)
@@ -134,6 +134,30 @@ public class SwiftMindboxIosPlugin: NSObject, FlutterPlugin {
                 case .failure(let resultError):
                     result(FlutterError(code: "-1", message: resultError.createJSON(), details: nil))
                 }
+            }
+        case "registerInAppCallbacks":
+            let args: [String] = call.arguments as! Array<String>
+            let callbacks: [InAppMessagesDelegate] = args.compactMap { callback -> InAppMessagesDelegate? in
+                switch callback {
+                    case "UrlInAppCallback":
+                        return URLClass()
+                    case "CopyPayloadInAppCallback":
+                        return CopyClass()
+                    case "EmptyInAppCallback":
+                        return EmptyClass()
+                    case "CustomInAppCallback":
+                        return self
+                    default:
+                        return nil
+                }
+            }
+
+            if (callbacks.count > 0) {
+                compositeDelegate.delegates = callbacks
+                Mindbox.shared.inAppMessagesDelegate = compositeDelegate
+                Mindbox.logger.log(level: .info, message: "Use callbacks = \(args)")
+            } else {
+                Mindbox.logger.log(level: .info, message: "Use default callback")
             }
         default:
             result(FlutterMethodNotImplemented)

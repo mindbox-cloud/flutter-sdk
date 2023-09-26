@@ -10,12 +10,14 @@ void main() {
 
   setUp(() {
     handler = MindboxMethodHandler();
-    channel.setMockMethodCallHandler(mindboxMockMethodCallHandler);
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, mindboxMockMethodCallHandler);
   });
 
   tearDown(
     () {
-      channel.setMockMethodCallHandler(null);
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, null);
     },
   );
 
