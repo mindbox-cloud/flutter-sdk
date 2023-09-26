@@ -18,8 +18,7 @@ flutter:
 dependencies:
   flutter:
     sdk: flutter
-  mindbox_platform_interface:
-    path: ../mindbox_platform_interface
+  mindbox_platform_interface: ^2.8.0-rc
 
 dev_dependencies:
   flutter_test:

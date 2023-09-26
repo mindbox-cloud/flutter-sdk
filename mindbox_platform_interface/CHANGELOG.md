@@ -1,3 +1,8 @@
+## 2.8.0-rc
+
+* Added new method registerInAppCallbacks.
+* Deprecated methods onInAppClickRecieved, onInAppismissed.
+
 ## 2.2.0
 
 * Refactored MindboxMethodHandler class
