@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mindbox_android/mindbox_android.dart';
 import 'package:mindbox_platform_interface/mindbox_platform_interface.dart';
 
+// ignore_for_file: unchecked_use_of_nullable_value
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 

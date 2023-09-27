@@ -14,9 +14,7 @@ export 'package:mindbox_platform_interface/mindbox_platform_interface.dart'
         LogLevel,
         InAppCallback,
         UrlInAppCallback,
-        LoggingInAppCallback,
         EmptyInAppCallback,
-        DeepLinkInAppCallback,
         CopyPayloadInAppCallback,
         CustomInAppCallback,
         InAppClickHandler,
@@ -89,14 +87,22 @@ class Mindbox {
   /// Method for handling In-app click.
   ///
   /// Returns id, redirectUrl and payload from In-app to callback.
+  ///
+  /// Deprecated - Use [registerInAppCallbacks] method instead
+  @Deprecated('Use method registerInAppCallbacks')
   void onInAppClickRecieved(InAppClickHandler handler) {
+    // ignore: deprecated_member_use
     MindboxPlatform.instance.onInAppClickRecieved(handler: handler);
   }
 
   /// Method for handling In-app dismiss.
   ///
   /// Returns id when In-app dismiss to callback.
+  ///
+  /// Deprecated - Use [registerInAppCallbacks] method instead
+  @Deprecated('Use method registerInAppCallbacks')
   void onInAppDismissed(InAppDismissedHandler handler) {
+    // ignore: deprecated_member_use
     MindboxPlatform.instance.onInAppismissed(handler: handler);
   }
 

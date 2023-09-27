@@ -36,7 +36,7 @@ enum LogLevel {
 
 /// Defines a handler for In-app actions
 abstract class InAppCallback {
-  abstract String _type;
+  abstract final String _type;
 
   /// Type of InAppCallback
   String get type => _type;
@@ -47,7 +47,7 @@ abstract class InAppCallback {
 /// by opening an associated URL when an in-app message is tapped.
 class UrlInAppCallback extends InAppCallback {
   @override
-  String _type = 'UrlInAppCallback';
+  final String _type = 'UrlInAppCallback';
 }
 
 /// Handler for In-app actions that performs no actions.
@@ -56,7 +56,7 @@ class UrlInAppCallback extends InAppCallback {
 /// the in-app message
 class EmptyInAppCallback extends InAppCallback {
   @override
-  String _type = 'EmptyInAppCallback';
+  final String _type = 'EmptyInAppCallback';
 }
 
 /// Handler for In-app actions that copies the payload to the clipboard.
@@ -65,7 +65,7 @@ class EmptyInAppCallback extends InAppCallback {
 /// to the clipboard when the in-app message is tapped.
 class CopyPayloadInAppCallback extends InAppCallback {
   @override
-  String _type = 'CopyPayloadInAppCallback';
+  final String _type = 'CopyPayloadInAppCallback';
 }
 
 /// Handler for In-app actions that allows custom implementation for handling
@@ -93,5 +93,5 @@ class CustomInAppCallback extends InAppCallback {
   final InAppDismissedHandler dismissedHandler;
 
   @override
-  String _type = 'CustomInAppCallback';
+  final String _type = 'CustomInAppCallback';
 }
