@@ -1,4 +1,4 @@
-## 2.8.0-rc
+## 2.8.0
 * Added the capability to display the new in-app Snackbar template and customize the visual appearance of the close button. Customization of templates within the Mindbox interface will be available later.
 * Users with this version of the SDK can now participate in A/B testing for the mobile app.
 * Added options for handling clicks on in-app messages. See 'Mindbox.instance.registerInAppCallbacks' for more details.

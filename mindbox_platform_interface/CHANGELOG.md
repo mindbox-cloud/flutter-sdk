@@ -1,4 +1,4 @@
-## 2.8.0-rc
+## 2.8.0
 
 * Added new method registerInAppCallbacks.
 * Deprecated methods onInAppClickRecieved, onInAppismissed.
