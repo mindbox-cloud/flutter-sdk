@@ -60,7 +60,7 @@ abstract class MindboxPlatform {
     required InAppClickHandler handler,
   }) =>
       throw UnimplementedError(
-          'onPushClickReceived() has not been implemented.');
+          'onInAppClickRecieved() has not been implemented.');
 
   /// Method for handling In-app dismiss. Returns id to
   /// callback.
@@ -71,7 +71,7 @@ abstract class MindboxPlatform {
     required InAppDismissedHandler handler,
   }) =>
       throw UnimplementedError(
-          'onPushClickReceived() has not been implemented.');
+          'onInAppismissed() has not been implemented.');
 
   /// Method for register a custom event.
   Future<void> executeAsyncOperation({
@@ -79,7 +79,7 @@ abstract class MindboxPlatform {
     required Map<String, dynamic> operationBody,
   }) =>
       throw UnimplementedError(
-          'onPushClickReceived() has not been implemented.');
+          'executeAsyncOperation() has not been implemented.');
 
   /// Method for executing an operation synchronously.
   Future<void> executeSyncOperation({
@@ -112,7 +112,7 @@ abstract class MindboxPlatform {
   /// if it is not in JSON or XML format.
   void registerInAppCallbacks({required List<InAppCallback> inAppCallbacks}) =>
       throw UnimplementedError(
-          'executeSyncOperation() has not been implemented.');
+          'registerInAppCallbacks() has not been implemented.');
 
   /// Method for managing SDK logging
   void setLogLevel({required LogLevel logLevel}) =>
