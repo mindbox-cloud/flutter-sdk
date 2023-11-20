@@ -1,3 +1,7 @@
+## 2.8.1
+* Upgrade Android SDK dependency to v2.8.2.
+* Upgrade iOS SDK dependency to v2.8.1.
+
 ## 2.8.0
 * Added the capability to display the new in-app Snackbar template and customize the visual appearance of the close button. Customization of templates within the Mindbox interface will be available later.
 * Users with this version of the SDK can now participate in A/B testing for the mobile app.
