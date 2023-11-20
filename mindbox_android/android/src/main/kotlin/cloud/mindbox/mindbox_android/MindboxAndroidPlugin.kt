@@ -1,6 +1,6 @@
 package cloud.mindbox.mindbox_android
 
-import android.content.Context
+import android.app.Activity
 import android.content.Intent
 import android.os.Handler
 import android.os.Looper
@@ -21,7 +21,7 @@ import io.flutter.plugin.common.PluginRegistry.NewIntentListener
 
 /** MindboxAndroidPlugin */
 class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, NewIntentListener {
-    private lateinit var context: Context
+    private lateinit var context: Activity
     private var binding: ActivityPluginBinding? = null
     private var deviceUuidSubscription: String? = null
     private var tokenSubscription: String? = null
@@ -70,13 +70,13 @@ class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, Ne
                     val previousInstallId: String = args["previousInstallationId"] as String
                     val subscribeIfCreated: Boolean = args["subscribeCustomerIfCreated"] as Boolean
                     val shouldCreateCustomer: Boolean = args["shouldCreateCustomer"] as Boolean
-                    val config = MindboxConfiguration.Builder(context, domain, endpointId)
+                    val config = MindboxConfiguration.Builder(context.applicationContext, domain, endpointId)
                         .setPreviousDeviceUuid(previousDeviceUuid)
                         .setPreviousInstallationId(previousInstallId)
                         .subscribeCustomerIfCreated(subscribeIfCreated)
                         .shouldCreateCustomer(shouldCreateCustomer)
                         .build()
-                    Mindbox.init(context, config, listOf())
+                    Mindbox.init(activity = context, config, listOf())
                     result.success("initialized")
                 } else {
                     result.error("-1", "Initialization error", "Wrong argument type")
@@ -101,7 +101,7 @@ class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, Ne
             "executeAsyncOperation" -> {
                 if (call.arguments is List<*>) {
                     val args = call.arguments as List<*>
-                    Mindbox.executeAsyncOperation(context, args[0] as String, args[1] as String)
+                    Mindbox.executeAsyncOperation(context.applicationContext, args[0] as String, args[1] as String)
                     result.success("executed")
                 }
             }
@@ -109,7 +109,7 @@ class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, Ne
                 if (call.arguments is List<*>) {
                     val args = call.arguments as List<*>
                     Mindbox.executeSyncOperation(
-                        context,
+                        context.applicationContext,
                         args[0] as String,
                         args[1] as String,
                         { response ->
@@ -186,7 +186,7 @@ class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, Ne
         intent.let {
             val uniqueKey = intent.getStringExtra("uniq_push_key")
             if (uniqueKey != null) {
-                Mindbox.onPushClicked(context, it)
+                Mindbox.onPushClicked(context.applicationContext, it)
                 Mindbox.onNewIntent(intent)
                 val link = Mindbox.getUrlFromPushIntent(intent) ?: ""
                 val payload = Mindbox.getPayloadFromPushIntent(intent) ?: ""
