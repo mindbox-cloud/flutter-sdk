@@ -48,6 +48,7 @@ sed -i '' "s/  mindbox_platform_interface:.*/  mindbox_platform_interface: \^$ve
 
 ios_podspec="mindbox_ios/ios/mindbox_ios.podspec"
 
+sed -i '' "s/  s.version          = .*/  s.version          = '$version'/" $ios_podspec
 sed -i '' "s/  s.dependency 'Mindbox', .*/  s.dependency 'Mindbox', '$version'/" $ios_podspec
 sed -i '' "s/  s.dependency 'MindboxNotifications', .*/  s.dependency 'MindboxNotifications', '$version'/" $ios_podspec
 
@@ -64,5 +65,17 @@ git add $android_yaml
 git add $common_yaml
 
 git commit -m "Bump SDK version to $version"
+
+$mindbox_ios_changelog = "mindbox_ios/CHANGELOG.md"
+$mindbox_android_changelog = "mindbox_android/CHANGELOG.md"
+$mindbox_changelog = "mindbox/CHANGELOG.md"
+$mindbox_platform_changelog = "mindbox_platform_interface/CHANGELOG.md"
+
+$changelog = "## $version\n\n* Upgrade native SDK dependency to v$version.\n\n"
+
+echo -e "$changelog$(cat $mindbox_ios_changelog)" > $mindbox_ios_changelog
+echo -e "$changelog$(cat $mindbox_android_changelog)" > $mindbox_android_changelog
+echo -e "$changelog$(cat $mindbox_platform_changelog)" > $mindbox_platform_changelog
+echo -e "$changelog$(cat $mindbox_changelog)" > $mindbox_changelog
 
 echo "Branch $branch_name has been created."

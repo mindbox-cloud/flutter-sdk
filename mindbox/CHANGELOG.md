@@ -1,3 +1,7 @@
+## 2.8.2
+
+* Upgrade iOS SDK dependency to v2.8.2.
+
 ## 2.8.1
 * Upgrade Android SDK dependency to v2.8.2.
 * Upgrade iOS SDK dependency to v2.8.1.
