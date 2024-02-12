@@ -1,4 +1,4 @@
-[!PubDev(https://img.shields.io/pub/v/mindbox)](https://pub.dev/packages/mindbox)
+[![PubDev](https://img.shields.io/pub/v/mindbox)](https://pub.dev/packages/mindbox)
 
 # Mindbox SDK for Flutter
 
