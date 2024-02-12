@@ -1,3 +1,5 @@
+[!PubDev(https://img.shields.io/pub/v/mindbox)](https://pub.dev/packages/mindbox)
+
 # Mindbox SDK for Flutter
 
 The Mindbox SDK allows you to integrate mobile push-notifications, in-app messages and client events into your Flutter projects.
