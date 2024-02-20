@@ -7,12 +7,12 @@ on:
       - master
 
 jobs:
- analyze_and_test:
-  name: Analyze code and run tests before publishing
-  uses: ./.github/workflows/analyze_and_test.yml
-   
- platform_interface_publish:
-    needs: [analyze_and_test]
+  analyze_and_test:
+    name: Analyze code and run tests before publishing
+    uses: ./.github/workflows/analyze_and_test.yml
+
+  platform_interface_publish:
+    needs: [ analyze_and_test ]
     if: github.event.pull_request.merged
     timeout-minutes: 4
     runs-on: ubuntu-latest
@@ -52,8 +52,8 @@ jobs:
           draft: false
           prerelease: false
 
- native_components_publish:
-    needs: [analyze_and_test,platform_interface_publish]
+  native_components_publish:
+    needs: [ analyze_and_test,platform_interface_publish ]
     if: github.event.pull_request.merged
     timeout-minutes: 4
     runs-on: ubuntu-latest
@@ -99,9 +99,9 @@ jobs:
           release_name: ${{ matrix.package }} v${{ env.VERSION }}
           draft: false
           prerelease: false
-          
- plugin_publish:
-    needs: [analyze_and_test,platform_interface_publish, native_components_publish]
+
+  plugin_publish:
+    needs: [ analyze_and_test,platform_interface_publish, native_components_publish ]
     if: github.event.pull_request.merged
     timeout-minutes: 4
     runs-on: ubuntu-latest
@@ -128,7 +128,7 @@ jobs:
           package_directory: mindbox
           credential: ${{ secrets.PUB_CREDENTIALS }}
           flutter_package: true
-          skip_test: true         
+          skip_test: true
       - name: Create Release
         if: steps.pubspec.outputs.changed == 0
         id: create_release
@@ -142,4 +142,13 @@ jobs:
           prerelease: false
 
       - name: Version Upgrade
-        run: ./version-update.sh "${{ env.VERSION }}"
+        run: chmod +x ./version-update.sh "${{ env.VERSION }}"
+
+      - name: Commit and push if it changed
+        run: |
+          git diff
+          git config --global user.email "actions@github.com"
+          git config --global user.name "GitHub Actions"
+          git commit -am "Update README.md" || exit 0
+          git push origin HEAD:develop
+      
