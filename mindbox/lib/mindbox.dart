@@ -138,8 +138,10 @@ class Mindbox {
     MindboxPlatform.instance.registerInAppCallbacks(inAppCallbacks: callbacks);
   }
 
-  /// This method is used to inform when the notification permission status changed
+  /// This method is used to inform when the notification permission
+  /// status changed
   void updateNotificationPermissionStatus({required bool granted}) {
-    MindboxPlatform.instance.updateNotificationPermissionStatus(granted: granted);
+    MindboxPlatform.instance
+        .updateNotificationPermissionStatus(granted: granted);
   }
 }
