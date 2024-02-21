@@ -18,8 +18,6 @@ open class MindboxFlutterAppDelegate: FlutterAppDelegate{
             UNUserNotificationCenter.current().delegate = self
         }
 
-        UNUserNotificationCenter.current().delegate = self
-
         if shouldRegisterForRemoteNotifications() {
             registerForRemoteNotifications()
         }

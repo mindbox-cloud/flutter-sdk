@@ -160,11 +160,10 @@ public class SwiftMindboxIosPlugin: NSObject, FlutterPlugin {
                 Mindbox.logger.log(level: .info, message: "Use default callback")
             }
         case "updateNotificationPermissionStatus":
-            guard call.arguments is Int else {
-                return
-            }
-            let granted = call.arguments  as! Bool
-            Mindbox.shared.notificationsRequestAuthorization(granted: granted)
+           guard let granted = call.arguments as? Bool else {
+                  return
+           }
+           Mindbox.shared.notificationsRequestAuthorization(granted: granted)
         default:
             result(FlutterMethodNotImplemented)
         }
