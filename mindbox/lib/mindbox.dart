@@ -137,4 +137,20 @@ class Mindbox {
   void registerInAppCallback({required List<InAppCallback> callbacks}) {
     MindboxPlatform.instance.registerInAppCallbacks(inAppCallbacks: callbacks);
   }
+
+  /// Updates the notification permission status.
+  ///
+  /// The [granted] parameter specifies whether the permission for notifications
+  /// has been granted:
+  ///
+  /// - `true` indicates that the user has granted permission.
+  /// - `false` indicates that the user has denied permission.
+  ///
+  /// Example usage:
+  /// ```dart
+  /// Mindbox.instance.updateNotificationPermissionStatus(granted: true);
+  void updateNotificationPermissionStatus({required bool granted}) {
+    MindboxPlatform.instance
+        .updateNotificationPermissionStatus(granted: granted);
+  }
 }

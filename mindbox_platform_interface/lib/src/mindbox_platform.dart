@@ -118,6 +118,11 @@ abstract class MindboxPlatform {
   void setLogLevel({required LogLevel logLevel}) =>
       throw UnimplementedError(
           'setLogLevel() has not been implemented.');
+
+  /// Method for sending notification permission status
+  void updateNotificationPermissionStatus({required bool granted}) =>
+      throw UnimplementedError(
+          'updateNotificationPermissionStatus() has not been implemented');
 }
 
 
