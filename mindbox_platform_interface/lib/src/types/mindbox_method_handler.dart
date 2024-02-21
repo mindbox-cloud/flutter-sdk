@@ -110,6 +110,11 @@ class MindboxMethodHandler {
     await channel.invokeMethod('setLogLevel', logLevel.index);
   }
 
+  /// Method for sending notification permission status
+  void updateNotificationPermissionStatus({required bool granted}) async {
+    await channel.invokeMethod('updateNotificationPermissionStatus');
+  }
+
   /// Method for registers a list of InAppCallback instances to handle clicks
   /// and dismiss in in-apps.
   void registerInAppCallbacks({required List<InAppCallback> callbacks}) async {
