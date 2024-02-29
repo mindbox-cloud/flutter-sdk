@@ -1,7 +1,7 @@
 ## 2.8.3
 
 * Upgrade iOS SDK dependency to v2.8.3.
-* Upgrade Android SDK dependency to v2.8.2.
+* Upgrade Android SDK dependency to v2.8.4.
 * Added opportunity for turn off automatically request notification permission on start app in iOS
 * Added method *updateNotificationPermissionStatus*
 
