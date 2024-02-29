@@ -1,3 +1,7 @@
+## 2.8.3
+
+* Upgrade native SDK dependency to v2.8.3.
+
 ## 2.8.2
 
 * Upgrade native SDK dependency to v2.8.2.
