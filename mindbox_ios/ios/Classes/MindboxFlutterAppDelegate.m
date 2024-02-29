@@ -10,18 +10,22 @@ didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     // MINDBOX INTEGRATION
     UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
     center.delegate = self;
-    [center requestAuthorizationWithOptions:(UNAuthorizationOptionSound | UNAuthorizationOptionAlert | UNAuthorizationOptionBadge) completionHandler:^(BOOL granted, NSError * _Nullable error) {
-        if (!error) {
-            dispatch_async(dispatch_get_main_queue(), ^{
-                [[UIApplication sharedApplication] registerForRemoteNotifications];
-                [[Mindbox shared] notificationsRequestAuthorizationWithGranted:granted];
-            });
-        }
-        else {
-            NSLog(@"NotificationsRequestAuthorization failed with error: %@", error.localizedDescription);
-        }
-    }];
-    
+    if ([self shouldRegisterForRemoteNotifications]) {
+        [center requestAuthorizationWithOptions:(UNAuthorizationOptionSound |
+                                                 UNAuthorizationOptionAlert |
+                                                 UNAuthorizationOptionBadge) completionHandler:^(
+                BOOL granted, NSError *_Nullable error) {
+            if (!error) {
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    [[UIApplication sharedApplication] registerForRemoteNotifications];
+                    [[Mindbox shared] notificationsRequestAuthorizationWithGranted:granted];
+                });
+            } else {
+                NSLog(@"NotificationsRequestAuthorization failed with error: %@",
+                      error.localizedDescription);
+            }
+        }];
+    }
     // MINDBOX INTEGRATION
     if (@available(iOS 13.0, *)) {
         [[Mindbox shared] registerBGTasks];
@@ -60,5 +64,9 @@ didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
 // MINDBOX INTEGRATION
 - (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))completionHandler {
     [[Mindbox shared] application:application performFetchWithCompletionHandler:completionHandler];
+}
+
+- (BOOL)shouldRegisterForRemoteNotifications {
+    return YES;
 }
 @end

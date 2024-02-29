@@ -95,4 +95,10 @@ class MindboxAndroidPlatform extends MindboxPlatform {
   void registerInAppCallbacks({required List<InAppCallback> inAppCallbacks}) {
     _methodHandler.registerInAppCallbacks(callbacks: inAppCallbacks);
   }
+
+  // Method for to send notification permission status
+  @override
+  void updateNotificationPermissionStatus({required bool granted}) {
+    _methodHandler.updateNotificationPermissionStatus(granted: granted);
+  }
 }

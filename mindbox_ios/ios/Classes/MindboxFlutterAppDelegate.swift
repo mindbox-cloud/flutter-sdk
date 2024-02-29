@@ -4,6 +4,11 @@ import Mindbox
 import MindboxNotifications
 
 open class MindboxFlutterAppDelegate: FlutterAppDelegate{
+
+    open func shouldRegisterForRemoteNotifications() -> Bool {
+            return true
+    }
+
     open override func application(
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
@@ -12,8 +17,10 @@ open class MindboxFlutterAppDelegate: FlutterAppDelegate{
         if #available(iOS 10.0, *) {
             UNUserNotificationCenter.current().delegate = self
         }
-        registerForRemoteNotifications()
-        
+
+        if shouldRegisterForRemoteNotifications() {
+            registerForRemoteNotifications()
+        }
         // Регистрация фоновых задач для iOS выше 13
         if #available(iOS 13.0, *) {
             Mindbox.shared.registerBGTasks()
@@ -45,7 +52,6 @@ open class MindboxFlutterAppDelegate: FlutterAppDelegate{
     //    MARK: registerForRemoteNotifications
     //    Функция запроса разрешения на уведомления. В комплишн блоке надо передать статус разрешения в SDK Mindbox
     func registerForRemoteNotifications() {
-        UNUserNotificationCenter.current().delegate = self
         DispatchQueue.main.async {
             UIApplication.shared.registerForRemoteNotifications()
             UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
