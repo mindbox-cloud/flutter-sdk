@@ -3,10 +3,10 @@
 # Check the current Git branch
 current_branch=$(git symbolic-ref --short HEAD)
 
-#if [[ $current_branch != "develop" && ! $current_branch =~ ^release/[0-9]+\.[0-9]+\.[0-9]+(-rc)?$ ]]; then
-#  echo "The current Git branch ($current_branch) is not 'develop' or in the format 'release/X.Y.Z' or 'release/X.Y.Z-rc'."
-#  exit 1
-#fi
+if [[ $current_branch != "develop" && ! $current_branch =~ ^release/[0-9]+\.[0-9]+\.[0-9]+(-rc)?$ ]]; then
+  echo "The current Git branch ($current_branch) is not 'develop' or in the format 'release/X.Y.Z' or 'release/X.Y.Z-rc'."
+  exit 1
+fi
 
 # Check if the parameter is provided
 read -p "Flutter SDK release version: " version
@@ -19,8 +19,8 @@ fi
 
 # Create a branch with the version name
 branch_name="release/$version"
-#git branch $branch_name
-#git checkout $branch_name
+git branch $branch_name
+git checkout $branch_name
 
 echo "Branch $branch_name has been created."
 
@@ -47,9 +47,7 @@ sed -i '' "s/^version: .*/version: $version/" $platform_yaml
 echo "Bump SDK version from $current_version to $version."
 
 git add $platform_yaml
-#git add $ios_podspec
 git add $ios_yaml
-#git add $android_gradle
 git add $android_yaml
 git add $common_yaml
 
