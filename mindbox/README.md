@@ -1,117 +1,47 @@
-[![Pub Version](https://img.shields.io/pub/v/mindbox?color=blue)](https://pub.dev/packages/mindbox)
+[![PubDev](https://img.shields.io/pub/v/mindbox)](https://pub.dev/packages/mindbox)
 
-This plugin is a wrapper over the native Mindbox([iOS](https://github.com/mindbox-moscow/ios-sdk),
-[Android](https://github.com/mindbox-moscow/android-sdk)) libraries that allows to
-receive and handle push notifications.
+# Mindbox SDK for Flutter
 
-## Features
+The Mindbox SDK allows you to integrate mobile push-notifications, in-app messages and client events into your Flutter projects.
 
-* Receive and show push notification in both mobile platforms.
-* Receive push notification data(link, payload) in Flutter.
-* Execute sync/async operations.
-* Display In-App
+## Getting Started
 
-## Getting started
+These instructions will help you integrate the Mindbox SDK into your Flutter app.
 
-This plugin depends on the configuration of push notifications on native platforms. It's necessary
-to follow the steps specified in the guide:
+### Installation
 
-* [Mindbox Flutter SDK](https://developers.mindbox.ru/docs/flutter-sdk-integration)
+To integrate Mindbox SDK into your Flutter app, follow the installation process detailed [here](https://developers.mindbox.ru/docs/add-sdk-flutter). Here is an overview:
 
-## Usage
+Add Mindbox's dependency to your pubspec.yaml file:
+```markdown
+   dependencies:
+flutter:
+sdk: flutter
+mindbox: ^2.8.4
+```
 
 ### Initialization
 
-```dart
-import 'package:mindbox/mindbox.dart';
+Initialize the Mindbox SDK in your Activity or Application class. Check documentation [here](https://developers.mindbox.ru/docs/sdk-initialization-flutter) for more details.
 
-void main() {
-   WidgetsFlutterBinding.ensureInitialized();
+### Operations
 
-   final config = Configuration(
-     domain: "api.mindbox.ru/api.mindbox.cloud",
-     endpointIos: "iOs endpoint",
-     endpointAndroid: "Android endpoint",
-     subscribeCustomerIfCreated: true,
-   );
- 
-   Mindbox.instance.init(configuration: config);
+Learn how to send events to Mindbox. Create a new Operation class object and set the respective parameters. Check the [documentation](https://developers.mindbox.ru/docs/integration-actions-flutter) for more details.
 
-   runApp(MyApp());
-}
-```
+### Push Notifications
 
-### Handling push click
+Mindbox SDK helps handle push notifications. Configuration and usage instructions can be found in the SDK documentation [here](https://developers.mindbox.ru/docs/firebase-send-push-notifications-flutter),  [here](https://developers.mindbox.ru/docs/huawei-send-push-notifications-flutter) and [here](https://developers.mindbox.ru/docs/ios-send-push-notifications-flutter).
 
-```dart
-Mindbox.instance.onPushClickReceived((link, payload) {
-  print(payload);
-  switch (link) {
-    case 'mindbox.cloud':
-      Navigator.push(context, MaterialPageRoute(builder: (context) => ContentPage()));
-      break;
-    case 'mindbox.cloud/user':
-      Navigator.push(context, MaterialPageRoute(builder: (context) => ProfilePage()));
-      break;
-    default:
-      Navigator.push(context, MaterialPageRoute(builder: (context) => HomePage()));
-  }
-});
-```
+## Troubleshooting
 
-### Getting device UUID
+Refer to the [Example of integration(IOS)](https://github.com/mindbox-cloud/flutter-sdk/tree/develop/mindbox_ios/example) or [Example of integration(Android)](https://github.com/mindbox-cloud/flutter-sdk/tree/develop/mindbox_android/example) in case of any issues.
 
-```dart
-Mindbox.instance.getDeviceUUID((uuid) => print(uuid));
-```
+## Further Help
 
-### Getting APNS/FMS/HMS token
+Reach out to us for further help and we'll be glad to assist.
 
-```dart
-Mindbox.instance.getToken((token) => print(token));
-```
+## License
 
-### Execute async operation
+The library is available as open source under the terms of the [License](https://github.com/mindbox-cloud/android-sdk/blob/develop/LICENSE.md).
 
-```dart
-Mindbox.instance.executeAsyncOperation(
-  operationSystemName: 'operationName',
-  operationBody: {'example': 'body'},
-);
-```
-
-### Execute sync operation
-
-```dart
-Mindbox.instance.executeSyncOperation(
-  operationSystemName: 'operationName',
-  operationBody: {'example': 'body'},
-  onSuccess: (String response) {
-    jsonDecode(response);
-  },
-  onError: (MindboxError error){
-    if (error is MindboxProtocolError) {
-      print(error.code);
-    }
-    print(error.message);
-    jsonDecode(error.data);
-  },
-);
-```
-
-### In-App click and dismiss handling
-
-```dart
-Mindbox.instance.registerInAppCallbacks(inAppCallbacks: [
-  CustomInAppCallback(
-    clickHandler: (id, redirectUrl, payload) {
-      print(id);
-      print(redirectUrl);
-      print(payload);
-    },
-    dismissedHandler: (id) => {
-      print(id);
-    }
-  )
-])
-```
+For a better understanding of this content, please familiarize yourself with the Mindbox [Flutter SDK](https://developers.mindbox.ru/docs/flutter-sdk-integration) documentation.

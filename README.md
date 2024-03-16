@@ -17,7 +17,7 @@ Add Mindbox's dependency to your pubspec.yaml file:
    dependencies:
 flutter:
 sdk: flutter
-mindbox: ^2.8.2
+mindbox: ^2.8.4
 ```
 
 ### Initialization
