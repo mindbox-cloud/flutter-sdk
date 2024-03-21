@@ -112,7 +112,7 @@ class MindboxMethodHandler {
 
   /// Method for sending notification permission status
   void updateNotificationPermissionStatus({required bool granted}) async {
-    await channel.invokeMethod('updateNotificationPermissionStatus');
+    await channel.invokeMethod('updateNotificationPermissionStatus', granted);
   }
 
   /// Method for registers a list of InAppCallback instances to handle clicks
