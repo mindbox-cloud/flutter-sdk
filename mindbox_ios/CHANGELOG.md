@@ -1,6 +1,6 @@
 ## 2.8.4
 
-* Upgrade native iOS SDK dependency to v2.8.4.
+* Upgrade native iOS SDK dependency to v2.8.5.
 
 ## 2.8.3
 
