@@ -42,13 +42,19 @@ android {
 
     defaultConfig {
         minSdkVersion 19
-        targetSdkVersion 31
+        targetSdkVersion 33
     }
 }
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    api 'cloud.mindbox:mobile-sdk:2.8.4'
-    api 'cloud.mindbox:mindbox-firebase:2.8.4'
-    api 'cloud.mindbox:mindbox-huawei:2.8.4'
+
+    api 'cloud.mindbox:mobile-sdk:2.8.5'
+
+    api 'cloud.mindbox:mindbox-firebase:2.8.5'
+    api platform('com.google.firebase:firebase-bom:32.6.0')
+    api 'com.google.firebase:firebase-messaging'
+
+    api 'cloud.mindbox:mindbox-huawei:2.8.5'
+    api 'com.huawei.hms:push:6.11.0.300'
 }
