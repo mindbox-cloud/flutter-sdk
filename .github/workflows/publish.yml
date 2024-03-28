@@ -128,7 +128,8 @@ jobs:
           package_directory: mindbox
           credential: ${{ secrets.PUB_CREDENTIALS }}
           flutter_package: true
-          skip_test: true         
+          skip_test: true
+          dry_run: true
       - name: Create Release
         if: steps.pubspec.outputs.changed == 0
         id: create_release
