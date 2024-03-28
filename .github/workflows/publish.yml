@@ -129,7 +129,7 @@ jobs:
           credential: ${{ secrets.PUB_CREDENTIALS }}
           flutter_package: true
           skip_test: true
-          dry_run: true
+          dry_run: false
       - name: Create Release
         if: steps.pubspec.outputs.changed == 0
         id: create_release
@@ -141,6 +141,3 @@ jobs:
           release_name: mindbox v${{ env.VERSION }}
           draft: false
           prerelease: false
-
-      - name: Version Upgrade
-        run: ./version-update.sh "${{ env.VERSION }}"
