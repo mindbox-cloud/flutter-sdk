@@ -20,9 +20,9 @@ flutter:
 dependencies:
   flutter:
     sdk: flutter
-  mindbox_android: 2.8.4
-  mindbox_ios: 2.8.4
-  mindbox_platform_interface: 2.8.4
+  mindbox_android: ^2.8.4
+  mindbox_ios: ^2.8.4
+  mindbox_platform_interface: ^2.8.4
 
 dev_dependencies:
   flutter_test:
