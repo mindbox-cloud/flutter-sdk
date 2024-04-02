@@ -1,6 +1,6 @@
 name: mindbox
 description: Flutter Mindbox SDK. Plugin wrapper over of Mindbox iOS/Android SDK.
-version: 2.8.3
+version: 2.8.4
 homepage: https://mindbox.cloud/
 repository: https://github.com/mindbox-cloud/flutter-sdk/tree/master/mindbox
 documentation: https://developers.mindbox.ru/docs/flutter-sdk-integration
@@ -20,9 +20,9 @@ flutter:
 dependencies:
   flutter:
     sdk: flutter
-  mindbox_android: ^2.8.3
-  mindbox_ios: ^2.8.3
-  mindbox_platform_interface: ^2.8.3
+  mindbox_android: ^2.8.4
+  mindbox_ios: ^2.8.4
+  mindbox_platform_interface: ^2.8.4
 
 dev_dependencies:
   flutter_test:
@@ -31,3 +31,4 @@ dev_dependencies:
 
 analyzer:
   exclude: ['**_test.dart']
+
