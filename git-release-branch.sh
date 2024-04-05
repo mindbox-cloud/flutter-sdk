@@ -29,17 +29,17 @@ common_yaml="mindbox/pubspec.yaml"
 current_version=$(grep -E '^version: ' "$common_yaml" | cut -d':' -f2)
 
 sed -i '' "s/^version: .*/version: $version/" $common_yaml
-sed -i '' "s/  mindbox_android:.*/  mindbox_android: $version/" $common_yaml
-sed -i '' "s/  mindbox_ios:.*/  mindbox_ios: $version/" $common_yaml
-sed -i '' "s/  mindbox_platform_interface:.*/  mindbox_platform_interface: $version/" $common_yaml
+sed -i '' "s/  mindbox_android:.*/  mindbox_android: ^$version/" $common_yaml
+sed -i '' "s/  mindbox_ios:.*/  mindbox_ios: ^$version/" $common_yaml
+sed -i '' "s/  mindbox_platform_interface:.*/  mindbox_platform_interface: ^$version/" $common_yaml
 
 android_yaml="mindbox_android/pubspec.yaml"
 sed -i '' "s/^version: .*/version: $version/" $android_yaml
-sed -i '' "s/  mindbox_platform_interface:.*/  mindbox_platform_interface: $version/" $android_yaml
+sed -i '' "s/  mindbox_platform_interface:.*/  mindbox_platform_interface: ^$version/" $android_yaml
 
 ios_yaml="mindbox_ios/pubspec.yaml"
 sed -i '' "s/^version: .*/version: $version/" $ios_yaml
-sed -i '' "s/  mindbox_platform_interface:.*/  mindbox_platform_interface: $version/" $ios_yaml
+sed -i '' "s/  mindbox_platform_interface:.*/  mindbox_platform_interface: ^$version/" $ios_yaml
 
 platform_yaml="mindbox_platform_interface/pubspec.yaml"
 sed -i '' "s/^version: .*/version: $version/" $platform_yaml
@@ -69,8 +69,6 @@ fi
 
 android_gradle="mindbox_android/android/build.gradle"
 sed -i '' "s/    api 'cloud.mindbox:mobile-sdk:.*/    api 'cloud.mindbox:mobile-sdk:$android_sdk_version\'/" $android_gradle
-sed -i '' "s/    api 'cloud.mindbox:mindbox-firebase:.*/    api 'cloud.mindbox:mindbox-firebase:$android_sdk_version\'/" $android_gradle
-sed -i '' "s/    api 'cloud.mindbox:mindbox-huawei:.*/    api 'cloud.mindbox:mindbox-huawei:$android_sdk_version\'/" $android_gradle
 
 echo "Bump $android_gradle to $android_sdk_version"
 

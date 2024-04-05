@@ -1,3 +1,7 @@
+## 2.8.5
+
+* Fix dependencies.
+
 ## 2.8.4
 
 * Upgrade native Android SDK dependency to v2.8.5.
