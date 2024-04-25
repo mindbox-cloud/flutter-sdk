@@ -131,6 +131,38 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.11.0"
+  mindbox:
+    dependency: "direct main"
+    description:
+      name: mindbox
+      sha256: a3baea6030db41a247b9fa95ae798076bc5dcee61e3007dcfff38a9436af1e1d
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.8.5"
+  mindbox_android:
+    dependency: transitive
+    description:
+      name: mindbox_android
+      sha256: "356f01b7f7093229de732c816baf48fea94ac0da9307d450052baa3b0fc10c73"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.8.5"
+  mindbox_ios:
+    dependency: transitive
+    description:
+      name: mindbox_ios
+      sha256: "0f0556f82008720c9fa6cdeddf33245233c007d50d29e5b5a3a6ff4271925f6d"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.8.5"
+  mindbox_platform_interface:
+    dependency: transitive
+    description:
+      name: mindbox_platform_interface
+      sha256: "106a5bf423a944aefc4bbd3d1a800e91fcd0d1ba8f1adfd4cb5f50e156c59e04"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.8.5"
   path:
     dependency: transitive
     description:
@@ -210,3 +242,4 @@ packages:
     version: "13.0.0"
 sdks:
   dart: ">=3.3.4 <4.0.0"
+  flutter: ">=2.0.0"
