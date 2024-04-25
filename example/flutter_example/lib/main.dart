@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_example/view/main_page.dart';
+import 'package:flutter_example/view_model/view_model.dart';
 import 'package:mindbox/mindbox.dart';
 
 void main() {
@@ -12,17 +13,6 @@ void main() {
       subscribeCustomerIfCreated: true);
   Mindbox.instance.init(configuration: config);
   runApp(const Example());
+  ViewModel.chooseInAppCallback(ChooseInappCallback.customInAppCallback);
 }
 
-class Example extends StatelessWidget {
-  const Example({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      routes: {
-        '/': (context) => const MyHomePage(),
-      },
-    );
-  }
-}

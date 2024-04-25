@@ -19,7 +19,7 @@ class ButtonsBlockLine extends StatelessWidget {
         Text(
           title,
           style: const TextStyle(
-            color: Colors.white,
+            color: MBColors.textColor,
           ),
         ),
         Material(
@@ -42,7 +42,7 @@ class ButtonsBlockLine extends StatelessWidget {
                   child: Text(
                     'Show In-App',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: MBColors.textColor,
                     ),
                   ),
                 ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_example/assets/MBColors.dart';
 
 class InfoBlockLine extends StatelessWidget {
   const InfoBlockLine({
@@ -29,7 +30,7 @@ class InfoBlockLine extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(color: Colors.white, fontSize: 8),
+                    style: const TextStyle(color: MBColors.textColor, fontSize: 8),
                   ),
                 ],
               ),
@@ -42,7 +43,7 @@ class InfoBlockLine extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       data,
-                      style: const TextStyle(color: Colors.white, fontSize: 12),
+                      style: const TextStyle(color: MBColors.textColor, fontSize: 12),
                     ),
                   )
                 ],

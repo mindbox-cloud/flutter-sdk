@@ -30,7 +30,7 @@ class ButtonsBlock extends StatelessWidget {
                   getInapp: ViewModel.asyncOperation,
                 ),
                 Divider(
-                  color: Color.fromARGB(255, 74, 74, 74),
+                  color: MBColors.deviderColor,
                 ),
                 ButtonsBlockLine(
                   title: 'Sync operation',
