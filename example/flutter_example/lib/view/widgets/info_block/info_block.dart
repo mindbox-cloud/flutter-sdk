@@ -55,7 +55,7 @@ class _InfoBlockState extends State<InfoBlock> {
                   children: [
                     Text(
                       'Data from SDK:',
-                      style: TextStyle(color: Colors.white, fontSize: 16),
+                      style: TextStyle(color: MBColors.textColor, fontSize: 16),
                     ),
                   ],
                 ),
