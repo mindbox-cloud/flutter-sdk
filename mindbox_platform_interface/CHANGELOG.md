@@ -3,6 +3,10 @@
 * Upgrade native Android SDK dependency to v2.9.0-rc.
 * Upgrade native iOS SDK dependency to v2.9.0-rc.
 
+## 2.8.5
+
+* Upgrade native iOS SDK dependency to v2.8.6.
+
 ## 2.8.4
 
 * Upgrade native Android SDK dependency to v2.8.5.
