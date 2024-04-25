@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_example/features/main_page/view/main_page.dart';
+import 'package:flutter_example/view/main_page.dart';
 import 'package:mindbox/mindbox.dart';
 
 void main() {

@@ -1,8 +1,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_example/assets/MBColors.dart';
-import 'package:flutter_example/features/main_page/widgets/buttons_block/buttons_block.dart';
-import 'package:flutter_example/features/main_page/widgets/info_block/info_block.dart';
+import 'package:flutter_example/view/widgets/buttons_block/buttons_block.dart';
+import 'package:flutter_example/view/widgets/info_block/info_block.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
