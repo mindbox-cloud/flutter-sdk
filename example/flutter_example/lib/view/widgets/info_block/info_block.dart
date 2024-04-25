@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_example/assets/MBColors.dart';
 import 'package:flutter_example/view/widgets/info_block/ingo_block_line.dart';
-import 'package:mindbox/mindbox.dart';
+import 'package:flutter_example/view_model/view_model.dart';
 
 class InfoBlock extends StatefulWidget {
   const InfoBlock({
@@ -18,22 +18,18 @@ class _InfoBlockState extends State<InfoBlock> {
   String deviceUUID = '';
   @override
   void initState() {
-    Mindbox.instance.nativeSdkVersion.then((value) {
-      print('verson');
+    ViewModel.getSDKVersion((value) {
       sdkVerson = value;
       setState(() {});
     });
-    Mindbox.instance.getDeviceUUID((value) {
-      print(value);
-      deviceUUID = value;
-      setState(() {});
-    });
-    Mindbox.instance.getToken((value) {
-      print(value);
+    ViewModel.getToken((value) {
       token = value;
       setState(() {});
     });
-
+    ViewModel.getDeviceUUID((value) {
+      deviceUUID = value;
+      setState(() {});
+    });
     super.initState();
   }
 
