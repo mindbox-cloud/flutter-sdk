@@ -49,6 +49,7 @@ android {
         targetSdkVersion flutter.targetSdkVersion
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
+        multiDexEnabled true
     }
 
     buildTypes {
@@ -64,4 +65,8 @@ flutter {
     source '../..'
 }
 
-dependencies {}
+dependencies {
+    implementation 'cloud.mindbox:mobile-sdk:2.8.5'
+    implementation 'cloud.mindbox:mindbox-firebase:2.8.5'
+    implementation 'androidx.multidex:multidex:2.0.1'
+}

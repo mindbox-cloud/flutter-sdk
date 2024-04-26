@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_example/view/main_page.dart';
-import 'package:flutter_example/view_model/view_model.dart';
 import 'package:mindbox/mindbox.dart';
 
 void main() {
-  WidgetsFlutterBinding.ensureInitialized(); 
+  WidgetsFlutterBinding.ensureInitialized();
   final config = Configuration(
       domain: "api.mindbox.ru",
       endpointIos: "Mpush-test.FlutterExample.IosApp",
@@ -13,6 +12,12 @@ void main() {
       subscribeCustomerIfCreated: true);
   Mindbox.instance.init(configuration: config);
   runApp(const Example());
-  ViewModel.chooseInAppCallback(ChooseInappCallback.customInAppCallback);
-}
 
+  Mindbox.instance.registerInAppCallback(callbacks: [
+    CustomInAppCallback((String id, String redirectUrl, String payload) {
+      print('CustomInAppCallback onClick');
+    }, (String id) {
+      print('CustomInAppCallback onDismiss');
+    })
+  ]);
+}
