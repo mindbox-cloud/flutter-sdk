@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "154514909563",
+    "project_id": "flutterexample-36fb3",
+    "storage_bucket": "flutterexample-36fb3.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:154514909563:android:b591e422f3ecca85ebb5de",
+        "android_client_info": {
+          "package_name": "cloud.mindbox.flutter_example"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBjrlc2Z9FWFPJRizoBpJR8O4X4AcIAVlI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
