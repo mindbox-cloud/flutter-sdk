@@ -9,11 +9,14 @@ PODS:
   - MindboxLogger (0.0.7)
   - MindboxNotifications (2.8.6):
     - MindboxLogger (= 0.0.7)
+  - permission_handler_apple (9.3.0):
+    - Flutter
 
 DEPENDENCIES:
   - Flutter (from `Flutter`)
   - mindbox_ios (from `.symlinks/plugins/mindbox_ios/ios`)
   - MindboxNotifications (= 2.8.6)
+  - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
 
 SPEC REPOS:
   trunk:
@@ -26,6 +29,8 @@ EXTERNAL SOURCES:
     :path: Flutter
   mindbox_ios:
     :path: ".symlinks/plugins/mindbox_ios/ios"
+  permission_handler_apple:
+    :path: ".symlinks/plugins/permission_handler_apple/ios"
 
 SPEC CHECKSUMS:
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
@@ -33,7 +38,8 @@ SPEC CHECKSUMS:
   mindbox_ios: 0d8007b668a7d4d7c4cbac56018045fd559ea0f2
   MindboxLogger: 151faed69401fd3e15268dfe9582547296e61765
   MindboxNotifications: 22eff6dced0e10759d58b7744502a7c6231295d4
+  permission_handler_apple: 9878588469a2b0d0fc1e048d9f43605f92e6cec2
 
-PODFILE CHECKSUM: 5e25629ad5aa4d632ba845f0c73b33fff68c37d6
+PODFILE CHECKSUM: 120b258825c5172afe68d6b8e2055d8b6f96cd5c
 
 COCOAPODS: 1.15.2
