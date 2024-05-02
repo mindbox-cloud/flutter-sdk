@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_example/assets/MBColors.dart';
 import 'package:flutter_example/view/widgets/info_block/ingo_block_line.dart';
@@ -16,6 +18,8 @@ class _InfoBlockState extends State<InfoBlock> {
   String sdkVerson = '';
   String token = '';
   String deviceUUID = '';
+  String tokenLabel = 'Token';
+
   @override
   void initState() {
     ViewModel.getSDKVersion((value) {
@@ -24,6 +28,15 @@ class _InfoBlockState extends State<InfoBlock> {
     });
     ViewModel.getToken((value) {
       token = value;
+      if (Platform.isAndroid) {
+        if (value.toString().contains(":")) {
+          tokenLabel = "Firebase Cloud Messaging token";
+        } else {
+          tokenLabel = "Huawei Push Kit token";
+        }
+      } else if (Platform.isIOS) {
+        tokenLabel = "APNS token";
+      }
       setState(() {});
     });
     ViewModel.getDeviceUUID((value) {
@@ -65,7 +78,7 @@ class _InfoBlockState extends State<InfoBlock> {
                   color: MBColors.deviderColor,
                 ),
                 const SizedBox(height: 3),
-                InfoBlockLine(title: 'PNS token', data: token),
+                InfoBlockLine(title: tokenLabel, data: token),
                 const Divider(
                   color: MBColors.deviderColor,
                 ),
