@@ -15,7 +15,7 @@ class MindboxFirebaseMessagingService: FirebaseMessagingService() {
         val channelId = "test"
         val channelName = "test"
         val channelDescription = "test"
-        val pushSmallIcon = 1
+        val pushSmallIcon = android.R.drawable.ic_dialog_info
 
 
         val messageWasHandled = Mindbox.handleRemoteMessage(
@@ -32,4 +32,5 @@ class MindboxFirebaseMessagingService: FirebaseMessagingService() {
         if (!messageWasHandled) {
         }
     }
+
 }

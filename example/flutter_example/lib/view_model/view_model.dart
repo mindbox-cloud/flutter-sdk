@@ -42,6 +42,7 @@ class ViewModel {
 
   static getDeviceUUID(Function complition) {
     Mindbox.instance.getDeviceUUID((value) {
+      print(value);
       complition(value);
     });
   }
