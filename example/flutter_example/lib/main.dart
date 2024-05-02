@@ -13,9 +13,12 @@ void main() {
       subscribeCustomerIfCreated: true);
 
   Mindbox.instance.init(configuration: config);
-  runApp(const Example());
+
+  ViewModel.onPushClickReceived();
 
   ViewModel.requestPermissions();
 
   ViewModel.chooseInAppCallback(ChooseInappCallback.customInAppCallback);
+
+  runApp(const Example());
 }

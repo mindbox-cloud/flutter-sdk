@@ -53,7 +53,15 @@ class ViewModel {
       case ChooseInappCallback.defaultInAppCallback:
       case ChooseInappCallback.customInAppCallback:
         Mindbox.instance.registerInAppCallback(callbacks: [
-          CustomInAppCallback((id, redirectUrl, payload) {}, (id) {})
+          CustomInAppCallback((id, redirectUrl, payload) {
+            print("On click");
+            print(id);
+            print(redirectUrl);
+            print(payload);
+          }, (id) {
+            print("On close");
+            print(id);
+          })
         ]);
       case ChooseInappCallback.urlInAppCallback:
         Mindbox.instance.registerInAppCallback(callbacks: [UrlInAppCallback()]);
@@ -64,6 +72,12 @@ class ViewModel {
         Mindbox.instance
             .registerInAppCallback(callbacks: [EmptyInAppCallback()]);
     }
+  }
+
+  static onPushClickReceived() {
+    Mindbox.instance.onPushClickReceived((link, payload) {
+      print(link);
+    });
   }
 
   static Future<void> requestPermissions() async {
