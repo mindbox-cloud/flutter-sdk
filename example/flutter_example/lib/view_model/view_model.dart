@@ -1,5 +1,6 @@
 import 'package:mindbox/mindbox.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ViewModel {
   static syncOperation() {
@@ -77,6 +78,7 @@ class ViewModel {
   static onPushClickReceived() {
     Mindbox.instance.onPushClickReceived((link, payload) {
       print(link);
+      launchUrl(Uri.parse(link));
     });
   }
 

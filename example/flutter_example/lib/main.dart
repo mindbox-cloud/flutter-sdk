@@ -14,6 +14,8 @@ void main() {
 
   Mindbox.instance.init(configuration: config);
 
+  Mindbox.instance.setLogLevel(logLevel: LogLevel.debug);
+
   ViewModel.onPushClickReceived();
 
   ViewModel.requestPermissions();
