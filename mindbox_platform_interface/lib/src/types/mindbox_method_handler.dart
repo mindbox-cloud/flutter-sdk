@@ -59,6 +59,11 @@ class MindboxMethodHandler {
                 'before initialization.');
       }
       await channel.invokeMethod('init', configuration.toMap());
+
+      if (!_methodHandlerSet) {
+        _setMethodCallHandler();
+      }
+
       for (final callbackMethod in _pendingCallbackMethods) {
         callbackMethod.callback(
             await channel.invokeMethod(callbackMethod.methodName) ?? 'null');
@@ -144,9 +149,6 @@ class MindboxMethodHandler {
     required PushClickHandler handler,
   }) {
     _pushClickHandler = handler;
-    if (!_methodHandlerSet) {
-      _setMethodCallHandler();
-    }
   }
 
   /// Method for handling In-app click.
@@ -154,9 +156,6 @@ class MindboxMethodHandler {
     required InAppClickHandler handler,
   }) {
     _inAppClickHandler = handler;
-    if (!_methodHandlerSet) {
-      _setMethodCallHandler();
-    }
     registerInAppCallbacks(callbacks: [
       CustomInAppCallback(
           _inAppClickHandler ?? (id, redirectUrl, payload) => {},
@@ -170,9 +169,6 @@ class MindboxMethodHandler {
     required InAppDismissedHandler handler,
   }) {
     _inAppDismissedHandler = handler;
-    if (!_methodHandlerSet) {
-      _setMethodCallHandler();
-    }
     registerInAppCallbacks(callbacks: [
       CustomInAppCallback(
           _inAppClickHandler ?? (id, redirectUrl, payload) => {},
@@ -291,22 +287,24 @@ class MindboxMethodHandler {
 
   void _setMethodCallHandler() {
     channel.setMethodCallHandler((call) {
-      if (call.method == 'pushClicked') {
-        if (call.arguments is List) {
-          _pushClickHandler?.call(call.arguments[0], call.arguments[1]);
+        switch (call.method) {
+          case 'pushClicked':
+            if (call.arguments is List) {
+              _pushClickHandler?.call(call.arguments[0], call.arguments[1]);
+            }
+            break;
+          case 'onInAppClick':
+            if (call.arguments is List) {
+              _inAppClickHandler?.call(
+                  call.arguments[0], call.arguments[1], call.arguments[2]);
+            }
+            break;
+          case 'onInAppDismissed':
+            if (call.arguments is String) {
+              _inAppDismissedHandler?.call(call.arguments);
+            }
+            break;
         }
-      }
-      if (call.method == 'onInAppClick') {
-        if (call.arguments is List) {
-          _inAppClickHandler?.call(
-              call.arguments[0], call.arguments[1], call.arguments[2]);
-        }
-      }
-      if (call.method == 'onInAppDismissed') {
-        if (call.arguments is String) {
-          _inAppDismissedHandler?.call(call.arguments);
-        }
-      }
       return Future.value(true);
     });
     _methodHandlerSet = true;
