@@ -1,0 +1,51 @@
+PODS:
+  - Flutter (1.0.0)
+  - Mindbox (2.8.6):
+    - MindboxLogger (= 0.0.7)
+  - mindbox_ios (2.8.6):
+    - Flutter
+    - Mindbox (= 2.8.6)
+    - MindboxNotifications (= 2.8.6)
+  - MindboxLogger (0.0.7)
+  - MindboxNotifications (2.8.6):
+    - MindboxLogger (= 0.0.7)
+  - permission_handler_apple (9.3.0):
+    - Flutter
+  - url_launcher_ios (0.0.1):
+    - Flutter
+
+DEPENDENCIES:
+  - Flutter (from `Flutter`)
+  - mindbox_ios (from `.symlinks/plugins/mindbox_ios/ios`)
+  - MindboxNotifications (= 2.8.6)
+  - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
+  - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
+
+SPEC REPOS:
+  trunk:
+    - Mindbox
+    - MindboxLogger
+    - MindboxNotifications
+
+EXTERNAL SOURCES:
+  Flutter:
+    :path: Flutter
+  mindbox_ios:
+    :path: ".symlinks/plugins/mindbox_ios/ios"
+  permission_handler_apple:
+    :path: ".symlinks/plugins/permission_handler_apple/ios"
+  url_launcher_ios:
+    :path: ".symlinks/plugins/url_launcher_ios/ios"
+
+SPEC CHECKSUMS:
+  Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
+  Mindbox: 334903e850857286e8da3df544e6ea3e5f0f3b3b
+  mindbox_ios: 0d8007b668a7d4d7c4cbac56018045fd559ea0f2
+  MindboxLogger: 151faed69401fd3e15268dfe9582547296e61765
+  MindboxNotifications: 22eff6dced0e10759d58b7744502a7c6231295d4
+  permission_handler_apple: 9878588469a2b0d0fc1e048d9f43605f92e6cec2
+  url_launcher_ios: 6116280ddcfe98ab8820085d8d76ae7449447586
+
+PODFILE CHECKSUM: 120b258825c5172afe68d6b8e2055d8b6f96cd5c
+
+COCOAPODS: 1.15.2
