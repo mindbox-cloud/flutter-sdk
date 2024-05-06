@@ -2,6 +2,8 @@ plugins {
     id "com.android.application"
     id "kotlin-android"
     id "dev.flutter.flutter-gradle-plugin"
+
+    id 'com.google.gms.google-services'
 }
 
 def localProperties = new Properties()
@@ -49,6 +51,7 @@ android {
         targetSdkVersion flutter.targetSdkVersion
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
+        multiDexEnabled true
     }
 
     buildTypes {
@@ -64,4 +67,11 @@ flutter {
     source '../..'
 }
 
-dependencies {}
+dependencies {
+    implementation 'cloud.mindbox:mobile-sdk:2.8.5'
+    implementation 'cloud.mindbox:mindbox-firebase:2.8.5'
+    implementation 'androidx.multidex:multidex:2.0.1'
+
+    implementation platform('com.google.firebase:firebase-bom:32.8.1')
+    implementation 'com.google.firebase:firebase-messaging:23.4.1'
+}
