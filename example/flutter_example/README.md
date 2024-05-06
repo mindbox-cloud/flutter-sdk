@@ -7,7 +7,8 @@ This is an example of SDK [integration](https://developers.mindbox.ru/docs/flutt
 ### IOS
 1. Clone [flutter-sdk repository](https://github.com/mindbox-cloud/flutter-sdk).
 2. Go to `flutter-sdk/example/flutter_example`.
-3. From the terminal: run `flutter pub get`.
+3. From the terminal:
+ ```flutter pub get```
 4. Make sure you have CocoaPods installed or install it according to the instructions.
 5. Go to `ios/Runner`.
 6. Install pods:
@@ -31,7 +32,8 @@ To run the application on a real device and try push notifications, follow the i
 ### Android
 1. Clone [flutter-sdk repository](https://github.com/mindbox-cloud/flutter-sdk).
 2. Go to `flutter-sdk/example/flutter_example`.
-3. From the terminal: run `flutter pub get`.
+3. From the terminal:
+ ```flutter pub get```
 4. Open `android` folder in Android Studio.
 5. Lounch app.
 
