@@ -45,9 +45,12 @@ Now you can test the in-app.
 In our admin panel there are already 3 ready-made in-apps that you can look at. 
 To try push notifications, follow the instructions below.
 
-6. Change `namespace` and `applicationId` in `app\build.gradle`.
-7. [Configure your endpoints](https://developers.mindbox.ru/docs/add-ios-integration).
-8. Change domain and endpoints in the `main.dart` to yours.
+6. Change `namespace` and `applicationId` in `app/build.gradle` to yours.
+7. Add `google-services.json` and `agconnect-services.json` to `android/app`.
+- [Get google-services.json](https://developers.mindbox.ru/docs/firebase-get-keys)
+- [Get agconnect-services.json](https://developers.mindbox.ru/docs/huawei-get-keys)
+8. [Configure your endpoints](https://developers.mindbox.ru/docs/add-ios-integration).
+9. Change domain and endpoints in the `main.dart` to yours.
 
 ### SDK functionality testing
 1. To check innap when opening:
