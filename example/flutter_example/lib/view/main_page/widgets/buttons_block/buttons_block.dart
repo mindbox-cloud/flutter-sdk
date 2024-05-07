@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_example/assets/MBColors.dart';
-import 'package:flutter_example/view/widgets/buttons_block/buttons_block_line.dart';
+import 'package:flutter_example/view/main_page/widgets/buttons_block/buttons_block_line.dart';
 import 'package:flutter_example/view_model/view_model.dart';
 
 class ButtonsBlock extends StatelessWidget {

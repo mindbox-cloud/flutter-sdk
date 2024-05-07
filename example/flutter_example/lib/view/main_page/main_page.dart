@@ -1,21 +1,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_example/assets/MBColors.dart';
-import 'package:flutter_example/view/widgets/buttons_block/buttons_block.dart';
-import 'package:flutter_example/view/widgets/info_block/info_block.dart';
+import 'package:flutter_example/view/main_page/widgets/buttons_block/buttons_block.dart';
+import 'package:flutter_example/view/main_page/widgets/info_block/info_block.dart';
 
-class Example extends StatelessWidget {
-  const Example({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      routes: {
-        '/': (context) => const MyHomePage(),
-      },
-    );
-  }
-}
 
 
 class MyHomePage extends StatefulWidget {
@@ -26,6 +15,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  
   @override
   Widget build(BuildContext context) {
     return const MaterialApp(

@@ -1,8 +1,6 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_example/assets/MBColors.dart';
-import 'package:flutter_example/view/widgets/info_block/ingo_block_line.dart';
+import 'package:flutter_example/view/main_page/widgets/info_block/ingo_block_line.dart';
 import 'package:flutter_example/view_model/view_model.dart';
 
 class InfoBlock extends StatefulWidget {
@@ -15,36 +13,8 @@ class InfoBlock extends StatefulWidget {
 }
 
 class _InfoBlockState extends State<InfoBlock> {
-  String sdkVerson = '';
-  String token = '';
-  String deviceUUID = '';
-  String tokenLabel = 'Token';
 
-  @override
-  void initState() {
-    ViewModel.getSDKVersion((value) {
-      sdkVerson = value;
-      setState(() {});
-    });
-    ViewModel.getToken((value) {
-      token = value;
-      if (Platform.isAndroid) {
-        if (value.toString().contains(":")) {
-          tokenLabel = "Firebase Cloud Messaging token";
-        } else {
-          tokenLabel = "Huawei Push Kit token";
-        }
-      } else if (Platform.isIOS) {
-        tokenLabel = "APNS token";
-      }
-      setState(() {});
-    });
-    ViewModel.getDeviceUUID((value) {
-      deviceUUID = value;
-      setState(() {});
-    });
-    super.initState();
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -53,7 +23,7 @@ class _InfoBlockState extends State<InfoBlock> {
       children: [
         Container(
           width: 350,
-          height: 190,
+          height: 140,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
             color: MBColors.blockBackgroundColor,
@@ -67,22 +37,19 @@ class _InfoBlockState extends State<InfoBlock> {
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     Text(
-                      'Data from SDK:',
+                      'Data from push:',
                       style: TextStyle(color: MBColors.textColor, fontSize: 16),
                     ),
                   ],
                 ),
                 const SizedBox(height: 3),
-                InfoBlockLine(title: 'SDK version', data: sdkVerson),
+                InfoBlockLine(title: 'Link', data: ViewModel.pushLink),
                 const Divider(
                   color: MBColors.deviderColor,
                 ),
                 const SizedBox(height: 3),
-                InfoBlockLine(title: tokenLabel, data: token),
-                const Divider(
-                  color: MBColors.deviderColor,
-                ),
-                InfoBlockLine(title: 'Device UUID', data: deviceUUID),
+                InfoBlockLine(title: 'Payload', data: ViewModel.pushPayload),
+
               ],
             ),
           ),

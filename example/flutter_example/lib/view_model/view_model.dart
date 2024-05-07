@@ -1,8 +1,14 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_example/view/push_info_page/push_info_page.dart';
 import 'package:mindbox/mindbox.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class ViewModel {
+  static BuildContext? context;
+  static String pushLink = 'null';
+  static String pushPayload = 'null';
+
+  //https://developers.mindbox.ru/docs/%D0%BC%D0%B5%D1%82%D0%BE%D0%B4%D1%8B-flutter-sdk
   static syncOperation() {
     Mindbox.instance.executeSyncOperation(
       operationSystemName: 'APIMethodForReleaseExampleIos',
@@ -49,6 +55,32 @@ class ViewModel {
     });
   }
 
+  static onPushClickReceived() {
+    Mindbox.instance.onPushClickReceived((link, payload) {
+      pushLink = link;
+      pushPayload = payload;
+      if (context != null) {
+        switch (link) {
+          case "https://mindbox.ru":
+            Navigator.push(context!,
+                MaterialPageRoute(builder: (context) => const PushInfoPage()));
+          default:
+            print("unknown link");
+        }
+      }
+    });
+  }
+
+  static Future<void> requestPermissions() async {
+    Permission.notification.isDenied.then((bool isGranted) async {
+      final PermissionStatus status = await Permission.notification.request();
+
+      Mindbox.instance
+          .updateNotificationPermissionStatus(granted: status.isGranted);
+    });
+  }
+
+  //https://developers.mindbox.ru/docs/in-app-targeting-by-custom-operation
   static chooseInAppCallback(ChooseInappCallback chooseInappCallback) {
     switch (chooseInappCallback) {
       case ChooseInappCallback.defaultInAppCallback:
@@ -73,22 +105,6 @@ class ViewModel {
         Mindbox.instance
             .registerInAppCallback(callbacks: [EmptyInAppCallback()]);
     }
-  }
-
-  static onPushClickReceived() {
-    Mindbox.instance.onPushClickReceived((link, payload) {
-      print(link);
-      launchUrl(Uri.parse(link));
-    });
-  }
-
-  static Future<void> requestPermissions() async {
-    Permission.notification.isDenied.then((bool isGranted) async {
-      final PermissionStatus status = await Permission.notification.request();
-
-      Mindbox.instance
-          .updateNotificationPermissionStatus(granted: status.isGranted);
-    });
   }
 }
 
