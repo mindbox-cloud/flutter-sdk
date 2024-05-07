@@ -6,11 +6,12 @@ import cloud.mindbox.mindbox_huawei.MindboxHuawei
 
 class MindboxHuaweiMessagingService: HmsMessageService() {
     override fun onNewToken(token: String) {
+        super.onNewToken(token)
         Mindbox.updatePushToken(applicationContext, token, MindboxHuawei)
     }
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
-
+        super.onMessageReceived(remoteMessage)
         val channelId = "test"
         val channelName = "test"
         val channelDescription = "test"
