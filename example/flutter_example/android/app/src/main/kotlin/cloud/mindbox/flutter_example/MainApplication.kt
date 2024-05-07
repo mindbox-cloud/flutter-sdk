@@ -8,7 +8,6 @@ import cloud.mindbox.mindbox_huawei.MindboxHuawei
 class MainApplication : Application() {
     override fun onCreate() {
         super.onCreate()
-        Mindbox.initPushServices(applicationContext, listOf(MindboxFirebase))
-        Mindbox.initPushServices(applicationContext, listOf(MindboxHuawei))
+        Mindbox.initPushServices(applicationContext, listOf(MindboxFirebase, MindboxHuawei))
     }
 }
