@@ -1,8 +1,13 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_example/view/push_info_page/push_info_page.dart';
 import 'package:mindbox/mindbox.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class ViewModel {
+  static BuildContext? context;
+  static String pushLink = 'null';
+  static String pushPayload = 'null';
+
   static syncOperation() {
     Mindbox.instance.executeSyncOperation(
       operationSystemName: 'APIMethodForReleaseExampleIos',
@@ -77,8 +82,17 @@ class ViewModel {
 
   static onPushClickReceived() {
     Mindbox.instance.onPushClickReceived((link, payload) {
-      print(link);
-      launchUrl(Uri.parse(link));
+      pushLink = link;
+      pushPayload = payload;
+      if (context != null) {
+        switch (link) {
+          case "https://mindbox.ru":
+            Navigator.push(context!,
+                MaterialPageRoute(builder: (context) => const PushInfoPage()));
+          default:
+            print("unknown link");
+        }
+      }
     });
   }
 

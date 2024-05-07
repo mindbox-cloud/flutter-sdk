@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_example/view/main_page.dart';
+import 'package:flutter_example/view/Example.dart';
 import 'package:flutter_example/view_model/view_model.dart';
 import 'package:mindbox/mindbox.dart';
 
@@ -16,11 +16,11 @@ void main() {
 
   Mindbox.instance.setLogLevel(logLevel: LogLevel.debug);
 
-  ViewModel.onPushClickReceived();
-
   ViewModel.requestPermissions();
 
   ViewModel.chooseInAppCallback(ChooseInappCallback.customInAppCallback);
 
   runApp(const Example());
+
+  ViewModel.onPushClickReceived();
 }
