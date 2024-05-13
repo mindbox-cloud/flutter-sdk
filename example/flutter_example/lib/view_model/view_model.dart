@@ -60,13 +60,8 @@ class ViewModel {
       pushLink = link;
       pushPayload = payload;
       if (context != null) {
-        switch (link) {
-          case "https://mindbox.ru":
-            Navigator.push(context!,
-                MaterialPageRoute(builder: (context) => const PushInfoPage()));
-          default:
-            print("unknown link");
-        }
+        Navigator.push(context!,
+            MaterialPageRoute(builder: (context) => const PushInfoPage()));
       }
     });
   }
@@ -80,10 +75,11 @@ class ViewModel {
     });
   }
 
-  //https://developers.mindbox.ru/docs/in-app-targeting-by-custom-operation
+  //https://developers.mindbox.ru/docs/in-app
   static chooseInAppCallback(ChooseInappCallback chooseInappCallback) {
     switch (chooseInappCallback) {
       case ChooseInappCallback.defaultInAppCallback:
+        break;
       case ChooseInappCallback.customInAppCallback:
         Mindbox.instance.registerInAppCallback(callbacks: [
           CustomInAppCallback((id, redirectUrl, payload) {
