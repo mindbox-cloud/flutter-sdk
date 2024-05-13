@@ -17,8 +17,8 @@ This is an example of SDK [integration](https://developers.mindbox.ru/docs/flutt
 ```
 pod install
 ```
-7. Lounch `Runner.xcworkspace` .
-8. Lounch app.
+7. Launch `Runner.xcworkspace` .
+8. Launch app.
 
 Now you can test the in-app on the simulator. 
 In our admin panel there are already 3 ready-made in-apps that you can look at. 
@@ -39,7 +39,7 @@ To run the application on a real device and try push notifications, follow the i
  flutter pub get
  ```
 4. Open `android` folder in Android Studio.
-5. Lounch app.
+5. Launch app.
 
 Now you can test the in-app.
 In our admin panel there are already 3 ready-made in-apps that you can look at. 
