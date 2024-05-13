@@ -30,6 +30,7 @@ class MindboxFirebaseMessagingService: FirebaseMessagingService() {
         )
 
         if (!messageWasHandled) {
+            //If the push notification was not from Mindbox or it contains incorrect data, then you can write a fallback to process it
         }
     }
 
