@@ -12,9 +12,9 @@ class MindboxFirebaseMessagingService: FirebaseMessagingService() {
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         super.onMessageReceived(remoteMessage)
-        val channelId = "test"
-        val channelName = "test"
-        val channelDescription = "test"
+        val channelId = "default_channel_id"
+        val channelName = "default_channel_name"
+        val channelDescription = "default_channel_description"
         val pushSmallIcon = android.R.drawable.ic_dialog_info
 
 
