@@ -1,0 +1,78 @@
+plugins {
+    id "com.android.application"
+    id "kotlin-android"
+    id "dev.flutter.flutter-gradle-plugin"
+    id 'com.google.gms.google-services'
+    id 'com.huawei.agconnect'
+}
+
+def localProperties = new Properties()
+def localPropertiesFile = rootProject.file('local.properties')
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.withReader('UTF-8') { reader ->
+        localProperties.load(reader)
+    }
+}
+
+def flutterVersionCode = localProperties.getProperty('flutter.versionCode')
+if (flutterVersionCode == null) {
+    flutterVersionCode = '1'
+}
+
+def flutterVersionName = localProperties.getProperty('flutter.versionName')
+if (flutterVersionName == null) {
+    flutterVersionName = '1.0'
+}
+
+android {
+    namespace "cloud.mindbox.flutter_example"
+    compileSdk flutter.compileSdkVersion
+    ndkVersion flutter.ndkVersion
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+
+    sourceSets {
+        main.java.srcDirs += 'src/main/kotlin'
+    }
+
+    defaultConfig {
+        applicationId "cloud.mindbox.flutter_example"
+        minSdkVersion flutter.minSdkVersion
+        targetSdkVersion flutter.targetSdkVersion
+        versionCode flutterVersionCode.toInteger()
+        versionName flutterVersionName
+        multiDexEnabled true
+    }
+
+    buildTypes {
+        release {
+            signingConfig signingConfigs.debug
+        }
+    }
+    buildToolsVersion '34.0.0'
+}
+
+flutter {
+    source '../..'
+}
+
+ext.mindbox_version = "2.8.5"
+
+dependencies {
+    implementation 'androidx.multidex:multidex:2.0.1'
+    //https://developers.mindbox.ru/docs/firebase-send-push-notifications-flutter
+    implementation "cloud.mindbox:mobile-sdk:$mindbox_version"
+    implementation "cloud.mindbox:mindbox-firebase:$mindbox_version"
+    implementation platform('com.google.firebase:firebase-bom:32.8.1')
+    implementation 'com.google.firebase:firebase-messaging:23.4.1'
+    //https://developers.mindbox.ru/docs/huawei-send-push-notifications-flutter
+    implementation "cloud.mindbox:mindbox-huawei:$mindbox_version"
+    implementation 'com.huawei.hms:push:6.11.0.300'
+}
