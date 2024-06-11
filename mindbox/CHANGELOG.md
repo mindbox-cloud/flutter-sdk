@@ -1,7 +1,7 @@
 ## 2.10.0
 
 * Upgrade native Android SDK dependency to v2.10.0.
-* Upgrade native iOS SDK dependency to v2.10.0.
+* Upgrade native iOS SDK dependency to v2.10.1.
 
 ## 2.9.1
 
