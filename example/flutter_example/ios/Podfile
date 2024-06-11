@@ -41,12 +41,12 @@ end
 
 target 'MindboxNotificationServiceExtension' do
   use_frameworks!
-   pod 'MindboxNotifications', '2.8.6'
+   pod 'MindboxNotifications', '2.9.0'
 end
 
 target 'MindboxNotificationContentExtension' do
   use_frameworks!
-   pod 'MindboxNotifications', '2.8.6'
+   pod 'MindboxNotifications', '2.9.0'
 end
 
 post_install do |installer|
