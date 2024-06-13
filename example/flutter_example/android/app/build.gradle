@@ -63,16 +63,13 @@ flutter {
     source '../..'
 }
 
-ext.mindbox_version = "2.9.1"
-
 dependencies {
     implementation 'androidx.multidex:multidex:2.0.1'
     //https://developers.mindbox.ru/docs/firebase-send-push-notifications-flutter
-    implementation "cloud.mindbox:mobile-sdk:$mindbox_version"
-    implementation "cloud.mindbox:mindbox-firebase:$mindbox_version"
+    implementation "cloud.mindbox:mindbox-firebase"
     implementation platform('com.google.firebase:firebase-bom:32.8.1')
     implementation 'com.google.firebase:firebase-messaging:23.4.1'
     //https://developers.mindbox.ru/docs/huawei-send-push-notifications-flutter
-    implementation "cloud.mindbox:mindbox-huawei:$mindbox_version"
+    implementation "cloud.mindbox:mindbox-huawei"
     implementation 'com.huawei.hms:push:6.11.0.300'
 }
