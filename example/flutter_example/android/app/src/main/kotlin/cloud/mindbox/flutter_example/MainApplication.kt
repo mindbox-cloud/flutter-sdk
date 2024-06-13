@@ -17,7 +17,7 @@ import com.google.gson.reflect.TypeToken
 class MainApplication : Application() {
 
     var events: EventChannel.EventSink? = null
-
+    private val gson = Gson()
     override fun onCreate() {
         super.onCreate()
         Mindbox.initPushServices(applicationContext, listOf(MindboxFirebase, MindboxHuawei))
@@ -46,8 +46,8 @@ class MainApplication : Application() {
         }
     }
 
+    // We use sharedPreference to save push data for example purposes only. Don't use this solution for yourself
     fun saveNotification(message: MindboxRemoteMessage) {
-        val gson = Gson()
         val sharedPreferences =
             getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
         val editor = sharedPreferences.edit()

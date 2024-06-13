@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'push_action.dart';
 import 'payload.dart';
 
+//example of data by push
 class MindboxRemoteMessage {
   final String uniqueKey;
   final String title;
@@ -35,18 +36,6 @@ class MindboxRemoteMessage {
       payload: json['payload'],
     );
   }
-
-  /*Map<String, dynamic> toJson() {
-    return {
-      'uniqueKey': uniqueKey,
-      'title': title,
-      'description': description,
-      'imageUrl': imageUrl,
-      'pushLink': pushLink,
-      'pushActions': pushActions.map((action) => action.toJson()).toList(),
-      'payload': payload,
-    };
-  } */
 
   Payload? getPayloadObject() {
     if (payload == null) return null;

@@ -13,31 +13,34 @@ class NotificationCenterScreen extends StatefulWidget {
   const NotificationCenterScreen({super.key});
 
   @override
-  State<NotificationCenterScreen> createState() => _NotificationCenterScreenState();
+  State<NotificationCenterScreen> createState() =>
+      _NotificationCenterScreenState();
 }
 
-class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
+class _NotificationCenterScreenState extends State<NotificationCenterScreen>
+    with WidgetsBindingObserver {
   final ItemsManager itemsManager = ItemsManager();
-  static const EventChannel eventChannel = EventChannel('cloud.mindbox.flutter_example.notifications');
+  static const EventChannel eventChannel =
+      EventChannel('cloud.mindbox.flutter_example.notifications');
   StreamSubscription? _subscription;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     itemsManager.onItemsChanged = () {
       setState(() {});
     };
 
     itemsManager.loadItemsFromPreferences();
 
+    // Subscription to events from native side
     _subscription = eventChannel.receiveBroadcastStream().listen((event) {
       if (!mounted) return;
-      print("New event!!");
       if (event == "newNotification") {
         itemsManager.loadItemsFromPreferences();
       }
-    }, onError: (error) {
-    });
+    }, onError: (error) {});
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -46,11 +49,21 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.resumed) {
+      itemsManager.loadItemsFromPreferences();
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _subscription?.cancel();
     super.dispose();
   }
 
+  // send info about click on push in notification center
   void onItemClick(BuildContext context, MindboxRemoteMessage item) {
     Payload? payload = item.getPayloadObject();
     if (payload != null) {

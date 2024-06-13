@@ -1,3 +1,8 @@
+/*Assuming payload of push notification has this structure:
+                     {
+                        "pushName":"<Push name>",
+                        "pushDate":"<Push date>"
+                      }*/
 class Payload {
   final String pushName;
   final String pushDate;
