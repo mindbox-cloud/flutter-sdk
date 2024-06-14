@@ -28,6 +28,17 @@ class MindboxHuaweiMessagingService: HmsMessageService() {
             channelDescription = channelDescription
         )
 
+        // Method for checking if push is from Mindbox
+        val isMindboxPush = MindboxHuawei.isMindboxPush(remoteMessage = remoteMessage)
+
+        // Method for getting info from Mindbox push
+        val mindboxMessage = MindboxHuawei.convertToMindboxRemoteMessage(remoteMessage = remoteMessage)
+        // If you want to save the notification you can call your save function from here.
+        mindboxMessage?.let {
+            val app = applicationContext as MainApplication
+            app.saveNotification(it)
+        }
+
         if (!messageWasHandled) {
             //If the push notification was not from Mindbox or it contains incorrect data, then you can write a fallback to process it
         }

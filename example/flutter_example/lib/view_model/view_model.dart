@@ -36,6 +36,22 @@ class ViewModel {
         });
   }
 
+  //used for send action "notification center was opened"
+  static asyncOperationNCOpen() {
+    Mindbox.instance.executeAsyncOperation(
+        operationSystemName: "mobileapp.NCOpen",
+        operationBody: {}
+    );
+  }
+
+  //used for send action "click on push from notification center"
+  static asyncOperationNCPushOpen(String pushName, String pushDate) {
+    Mindbox.instance.executeAsyncOperation(
+        operationSystemName: "mobileapp.NCPushOpen",
+        operationBody: getPushOpenOperationBody(pushName, pushDate)
+    );
+  }
+
   static getSDKVersion(Function complition) {
     Mindbox.instance.nativeSdkVersion.then((value) {
       complition(value);
@@ -101,6 +117,19 @@ class ViewModel {
         Mindbox.instance
             .registerInAppCallback(callbacks: [EmptyInAppCallback()]);
     }
+  }
+
+  static Map<String, dynamic> getPushOpenOperationBody(String pushName, String pushDate) {
+    return {
+      "data": {
+        "customerAction": {
+          "customFields": {
+            "mobPushSendDateTime": pushDate,
+            "mobPushTranslateName": pushName
+          }
+        }
+      }
+    };
   }
 }
 
