@@ -24,7 +24,6 @@ class MainApplication : Application() {
     }
 
     fun setupEventChannel(flutterEngine: FlutterEngine) {
-        Log.d("MainApplication", "Setting up EventChannel")
         val eventChannel = EventChannel(
             flutterEngine.dartExecutor.binaryMessenger,
             "cloud.mindbox.flutter_example.notifications"

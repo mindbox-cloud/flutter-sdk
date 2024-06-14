@@ -10,7 +10,6 @@ class MainActivity: FlutterActivity() {
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
-        Log.d("Mindbox", "Register!!!!!!")
         GeneratedPluginRegistrant.registerWith(flutterEngine)
         (application as MainApplication).setupEventChannel(flutterEngine)
     }
