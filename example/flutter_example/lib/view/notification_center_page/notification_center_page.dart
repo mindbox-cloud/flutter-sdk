@@ -28,9 +28,6 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    itemsManager.onItemsChanged = () {
-      setState(() {});
-    };
 
     itemsManager.loadItemsFromPreferences();
 
@@ -86,13 +83,18 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen>
           child: Column(
             children: [
               Expanded(
-                child: ListView.builder(
-                  itemCount: itemsManager.items.length,
-                  itemBuilder: (context, index) {
-                    int reverseIndex = itemsManager.items.length - 1 - index;
-                    return MindboxRemoteMessageCard(
-                      item: itemsManager.items[reverseIndex],
-                      onItemClick: (item) => onItemClick(context, item),
+                child: ValueListenableBuilder<List<MindboxRemoteMessage>>(
+                  valueListenable: itemsManager.itemsNotifier,
+                  builder: (context, items, child) {
+                    return ListView.builder(
+                      itemCount: items.length,
+                      itemBuilder: (context, index) {
+                        int reverseIndex = items.length - 1 - index;
+                        return MindboxRemoteMessageCard(
+                          item: items[reverseIndex],
+                          onItemClick: (item) => onItemClick(context, item),
+                        );
+                      },
                     );
                   },
                 ),
@@ -128,7 +130,7 @@ void showCustomToast(BuildContext context, String message) {
       child: Material(
         color: Colors.transparent,
         child: Container(
-          padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
           decoration: BoxDecoration(
             color: Colors.black,
             borderRadius: BorderRadius.circular(8.0),
@@ -144,7 +146,7 @@ void showCustomToast(BuildContext context, String message) {
 
   Overlay.of(context).insert(overlayEntry);
 
-  Future.delayed(Duration(seconds: 2), () {
+  Future.delayed(const Duration(seconds: 2), () {
     overlayEntry.remove();
   });
 }
