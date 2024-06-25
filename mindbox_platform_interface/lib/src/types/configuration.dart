@@ -5,7 +5,7 @@ class Configuration {
     required this.domain,
     required this.endpointIos,
     required this.endpointAndroid,
-    required this.subscribeCustomerIfCreated,
+    this.subscribeCustomerIfCreated = false,
     this.previousDeviceUUID = '',
     this.previousInstallationId = '',
     this.shouldCreateCustomer = true,
