@@ -10,7 +10,7 @@ Pod::Spec.new do |s|
 The implementation of 'mindbox' plugin for the iOS platform
                        DESC
   s.homepage         = 'https://mindbox.cloud/'
-  s.license          = { :file => '../LICENSE' }
+  s.license          = { :file => '../LICENSE.md' }
   s.author           = { 'Mindbox' => 'it@mindbox.ru' }
   s.source           = { :path => '.' }
   s.source_files = 'Classes/**/*'
