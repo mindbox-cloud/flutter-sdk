@@ -1,6 +1,6 @@
 ## 2.10.1
 
-* Fix dependencies.
+* Upgrade native Android SDK dependency to v2.10.1.
 
 ## 2.10.0
 
