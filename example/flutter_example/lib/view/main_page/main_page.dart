@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_example/assets/MBColors.dart';
 import 'package:flutter_example/view/main_page/widgets/buttons_block/buttons_block.dart';
 import 'package:flutter_example/view/main_page/widgets/info_block/info_block.dart';
+import 'package:flutter_example/view/main_page/widgets/buttons_block/button_nc.dart';
+import 'package:flutter_example/view/notification_center_page/notification_center_page.dart';
+import 'package:flutter_example/view_model/view_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 
@@ -49,7 +52,7 @@ Future<void> _showAlertIfNeeded() async {
   
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
         backgroundColor: MBColors.backgroundColor,
@@ -60,6 +63,18 @@ Future<void> _showAlertIfNeeded() async {
             ButtonsBlock(),
             SizedBox(height: 10),
             InfoBlock(),
+            SizedBox(height: 10),
+            CustomButton(
+              title: 'Go to notification center',
+              onPressed: () {
+                //send operation mobile mobileapp.NCOpen
+                ViewModel.asyncOperationNCOpen();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const NotificationCenterScreen()),
+                );
+              },
+            ),
           ],
         )),
       ),
