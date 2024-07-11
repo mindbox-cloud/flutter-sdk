@@ -9,5 +9,11 @@
 		<key>NSExtensionPrincipalClass</key>
 		<string>$(PRODUCT_MODULE_NAME).NotificationService</string>
 	</dict>
+	<key>UIBackgroundModes</key>
+    	<array>
+    		<string>fetch</string>
+    		<string>processing</string>
+    		<string>remote-notification</string>
+    	</array>
 </dict>
 </plist>

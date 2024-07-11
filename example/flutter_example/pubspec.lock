@@ -156,34 +156,34 @@ packages:
     dependency: "direct main"
     description:
       name: mindbox
-      sha256: a3baea6030db41a247b9fa95ae798076bc5dcee61e3007dcfff38a9436af1e1d
+      sha256: "0e2866dba9b62805ff8a7d0c005deaaf07993ff3e8f37374c73b2a3c0c295c0e"
       url: "https://pub.dev"
     source: hosted
-    version: "2.8.5"
+    version: "2.9.1"
   mindbox_android:
     dependency: transitive
     description:
       name: mindbox_android
-      sha256: "356f01b7f7093229de732c816baf48fea94ac0da9307d450052baa3b0fc10c73"
+      sha256: "36940fd79b1a2522649adb49d229230a68dcecb61645bcf6cd83d9043e19a5f4"
       url: "https://pub.dev"
     source: hosted
-    version: "2.8.5"
+    version: "2.9.1"
   mindbox_ios:
     dependency: transitive
     description:
       name: mindbox_ios
-      sha256: "0f0556f82008720c9fa6cdeddf33245233c007d50d29e5b5a3a6ff4271925f6d"
+      sha256: "399c805f29471216085c910fa0380627cfd35e500366087e463a9e883318c563"
       url: "https://pub.dev"
     source: hosted
-    version: "2.8.5"
+    version: "2.9.1"
   mindbox_platform_interface:
     dependency: transitive
     description:
       name: mindbox_platform_interface
-      sha256: "106a5bf423a944aefc4bbd3d1a800e91fcd0d1ba8f1adfd4cb5f50e156c59e04"
+      sha256: "11f39679d7fe805425bfbc412e26c8d65a02ec968080b30fb114b7a22228acbe"
       url: "https://pub.dev"
     source: hosted
-    version: "2.8.5"
+    version: "2.9.1"
   path:
     dependency: transitive
     description:
@@ -228,18 +228,18 @@ packages:
     dependency: transitive
     description:
       name: permission_handler_android
-      sha256: "1acac6bae58144b442f11e66621c062aead9c99841093c38f5bcdcc24c1c3474"
+      sha256: "8bb852cd759488893805c3161d0b2b5db55db52f773dbb014420b304055ba2c5"
       url: "https://pub.dev"
     source: hosted
-    version: "12.0.5"
+    version: "12.0.6"
   permission_handler_apple:
     dependency: transitive
     description:
       name: permission_handler_apple
-      sha256: e9ad66020b89ff1b63908f247c2c6f931c6e62699b756ef8b3c4569350cd8662
+      sha256: e6f6d73b12438ef13e648c4ae56bd106ec60d17e90a59c4545db6781229082a0
       url: "https://pub.dev"
     source: hosted
-    version: "9.4.4"
+    version: "9.4.5"
   permission_handler_html:
     dependency: transitive
     description:
@@ -268,10 +268,10 @@ packages:
     dependency: transitive
     description:
       name: platform
-      sha256: "12220bb4b65720483f8fa9450b4332347737cf8213dd2840d8b2c823e47243ec"
+      sha256: "9b71283fc13df574056616011fb138fd3b793ea47cc509c189a6c3fa5f8a1a65"
       url: "https://pub.dev"
     source: hosted
-    version: "3.1.4"
+    version: "3.1.5"
   plugin_platform_interface:
     dependency: transitive
     description:
@@ -393,26 +393,26 @@ packages:
     dependency: "direct main"
     description:
       name: url_launcher
-      sha256: "6ce1e04375be4eed30548f10a315826fd933c1e493206eab82eed01f438c8d2e"
+      sha256: "21b704ce5fa560ea9f3b525b43601c678728ba46725bab9b01187b4831377ed3"
       url: "https://pub.dev"
     source: hosted
-    version: "6.2.6"
+    version: "6.3.0"
   url_launcher_android:
     dependency: transitive
     description:
       name: url_launcher_android
-      sha256: "360a6ed2027f18b73c8d98e159dda67a61b7f2e0f6ec26e86c3ada33b0621775"
+      sha256: "17cd5e205ea615e2c6ea7a77323a11712dffa0720a8a90540db57a01347f9ad9"
       url: "https://pub.dev"
     source: hosted
-    version: "6.3.1"
+    version: "6.3.2"
   url_launcher_ios:
     dependency: transitive
     description:
       name: url_launcher_ios
-      sha256: "9149d493b075ed740901f3ee844a38a00b33116c7c5c10d7fb27df8987fb51d5"
+      sha256: "7068716403343f6ba4969b4173cbf3b84fc768042124bc2c011e5d782b24fe89"
       url: "https://pub.dev"
     source: hosted
-    version: "6.2.5"
+    version: "6.3.0"
   url_launcher_linux:
     dependency: transitive
     description:
@@ -425,10 +425,10 @@ packages:
     dependency: transitive
     description:
       name: url_launcher_macos
-      sha256: b7244901ea3cf489c5335bdacda07264a6e960b1c1b1a9f91e4bc371d9e68234
+      sha256: "9a1a42d5d2d95400c795b2914c36fdcb525870c752569438e4ebb09a2b5d90de"
       url: "https://pub.dev"
     source: hosted
-    version: "3.1.0"
+    version: "3.2.0"
   url_launcher_platform_interface:
     dependency: transitive
     description:

@@ -1,6 +1,6 @@
 name: mindbox_android
 description: The implementation of 'mindbox' plugin for the Android platform.
-version: 2.10.0
+version: 2.10.1
 homepage: https://mindbox.cloud/
 repository: https://github.com/mindbox-cloud/flutter-sdk/tree/master/mindbox_android
 
@@ -19,7 +19,7 @@ flutter:
 dependencies:
   flutter:
     sdk: flutter
-  mindbox_platform_interface: ^2.10.0
+  mindbox_platform_interface: ^2.10.1
 
 dev_dependencies:
   flutter_test:
