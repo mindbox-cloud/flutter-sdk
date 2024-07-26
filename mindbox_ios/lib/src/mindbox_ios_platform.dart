@@ -101,4 +101,10 @@ class MindboxIosPlatform extends MindboxPlatform {
   void updateNotificationPermissionStatus({required bool granted}) {
     _methodHandler.updateNotificationPermissionStatus(granted: granted);
   }
+
+  /// Writes a log message to the native Mindbox logging system.
+  @override
+  void writeNativeLog({required String message, required LogLevel logLevel}) {
+    _methodHandler.writeNativeLog(message: message, logLevel: logLevel);
+  }
 }
