@@ -320,19 +320,8 @@ class MindboxMethodHandler {
     _methodHandlerSet = true;
   }
 
-  void _logDebug(String message) {
-    writeNativeLog(message: message, logLevel: LogLevel.debug);
-  }
-
   void _logInfo(String message) {
     writeNativeLog(message: message, logLevel: LogLevel.info);
   }
 
-  void _logWarning(String message) {
-    writeNativeLog(message: message, logLevel: LogLevel.warn);
-  }
-
-  void _logError(String message) {
-    writeNativeLog(message: message, logLevel: LogLevel.error);
-  }
 }
