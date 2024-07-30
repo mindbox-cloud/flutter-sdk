@@ -1,0 +1,27 @@
+name: Build PushOk when PR merged
+
+on:
+  push:
+    branches:
+      - 'feature/*'
+
+jobs:
+  trigger:
+    runs-on: [ubuntu-latest]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Get last 3 commit messages
+        run: |
+          commits=$(git log -3 --pretty=format:"%s")
+          echo "commits=$commits" >> $GITHUB_ENV
+
+      - name: Trigger build workflow in flutter-app repo
+        uses: benc-uk/workflow-dispatch@v1
+        with:
+          token: ${{ secrets.PAT_FLUTTER_APP }}
+          workflow: connected_publish_workflow.yml
+          repo: mindbox-cloud/flutter-app
+          ref: feature/MBX-3072-Local-Android
+          inputs: '{"branch": "${{ github.head_ref }}", "commits": "${{ env.commits }}", "sdkVersion": "1"}'
