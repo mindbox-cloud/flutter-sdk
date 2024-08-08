@@ -1,6 +1,7 @@
 import Flutter
 import UIKit
 import Mindbox
+import MindboxLogger
 
 
 
@@ -164,6 +165,37 @@ public class SwiftMindboxIosPlugin: NSObject, FlutterPlugin {
                   return
            }
            Mindbox.shared.notificationsRequestAuthorization(granted: granted)
+
+        case "writeNativeLog":
+            guard let args = call.arguments as? [Any], args.count >= 2 else {
+                    result(FlutterError(code: "-1", message: "error", details: "Wrong argument count or type"))
+                    return
+                }
+                
+            guard let message = args[0] as? String,
+                    let levelIndex = args[1] as? Int else {
+                    result(FlutterError(code: "-1", message: "error", details: "Wrong argument type"))
+                    return
+                }
+            let logLevel: LogLevel
+            
+            switch levelIndex {
+            case 0:
+                logLevel = .debug
+            case 1:
+                logLevel = .info
+            case 2:
+                logLevel = .default
+            case 3:
+                logLevel = .error
+            case 4:
+                logLevel = .fault
+            default:
+                logLevel = .none
+            }
+            Mindbox.logger.log(level: logLevel, message: message)
+            result(0)
+
         default:
             result(FlutterMethodNotImplemented)
         }

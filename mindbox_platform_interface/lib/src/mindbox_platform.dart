@@ -123,6 +123,11 @@ abstract class MindboxPlatform {
   void updateNotificationPermissionStatus({required bool granted}) =>
       throw UnimplementedError(
           'updateNotificationPermissionStatus() has not been implemented');
+
+  /// Writes a log message to the native Mindbox logging system.
+  void writeNativeLog({required String message, required LogLevel logLevel}) =>
+     throw UnimplementedError(
+         'writeNativeLog() has not been implemented');
 }
 
 
