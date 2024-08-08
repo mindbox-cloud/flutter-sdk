@@ -153,23 +153,4 @@ class Mindbox {
     MindboxPlatform.instance
         .updateNotificationPermissionStatus(granted: granted);
   }
-
-  /// Writes a log message to the native Mindbox logging system.
-  ///
-  /// Usage example:
-  ///
-  /// ```dart
-  /// Mindbox.instance.writeNativeLog(
-  ///   message: 'This is a debug message',
-  ///   logLevel: LogLevel.debug,
-  /// );
-  /// ```
-  ///
-  /// [message]: The message to be logged.
-  /// [logLevel]: The severity level of the log message [LogLevel].
-  ///
-  void writeNativeLog({required String message, required LogLevel logLevel}) {
-    MindboxPlatform.instance
-        .writeNativeLog(message: message, logLevel: logLevel);
-  }
 }

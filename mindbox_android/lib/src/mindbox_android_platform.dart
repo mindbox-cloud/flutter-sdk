@@ -101,9 +101,4 @@ class MindboxAndroidPlatform extends MindboxPlatform {
   void updateNotificationPermissionStatus({required bool granted}) {
     _methodHandler.updateNotificationPermissionStatus(granted: granted);
   }
-
-  @override
-  void writeNativeLog({required String message, required LogLevel logLevel}) {
-    _methodHandler.writeNativeLog(message: message, logLevel: logLevel);
-  }
 }

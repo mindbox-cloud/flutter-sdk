@@ -36,7 +36,6 @@ class MindboxMethodHandler {
   bool _initialized = false;
   final List<_PendingCallbackMethod> _pendingCallbackMethods = [];
   final List<_PendingOperations> _pendingOperations = [];
-  final String _logPrefix = '[Flutter] ';
   PushClickHandler? _pushClickHandler;
   InAppClickHandler? _inAppClickHandler;
   InAppDismissedHandler? _inAppDismissedHandler;
@@ -85,7 +84,6 @@ class MindboxMethodHandler {
       _pendingCallbackMethods.clear();
       _pendingOperations.clear();
       _initialized = true;
-      _logInfo('Init in Flutter');
     } on PlatformException catch (e) {
       throw MindboxInitializeError(
           message: e.message ?? '', data: e.details ?? '');
@@ -286,14 +284,6 @@ class MindboxMethodHandler {
           data: exception.message!);
     }
   }
-  /// Writes a log message to the native Mindbox logging system.
-  /// [message]: The message to be logged
-  /// [logLevel]: The severity level of the log message [LogLevel]
-  void writeNativeLog(
-      {required String message, required LogLevel logLevel}) async {
-    await channel
-        .invokeMethod('writeNativeLog', [_logPrefix + message, logLevel.index]);
-  }
 
   void _setMethodCallHandler() {
     channel.setMethodCallHandler((call) {
@@ -319,9 +309,4 @@ class MindboxMethodHandler {
     });
     _methodHandlerSet = true;
   }
-
-  void _logInfo(String message) {
-    writeNativeLog(message: message, logLevel: LogLevel.info);
-  }
-
 }
