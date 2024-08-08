@@ -21,7 +21,7 @@ void main() {
 
   ViewModel.requestPermissions();
 
-  ViewModel.chooseInAppCallback(ChooseInappCallback.customInAppCallback);
+  ViewModel.chooseInAppCallback(ChooseInappCallback.defaultInAppCallback);
 
   runApp(const Example());
 

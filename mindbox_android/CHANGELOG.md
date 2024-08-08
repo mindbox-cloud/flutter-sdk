@@ -1,3 +1,7 @@
+## 2.10.2-rc
+
+* Upgrade native Android SDK dependency to v2.10.2-rc.
+
 ## 2.10.1
 
 * Upgrade native Android SDK dependency to v2.10.1.
