@@ -30,7 +30,8 @@ flutter_ios_podfile_setup
 target 'Runner' do
   use_frameworks!
   use_modular_headers!
-
+# add this pod if doesn't use MindboxFlutterAppDelegate
+  pod 'Mindbox'
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
 #  target 'RunnerTests' do
 #    inherit! :search_paths
@@ -41,12 +42,12 @@ end
 
 target 'MindboxNotificationServiceExtension' do
   use_frameworks!
-   pod 'MindboxNotifications', '2.10.1'
+   pod 'MindboxNotifications', '2.10.2'
 end
 
 target 'MindboxNotificationContentExtension' do
   use_frameworks!
-   pod 'MindboxNotifications', '2.10.1'
+   pod 'MindboxNotifications', '2.10.2'
 end
 
 post_install do |installer|
