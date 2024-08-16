@@ -65,7 +65,7 @@ import UserNotifications
     
     override func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
         //Implement display of standard notifications
-        completionHandler([.alert, .badge, .sound])
+        completionHandler([.list, .badge, .sound, .banner])
         notifyFlutterNewData()
     }
     
