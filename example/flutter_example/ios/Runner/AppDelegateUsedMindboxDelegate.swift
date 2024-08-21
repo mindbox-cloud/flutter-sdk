@@ -4,27 +4,18 @@ import mindbox_ios
 import Mindbox
 import UserNotifications
 
-
+@UIApplicationMain
 @objc class AppDelegateUsedMindboxDelegate: MindboxFlutterAppDelegate {
     private var eventSink: FlutterEventSink?
-    
-    override func shouldRegisterForRemoteNotifications() -> Bool {
-        return true
-    }
-    
+
     override func application(
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
-        UIApplication.shared.registerForRemoteNotifications()
         GeneratedPluginRegistrant.register(with: self)
-        
         let controller: FlutterViewController = window?.rootViewController as! FlutterViewController
         let eventChannel = FlutterEventChannel(name: "cloud.mindbox.flutter_example.notifications", binaryMessenger: controller.binaryMessenger)
         eventChannel.setStreamHandler(self)
-        
-        UNUserNotificationCenter.current().delegate = self
-        
         return super.application(application, didFinishLaunchingWithOptions: launchOptions)
     }
     

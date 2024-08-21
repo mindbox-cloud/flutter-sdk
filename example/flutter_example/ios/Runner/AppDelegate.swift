@@ -4,7 +4,7 @@ import mindbox_ios
 import Mindbox
 import UserNotifications
 
-@UIApplicationMain
+
 @objc class AppDelegate: FlutterAppDelegate {
     private var eventSink: FlutterEventSink?
     
