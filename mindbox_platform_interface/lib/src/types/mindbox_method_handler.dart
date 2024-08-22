@@ -150,6 +150,7 @@ class MindboxMethodHandler {
   void handlePushClick({
     required PushClickHandler handler,
   }) {
+     writeNativeLog(message: "Set push click handler", logLevel: LogLevel.debug);
     _pushClickHandler = handler;
   }
 
@@ -299,6 +300,9 @@ class MindboxMethodHandler {
     channel.setMethodCallHandler((call) {
         switch (call.method) {
           case 'pushClicked':
+            writeNativeLog(message: "Method handler click", logLevel: LogLevel.info);
+            writeNativeLog(message: "Push click handler is $_pushClickHandler", logLevel: LogLevel.info);
+            writeNativeLog(message: "Calls arguments is ${call.arguments[0]}", logLevel: LogLevel.info);
             if (call.arguments is List) {
               _pushClickHandler?.call(call.arguments[0], call.arguments[1]);
             }
