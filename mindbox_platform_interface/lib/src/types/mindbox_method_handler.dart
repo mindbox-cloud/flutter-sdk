@@ -318,12 +318,14 @@ class MindboxMethodHandler {
             _logInfo('Handle method pushClicked');
             if (_pushClickHandler != null) {
               if (call.arguments is List) {
-                _logInfo('Return data from push with parameters link = ${call.arguments[0]} and payload = ${call.arguments[1]}');
+                _logInfo('Return data from push with parameters link = '
+                    '${call.arguments[0]} and payload = ${call.arguments[1]}');
                 _pushClickHandler?.call(call.arguments[0], call.arguments[1]);
               }
             } else {
               _logInfo('pushClickHandler not set. Save push data');
-              _pendingPushData.add(_PendingPushData(link: call.arguments[0], payload: call.arguments[1]));
+              _pendingPushData.add(_PendingPushData(link: call.arguments[0],
+                  payload: call.arguments[1]));
             }
             break;
           case 'onInAppClick':
