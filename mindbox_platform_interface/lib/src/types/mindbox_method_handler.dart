@@ -159,11 +159,11 @@ class MindboxMethodHandler {
     required PushClickHandler handler,
   }) {
     _pushClickHandler = handler;
-    if (_pendingPushData.isNotEmpty){
+    if (_pendingPushData.isNotEmpty) {
       _logInfo('pendingPushData is not empty. Send data to methodHandler');
-      for (final pushData in _pendingPushData){
+      for (final pushData in _pendingPushData) {
         _logInfo('invoke pushClicked method from pending list');
-        _sendPendingPushData(pushData);
+        _sendPendingPushData(pushData.link, pushData.payload);
       }
       _pendingPushData.clear();
     }
@@ -316,18 +316,18 @@ class MindboxMethodHandler {
         switch (call.method) {
           case 'pushClicked':
             _logInfo('Handle method pushClicked');
-            if (_pushClickHandler != null) {
-              if (call.arguments is List) {
-                _logInfo('Return data from push with parameters link = '
-                    '${call.arguments[0]} and payload = ${call.arguments[1]}');
-                _pushClickHandler?.call(call.arguments[0], call.arguments[1]);
-              }
-            } else {
-              _logInfo('pushClickHandler not set. Save push data');
-              _pendingPushData.add(_PendingPushData(link: call.arguments[0],
-                  payload: call.arguments[1]));
+          if (_pushClickHandler != null) {
+            if (call.arguments is List) {
+              _logInfo('Return data from push with parameters link = '
+                  '${call.arguments[0]} and payload = ${call.arguments[1]}');
+              _sendPendingPushData(call.arguments[0], call.arguments[1]);
             }
-            break;
+          } else {
+            _logInfo('pushClickHandler not set. Save push data');
+            _pendingPushData.add(_PendingPushData(
+                link: call.arguments[0], payload: call.arguments[1]));
+          }
+          break;
           case 'onInAppClick':
             if (call.arguments is List) {
               _inAppClickHandler?.call(
@@ -349,11 +349,15 @@ class MindboxMethodHandler {
     writeNativeLog(message: message, logLevel: LogLevel.info);
   }
 
-  void _sendPendingPushData(_PendingPushData pushData) {
+  void _logError(String message) {
+    writeNativeLog(message: message, logLevel: LogLevel.error);
+  }
+
+  void _sendPendingPushData(String link, String payload) {
     try {
-      _pushClickHandler?.call(pushData.link, pushData.payload);
+      _pushClickHandler?.call(link, payload);
     } catch (e) {
-      _logInfo('error when send pending push data: $e');
+      _logError('error when send pending push data: $e');
     }
   }
 
