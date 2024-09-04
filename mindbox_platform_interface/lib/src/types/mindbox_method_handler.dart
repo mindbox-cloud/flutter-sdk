@@ -162,7 +162,8 @@ class MindboxMethodHandler {
     if (_pendingPushData.isNotEmpty) {
       _logInfo('pendingPushData is not empty. Send data to methodHandler');
       for (final pushData in _pendingPushData) {
-        _logInfo('invoke pushClicked method from pending list');
+        _logInfo('invoke pushClicked method from pending list. '
+            'Push data: link ${pushData.link},payload = ${pushData.payload}');
         _sendPendingPushData(pushData.link, pushData.payload);
       }
       _pendingPushData.clear();
