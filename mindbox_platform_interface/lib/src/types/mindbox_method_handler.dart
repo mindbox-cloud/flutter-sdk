@@ -28,6 +28,13 @@ class _PendingOperations {
   final Function? errorCallback;
 }
 
+class _PendingPushData {
+  _PendingPushData({required this.link, required this.payload});
+
+  final String link;
+  final String payload;
+}
+
 /// This class contains the necessary logic of the order of method calls
 /// for the correct SDK working.
 ///
@@ -36,6 +43,8 @@ class MindboxMethodHandler {
   bool _initialized = false;
   final List<_PendingCallbackMethod> _pendingCallbackMethods = [];
   final List<_PendingOperations> _pendingOperations = [];
+  final List<_PendingPushData> _pendingPushData = [];
+  final String _logPrefix = '[Flutter] ';
   PushClickHandler? _pushClickHandler;
   InAppClickHandler? _inAppClickHandler;
   InAppDismissedHandler? _inAppDismissedHandler;
@@ -84,6 +93,7 @@ class MindboxMethodHandler {
       _pendingCallbackMethods.clear();
       _pendingOperations.clear();
       _initialized = true;
+      _logInfo('Init in Flutter');
     } on PlatformException catch (e) {
       throw MindboxInitializeError(
           message: e.message ?? '', data: e.details ?? '');
@@ -149,6 +159,15 @@ class MindboxMethodHandler {
     required PushClickHandler handler,
   }) {
     _pushClickHandler = handler;
+    if (_pendingPushData.isNotEmpty) {
+      _logInfo('pendingPushData is not empty. Send data to methodHandler');
+      for (final pushData in _pendingPushData) {
+        _logInfo('invoke pushClicked method from pending list. '
+            'Push data: link ${pushData.link},payload = ${pushData.payload}');
+        _sendPendingPushData(pushData.link, pushData.payload);
+      }
+      _pendingPushData.clear();
+    }
   }
 
   /// Method for handling In-app click.
@@ -284,15 +303,32 @@ class MindboxMethodHandler {
           data: exception.message!);
     }
   }
+  /// Writes a log message to the native Mindbox logging system.
+  /// [message]: The message to be logged
+  /// [logLevel]: The severity level of the log message [LogLevel]
+  void writeNativeLog(
+      {required String message, required LogLevel logLevel}) async {
+    await channel
+        .invokeMethod('writeNativeLog', [_logPrefix + message, logLevel.index]);
+  }
 
   void _setMethodCallHandler() {
     channel.setMethodCallHandler((call) {
         switch (call.method) {
           case 'pushClicked':
+            _logInfo('Handle method pushClicked');
+          if (_pushClickHandler != null) {
             if (call.arguments is List) {
-              _pushClickHandler?.call(call.arguments[0], call.arguments[1]);
+              _logInfo('Return data from push with parameters link = '
+                  '${call.arguments[0]} and payload = ${call.arguments[1]}');
+              _sendPendingPushData(call.arguments[0], call.arguments[1]);
             }
-            break;
+          } else {
+            _logInfo('pushClickHandler not set. Save push data');
+            _pendingPushData.add(_PendingPushData(
+                link: call.arguments[0], payload: call.arguments[1]));
+          }
+          break;
           case 'onInAppClick':
             if (call.arguments is List) {
               _inAppClickHandler?.call(
@@ -309,4 +345,21 @@ class MindboxMethodHandler {
     });
     _methodHandlerSet = true;
   }
+
+  void _logInfo(String message) {
+    writeNativeLog(message: message, logLevel: LogLevel.info);
+  }
+
+  void _logError(String message) {
+    writeNativeLog(message: message, logLevel: LogLevel.error);
+  }
+
+  void _sendPendingPushData(String link, String payload) {
+    try {
+      _pushClickHandler?.call(link, payload);
+    } catch (e) {
+      _logError('error when send pending push data: $e');
+    }
+  }
+
 }

@@ -155,6 +155,26 @@ class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, Ne
             "updateNotificationPermissionStatus" -> {
                 Mindbox.updateNotificationPermissionStatus(context = context)
             }
+
+            "writeNativeLog" -> {
+                if (call.arguments is List<*>) {
+                    val args = call.arguments as List<*>
+                    if (args.size < 2) {
+                        result.error("-1", "error", "Wrong argument count")
+                    }
+                    try {
+                        val message: String? = args[0] as String
+                        val logIndex: Int = args[1] as Int
+                        val logLevel: Level = Level.values()[logIndex]
+                        Mindbox.writeLog(message!!, logLevel)
+                        result.success(0)
+                    }
+                    catch (e: Exception)
+                    {
+                        result.error("-1", "error", "Exception occurred: ${e.message}")
+                    }
+                }
+            }
             else -> {
                 result.notImplemented()
             }

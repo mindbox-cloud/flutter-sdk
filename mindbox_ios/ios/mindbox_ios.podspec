@@ -10,14 +10,14 @@ Pod::Spec.new do |s|
 The implementation of 'mindbox' plugin for the iOS platform
                        DESC
   s.homepage         = 'https://mindbox.cloud/'
-  s.license          = { :file => '../LICENSE.md' }
+  s.license          = { :file => '../LICENSE' }
   s.author           = { 'Mindbox' => 'it@mindbox.ru' }
   s.source           = { :path => '.' }
   s.source_files = 'Classes/**/*'
   s.dependency 'Flutter'
-  s.dependency 'Mindbox', '2.10.3-rc'
-  s.dependency 'MindboxNotifications', '2.10.3-rc'
-  s.platform = :ios, '10.0'
+  s.dependency 'Mindbox', '2.10.2'
+  s.dependency 'MindboxNotifications', '2.10.2'
+  s.platform = :ios, '12.0'
 
   # Flutter.framework does not contain a i386 slice.
   s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES', 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'i386' }
