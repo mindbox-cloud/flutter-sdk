@@ -1,3 +1,7 @@
+## 2.11.0
+
+* Upgrade native iOS SDK dependency to v2.11.0.
+
 ## 2.10.2-rc
 
 * Upgrade native iOS SDK dependency to v2.10.3-rc.
