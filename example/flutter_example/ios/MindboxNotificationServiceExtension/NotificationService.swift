@@ -7,7 +7,6 @@
 
 import UserNotifications
 import MindboxNotifications
-import Mindbox
 
 class NotificationService: UNNotificationServiceExtension {
     
@@ -27,7 +26,7 @@ class NotificationService: UNNotificationServiceExtension {
     
     // We use UserDefaults to save push data for example purposes only. Don't use this solution for yourself
     func saveNotification(request: UNNotificationRequest) {
-        guard let pushData = Mindbox.shared.getMindboxPushData(userInfo: request.content.userInfo) else {
+        guard let pushData = mindboxService.getMindboxPushData(userInfo: request.content.userInfo) else {
             print("Failed to get Mindbox push data")
             return
         }

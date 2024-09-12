@@ -950,7 +950,6 @@
 					"$(inherited)",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/MindboxLogger\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/MindboxNotifications\"",
-					"\"${PODS_CONFIGURATION_BUILD_DIR}/Mindbox\"",
 				);
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -1005,7 +1004,6 @@
 					"$(inherited)",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/MindboxLogger\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/MindboxNotifications\"",
-					"\"${PODS_CONFIGURATION_BUILD_DIR}/Mindbox\"",
 				);
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -1058,7 +1056,6 @@
 					"$(inherited)",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/MindboxLogger\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/MindboxNotifications\"",
-					"\"${PODS_CONFIGURATION_BUILD_DIR}/Mindbox\"",
 				);
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
