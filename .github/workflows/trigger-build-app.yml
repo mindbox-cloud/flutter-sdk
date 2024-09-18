@@ -27,4 +27,4 @@ jobs:
           workflow: buildApplicationAfterTrigger.yml
           repo: mindbox-cloud/flutter-app
           ref: develop
-          inputs: '{"branch": "{{ github.head_ref }}", "commits": "${{ env.commits }}"}'
+          inputs: '{"branch": "${{ github.head_ref }}", "commits": "${{ env.commits }}"}'
