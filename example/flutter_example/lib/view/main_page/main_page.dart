@@ -6,7 +6,9 @@ import 'package:flutter_example/view/main_page/widgets/info_block/info_block.dar
 import 'package:flutter_example/view/main_page/widgets/buttons_block/button_nc.dart';
 import 'package:flutter_example/view/notification_center_page/notification_center_page.dart';
 import 'package:flutter_example/view_model/view_model.dart';
+import 'package:mindbox/mindbox.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../push_info_page/push_info_page.dart';
 
 
 
@@ -25,9 +27,23 @@ void initState() {
 
   super.initState();
   _showAlertIfNeeded();
+  // Please note: if the context is not initialized at the time of
+  // receiving data from the push, then navigation will not work
+  Mindbox.instance.onPushClickReceived((link, payload) {
+    _handlePushNotification(link, payload);
+  });
 }
 
-Future<void> _showAlertIfNeeded() async {
+void _handlePushNotification(String link, dynamic payload) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PushInfoPage(link: link, payload: payload),
+      ),
+    );
+  }
+
+  Future<void> _showAlertIfNeeded() async {
   if (!await isAlertShown()) {
     showDialog(
       context: context,

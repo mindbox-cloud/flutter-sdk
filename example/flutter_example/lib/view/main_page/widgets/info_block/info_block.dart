@@ -22,7 +22,6 @@ class _InfoBlockState extends State<InfoBlock> {
 
   @override
   void initState() {
-    ViewModel.context = context;
     ViewModel.getSDKVersion((value) {
       sdkVerson = value;
       setState(() {});
