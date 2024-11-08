@@ -1,9 +1,9 @@
 plugins {
     id "com.android.application"
     id "kotlin-android"
+    id 'com.huawei.agconnect'
     id "dev.flutter.flutter-gradle-plugin"
     id 'com.google.gms.google-services'
-    id 'com.huawei.agconnect'
 }
 
 def localProperties = new Properties()
