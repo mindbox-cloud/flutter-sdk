@@ -65,7 +65,22 @@ jobs:
       - run: cd mindbox_ios && flutter pub get
       - run: cd mindbox_ios && flutter analyze
       - run: cd mindbox_ios && flutter test
-   
+
+  example_flutter_test:
+    name: example running analyze
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-java@v1
+        with:
+          java-version: "12.x"
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+
+      - name: lint example
+        run: cd example/flutter_example && flutter pub get && flutter analyze
+
   plugin_flutter_test:
     name:  plugin running analyze and tests
     runs-on: ubuntu-latest
