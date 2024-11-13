@@ -41,18 +41,20 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> _showAlertIfNeeded() async {
     if (!await isAlertShown()) {
+      if (!mounted)
+        { return; }
       showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            content: Text('In-App can only be shown once per session'),
+            content: const Text('In-App can only be shown once per session'),
             actions: [
               TextButton(
                 onPressed: () {
                   setAlertShown();
                   Navigator.of(context).pop();
                 },
-                child: Text('OK'),
+                child: const Text('OK'),
               ),
             ],
           );
@@ -71,10 +73,10 @@ class _MyHomePageState extends State<MyHomePage> {
             child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            ButtonsBlock(),
-            SizedBox(height: 10),
-            InfoBlock(),
-            SizedBox(height: 10),
+            const ButtonsBlock(),
+            const SizedBox(height: 10),
+            const InfoBlock(),
+            const SizedBox(height: 10),
             CustomButton(
               title: 'Go to notification center',
               onPressed: () {
@@ -94,11 +96,11 @@ class _MyHomePageState extends State<MyHomePage> {
 }
 
 Future<bool> isAlertShown() async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
   return prefs.getBool('alertShown') ?? false;
 }
 
 Future<void> setAlertShown() async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
   prefs.setBool('alertShown', true);
 }

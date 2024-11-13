@@ -1,7 +1,4 @@
 class PushAction {
-  final String uniqueKey;
-  final String text;
-  final String url;
 
   PushAction({
     required this.uniqueKey,
@@ -16,6 +13,9 @@ class PushAction {
       url: json['url'],
     );
   }
+  final String uniqueKey;
+  final String text;
+  final String url;
 
   Map<String, dynamic> toJson() {
     return {

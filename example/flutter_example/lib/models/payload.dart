@@ -4,8 +4,6 @@
                         "pushDate":"<Push date>"
                       }*/
 class Payload {
-  final String pushName;
-  final String pushDate;
 
   Payload({required this.pushName, required this.pushDate});
 
@@ -15,6 +13,8 @@ class Payload {
       pushDate: json['pushDate'],
     );
   }
+  final String pushName;
+  final String pushDate;
 
   Map<String, dynamic> toJson() {
     return {

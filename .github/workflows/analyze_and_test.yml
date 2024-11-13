@@ -77,7 +77,10 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: "stable"
-          
+
+      - name: lint example
+        run: cd example/flutter_example && flutter pub get && flutter analyze
+
       - name: Add publish_to tag in mindbox_android
         run: |
          cd mindbox_android && echo "publish_to: 'none'" | cat - pubspec.yaml > temp && mv temp pubspec.yaml

@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_example/models/list_item.dart';
 
 import '../../../models/mindbox_remote_message.dart';
 
 class MindboxRemoteMessageCard extends StatelessWidget {
-  final MindboxRemoteMessage item;
-  final Function(MindboxRemoteMessage) onItemClick;
 
   const MindboxRemoteMessageCard({
     super.key,
     required this.item,
     required this.onItemClick,
   });
+  final MindboxRemoteMessage item;
+  final Function(MindboxRemoteMessage) onItemClick;
 
   @override
   Widget build(BuildContext context) {

@@ -8,9 +8,6 @@ import 'dart:io';
 typedef ItemsChangedCallback = void Function();
 
 class ItemsManager {
-  static const int removeStartIndex = 3;
-  static const appGroupID = 'group.cloud.Mindbox.cloud.mindbox.flutterExample';
-  ValueNotifier<List<MindboxRemoteMessage>> itemsNotifier;
 
   ItemsManager() : itemsNotifier = ValueNotifier<List<MindboxRemoteMessage>>([
     // stub push for show them in notification centre
@@ -49,13 +46,16 @@ class ItemsManager {
       SharedPreferenceAppGroup.setAppGroup(appGroupID);
     }
   }
+  static const int removeStartIndex = 3;
+  static const appGroupID = 'group.cloud.Mindbox.cloud.mindbox.flutterExample';
+  ValueNotifier<List<MindboxRemoteMessage>> itemsNotifier;
 
 
   Future<void> loadItemsFromPreferences() async {
     // Load additional items from preferences
     String? storedItemsJson;
     if (Platform.isAndroid) {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.reload();
       storedItemsJson = prefs.getString('notifications');
     } else {
@@ -63,9 +63,9 @@ class ItemsManager {
       await SharedPreferenceAppGroup.getString('notifications');
     }
     if (storedItemsJson != null) {
-      List<dynamic> storedItems = jsonDecode(storedItemsJson);
+      final List<dynamic> storedItems = jsonDecode(storedItemsJson);
       for (String item in storedItems) {
-        MindboxRemoteMessage message =
+        final MindboxRemoteMessage message =
         MindboxRemoteMessage.fromJson(jsonDecode(item));
         if (!_containsItem(message)) {
           itemsNotifier.value = List.from(itemsNotifier.value)
@@ -82,7 +82,7 @@ class ItemsManager {
 
   Future<void> clearPreferences() async {
     if (Platform.isAndroid) {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.remove('notifications');
     } else {
       await SharedPreferenceAppGroup.remove('notifications');

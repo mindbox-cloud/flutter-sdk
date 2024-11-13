@@ -3,10 +3,10 @@ import 'package:flutter_example/assets/MBColors.dart';
 import 'package:flutter_example/view/push_info_page/widgets/info_block.dart';
 
 class PushInfoPage extends StatelessWidget {
-  final String link;
-  final dynamic payload;
 
   const PushInfoPage({super.key, required this.link, required this.payload});
+  final String link;
+  final dynamic payload;
 
   @override
   Widget build(BuildContext context) {

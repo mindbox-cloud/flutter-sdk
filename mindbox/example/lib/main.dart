@@ -15,7 +15,7 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  String _sdkVersion = "";
+  String _sdkVersion = '';
 
   @override
   void initState() {
@@ -24,7 +24,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> getSdkVersion() async {
-    String sdkVersion = await Mindbox.instance.nativeSdkVersion;
+    final String sdkVersion = await Mindbox.instance.nativeSdkVersion;
 
     if (!mounted) return;
 

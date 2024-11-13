@@ -4,13 +4,6 @@ import 'payload.dart';
 
 //example of data by push
 class MindboxRemoteMessage {
-  final String uniqueKey;
-  final String title;
-  final String description;
-  final String? pushLink;
-  final String? imageUrl;
-  final List<PushAction> pushActions;
-  final String? payload;
 
   MindboxRemoteMessage({
     required this.uniqueKey,
@@ -23,8 +16,8 @@ class MindboxRemoteMessage {
   });
 
   factory MindboxRemoteMessage.fromJson(Map<String, dynamic> json) {
-    var pushActionsFromJson = json['pushActions'] as List;
-    List<PushAction> pushActionsList = pushActionsFromJson.map((action) => PushAction.fromJson(action)).toList();
+    final pushActionsFromJson = json['pushActions'] as List;
+    final List<PushAction> pushActionsList = pushActionsFromJson.map((action) => PushAction.fromJson(action)).toList();
 
     return MindboxRemoteMessage(
       uniqueKey: json['uniqueKey'],
@@ -36,10 +29,18 @@ class MindboxRemoteMessage {
       payload: json['payload'],
     );
   }
+  final String uniqueKey;
+  final String title;
+  final String description;
+  final String? pushLink;
+  final String? imageUrl;
+  final List<PushAction> pushActions;
+  final String? payload;
 
   Payload? getPayloadObject() {
-    if (payload == null) return null;
-    Map<String, dynamic> payloadMap = jsonDecode(payload!);
+    if (payload == null)
+      { return null; }
+    final Map<String, dynamic> payloadMap = jsonDecode(payload!);
     return Payload.fromJson(payloadMap);
   }
 }
