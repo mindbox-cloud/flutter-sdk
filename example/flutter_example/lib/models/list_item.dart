@@ -1,9 +1,4 @@
 class ListItem {
-  final String uniqueKey;
-  final String title;
-  final String description;
-  final String imageUrl;
-  final String pushLink;
 
   ListItem({
     required this.uniqueKey,
@@ -12,4 +7,9 @@ class ListItem {
     required this.imageUrl,
     required this.pushLink,
   });
+  final String uniqueKey;
+  final String title;
+  final String description;
+  final String imageUrl;
+  final String pushLink;
 }

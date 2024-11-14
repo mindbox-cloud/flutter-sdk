@@ -3,10 +3,10 @@ import 'package:flutter_example/assets/MBColors.dart';
 import 'package:flutter_example/view/main_page/widgets/info_block/ingo_block_line.dart';
 
 class InfoBlock extends StatelessWidget {
+
+  const InfoBlock({super.key, required this.link, required this.payload});
   final String link;
   final dynamic payload;
-
-  const InfoBlock({Key? key, required this.link, required this.payload}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
