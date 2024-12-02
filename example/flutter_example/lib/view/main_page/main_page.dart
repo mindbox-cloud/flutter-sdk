@@ -13,8 +13,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  static const String url =
-      "https://your-site.com/";
+  static const String url = "https://your-site.com/";
 
   // Timeout for waiting to fetch the deviceUUID.
   // The page will not start loading until this timeout expires.
@@ -155,13 +154,12 @@ class _MyHomePageState extends State<MyHomePage> {
   Future<void> _waitForJavaScriptReady(WebViewController controller) async {
     const int maxRetries = 10;
     int attempts = 0;
-    const Duration retryInterval = Duration(milliseconds: 25);
-
-    // Introduce a small delay before the first check to allow the JavaScript context to initialize.
-    // Typically, 15ms is enough, but we use retryInterval for consistency and reliability.
-    await Future.delayed(retryInterval);
+    const Duration retryInterval = Duration(milliseconds: 10);
 
     while (attempts < maxRetries) {
+      // Introduce a small delay before the first check to allow the JavaScript context to initialize.
+      // Typically, 15ms is enough, but we use retryInterval for consistency and reliability.
+      await Future.delayed(retryInterval);
       try {
         final isReady = await controller.runJavaScriptReturningResult('''
         (function() {
@@ -181,7 +179,8 @@ class _MyHomePageState extends State<MyHomePage> {
       await Future.delayed(retryInterval);
       attempts++;
     }
-    throw TimeoutException("JavaScript context not ready after $maxRetries retries.");
+    throw TimeoutException(
+        "JavaScript context not ready after $maxRetries retries.");
   }
 
   @override

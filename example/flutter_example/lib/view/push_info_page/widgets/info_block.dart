@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_example/assets/MBColors.dart';
-import 'package:flutter_example/view/main_page/widgets/info_block/ingo_block_line.dart';
+import 'package:flutter_example/view/main_page/widgets/info_block/info_block_line.dart';
 
 class InfoBlock extends StatelessWidget {
 
