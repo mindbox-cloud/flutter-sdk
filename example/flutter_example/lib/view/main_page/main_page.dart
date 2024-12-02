@@ -140,7 +140,7 @@ class _MyHomePageState extends State<MyHomePage> {
     ''');
     Mindbox.instance.writeNativeLog(
       message: "Device UUID synchronized with deviceUUID: $uuid",
-      logLevel: LogLevel.debug,
+      logLevel: LogLevel.info,
     );
   }
 
