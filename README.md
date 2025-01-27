@@ -45,4 +45,3 @@ Reach out to us for further help and we'll be glad to assist.
 The library is available as open source under the terms of the [License](https://github.com/mindbox-cloud/android-sdk/blob/master/LICENSE.md).
 
 For a better understanding of this content, please familiarize yourself with the Mindbox [Flutter SDK](https://developers.mindbox.ru/docs/flutter-sdk-integration) documentation.
-
