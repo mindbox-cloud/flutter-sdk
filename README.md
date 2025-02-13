@@ -12,7 +12,7 @@ These instructions will help you integrate the Mindbox SDK into your Flutter app
 
 To integrate Mindbox SDK into your Flutter app, follow the installation process detailed [here](https://developers.mindbox.ru/docs/add-sdk-flutter). Here is an overview:
 
-Add Mindbox's dependency to your pubspec.yaml file:
+Add Mindbox's dependency to your pubspec.yaml file: 
 ```markdown
    dependencies:
 flutter:
