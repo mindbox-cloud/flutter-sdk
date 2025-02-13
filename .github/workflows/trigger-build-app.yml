@@ -1,16 +1,13 @@
 name: Build application after merge
 
 on:
-  pull_request:
-    types: [closed]
+  push:
     branches:
-      - 'feature/*'
-      - 'develop'
+      - 'poziev/test-cicd'
 
 jobs:
   trigger:
     runs-on: macos-latest
-    if: github.event.pull_request.merged == true
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -26,5 +23,5 @@ jobs:
           token: ${{ secrets.PAT_FLUTTER_APP }}
           workflow: buildApplicationAfterTrigger.yml
           repo: mindbox-cloud/flutter-app
-          ref: develop
+          ref: poziev/test-cicd
           inputs: '{"branch": "${{ github.head_ref }}", "commits": "${{ env.commits }}"}'
