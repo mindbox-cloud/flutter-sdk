@@ -14,15 +14,6 @@ jobs:
         run: |
           commits=$(git log -3 --pretty=format:"%s")
           echo "commits=$commits" >> $GITHUB_ENV
-
-      - name: Trigger build workflow in flutter-app repo
-        uses: benc-uk/workflow-dispatch@v1
-        with:
-          token: ${{ secrets.PAT_FLUTTER_APP }}
-          workflow: buildApplicationAfterTrigger.yml
-          repo: mindbox-cloud/flutter-app
-          ref: develop
-          inputs: '{"branch": "${{ github.head_ref }}", "commits": "${{ env.commits }}"}'
           
       - name: Trigger build workflow in flutter-app repo
         run: |
