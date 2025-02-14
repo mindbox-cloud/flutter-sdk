@@ -1,11 +1,16 @@
 name: Build application after merge
 
-on: push
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - 'feature/*'
+      - 'develop'
 
 jobs:
   trigger:
     runs-on: macos-latest
-#    if: github.event.pull_request.merged == true
+    if: github.event.pull_request.merged == true
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -19,6 +24,6 @@ jobs:
         run: |
           curl --location 'https://mindbox.gitlab.yandexcloud.net/api/v4/projects/1056/trigger/pipeline' \
             --form 'token="${{ secrets.GITLAB_TRIGGER_TOKEN }}"' \
-            --form 'ref="test_branch"' \
+            --form 'ref="develop"' \
             --form "variables[INPUT_BRANCH]=\"${{ github.head_ref }}\"" \
             --form "variables[INPUT_COMMITS]=\"${{ env.commits }}\""
