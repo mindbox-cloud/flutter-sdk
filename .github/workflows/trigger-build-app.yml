@@ -1,11 +1,6 @@
 name: Build application after merge
 
-on:
-  pull_request:
-    types: [closed]
-    branches:
-      - 'feature/*'
-      - 'develop'
+on: push
 
 jobs:
   trigger:
@@ -28,3 +23,11 @@ jobs:
           repo: mindbox-cloud/flutter-app
           ref: develop
           inputs: '{"branch": "${{ github.head_ref }}", "commits": "${{ env.commits }}"}'
+          
+      - name: Trigger build workflow in flutter-app repo
+        run: |
+          curl --location 'https://mindbox.gitlab.yandexcloud.net/api/v4/projects/900/trigger/pipeline' \
+            --form 'token="${{ secrets.GITLAB_TRIGGER_TOKEN }}"' \
+            --form 'ref="test_branch"' \
+            --form "variables[INPUT_BRANCH]=\"${{ github.head_ref }}\"" \
+            --form "variables[INPUT_COMMITS]=\"${{ env.commits }}\""
