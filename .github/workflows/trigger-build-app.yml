@@ -19,7 +19,7 @@ jobs:
         run: |
           commits=$(git log -3 --pretty=format:"%s")
           echo "commits=$commits" >> $GITHUB_ENV
-          
+
       - name: Trigger build workflow in flutter-app repo
         run: |
           curl --location 'https://mindbox.gitlab.yandexcloud.net/api/v4/projects/1056/trigger/pipeline' \
