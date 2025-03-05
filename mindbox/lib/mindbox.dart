@@ -68,8 +68,17 @@ class Mindbox {
   /// Method to obtain token.
   ///
   /// Callback returns token when Mindbox SDK is initialized. See also [init].
+  @Deprecated('Use method getTokens')
   void getToken(Function(String token) callback) {
     MindboxPlatform.instance.getToken(callback: callback);
+  }
+
+  /// Method to obtain all push tokens as json string like
+  ///  {"FCM":"token1","HMS":"token2","RuStore":"token3"}
+  ///
+  /// Callback returns tokens when Mindbox SDK is initialized. See also [init].
+  void getTokens(Function(String token) callback) {
+    MindboxPlatform.instance.getTokens(callback: callback);
   }
 
   /// Method for managing sdk logging

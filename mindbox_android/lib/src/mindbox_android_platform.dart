@@ -37,6 +37,12 @@ class MindboxAndroidPlatform extends MindboxPlatform {
     _methodHandler.getToken(callback: callback);
   }
 
+  /// Returns tokens to callback.
+  @override
+  void getTokens({required Function(String token) callback}) {
+    _methodHandler.getTokens(callback: callback);
+  }
+
   /// Method for managing sdk logging
   @override
   void setLogLevel({required LogLevel logLevel}) {

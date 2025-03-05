@@ -6,6 +6,7 @@ import android.util.Log
 import cloud.mindbox.mobile_sdk.Mindbox
 import cloud.mindbox.mindbox_firebase.MindboxFirebase
 import cloud.mindbox.mindbox_huawei.MindboxHuawei
+import cloud.mindbox.mindbox_rustore.MindboxRuStore
 import cloud.mindbox.mobile_sdk.pushes.MindboxRemoteMessage
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.EventChannel
@@ -20,7 +21,7 @@ class MainApplication : Application() {
     private val gson = Gson()
     override fun onCreate() {
         super.onCreate()
-        Mindbox.initPushServices(applicationContext, listOf(MindboxFirebase, MindboxHuawei))
+        Mindbox.initPushServices(applicationContext, listOf(MindboxFirebase, MindboxHuawei, MindboxRuStore))
     }
 
     fun setupEventChannel(flutterEngine: FlutterEngine) {

@@ -4,6 +4,8 @@ buildscript {
         google()
         mavenCentral()
         maven {url 'https://developer.huawei.com/repo/'}
+        maven {url 'https://artifactory-external.vkpartner.ru/artifactory/maven'}
+        mavenLocal()
     }
 
     dependencies {
@@ -19,6 +21,8 @@ allprojects {
         google()
         mavenCentral()
         maven {url 'https://developer.huawei.com/repo/'}
+        maven {url 'https://artifactory-external.vkpartner.ru/artifactory/maven'}
+        mavenLocal()
     }
 }
 

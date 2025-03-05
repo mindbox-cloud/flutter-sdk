@@ -27,3 +27,7 @@ linter:
     public_member_api_docs: true
     always_put_control_body_on_new_line: true
     curly_braces_in_flow_control_structures: true
+
+analyzer:
+  errors:
+    deprecated_member_use_from_same_package: ignore
