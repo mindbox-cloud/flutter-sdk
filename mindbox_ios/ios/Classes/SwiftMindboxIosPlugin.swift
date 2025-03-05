@@ -98,6 +98,10 @@ public class SwiftMindboxIosPlugin: NSObject, FlutterPlugin {
             Mindbox.shared.getDeviceUUID {
                 deviceUUID in result(deviceUUID)
             }
+        case "getTokens":
+            Mindbox.shared.getAPNSToken {
+                token in result("{\"APNS\":\"\(token)\"}")
+            }
         case "getToken":
             Mindbox.shared.getAPNSToken {
                 token in result(token)

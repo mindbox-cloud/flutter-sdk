@@ -1,4 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="cloud.mindbox.flutter_example">
 
     <application
@@ -15,6 +16,12 @@
         <service android:name=".MindboxHuaweiMessagingService" android:exported="false">
             <intent-filter>
                 <action android:name="com.huawei.push.action.MESSAGING_EVENT"/>
+            </intent-filter>
+        </service>
+
+        <service android:name=".MindboxRuStoreMessagingService" android:exported="true" tools:ignore="ExportedService">
+            <intent-filter>
+                <action android:name="ru.rustore.sdk.pushclient.MESSAGING_EVENT" />
             </intent-filter>
         </service>
 
@@ -44,6 +51,10 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+
+        <meta-data
+            android:name="ru.rustore.sdk.pushclient.project_id"
+            android:value="MPYu6sSEZy8Vl-wYVkqFwwuaFNVlsBvx" />
 
     </application>
     <queries>

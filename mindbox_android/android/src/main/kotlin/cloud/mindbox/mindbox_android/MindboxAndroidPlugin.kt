@@ -98,6 +98,14 @@ class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, Ne
                     result.success(token)
                 }
             }
+            "getTokens" -> {
+                if (tokenSubscription != null) {
+                    Mindbox.disposePushTokenSubscription(tokenSubscription!!)
+                }
+                tokenSubscription = Mindbox.subscribePushTokens { token ->
+                    result.success(token)
+                }
+            }
             "executeAsyncOperation" -> {
                 if (call.arguments is List<*>) {
                     val args = call.arguments as List<*>

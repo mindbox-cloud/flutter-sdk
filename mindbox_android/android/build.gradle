@@ -6,6 +6,7 @@ buildscript {
     repositories {
         google()
         mavenCentral()
+        mavenLocal()
     }
 
     dependencies {
@@ -42,12 +43,12 @@ android {
     }
 
     defaultConfig {
-        minSdkVersion 19
+        minSdkVersion 21
         targetSdkVersion 34
     }
 }
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    api 'cloud.mindbox:mobile-sdk:2.11.0'
+    api 'cloud.mindbox:mobile-sdk:2.13.0'
 }
