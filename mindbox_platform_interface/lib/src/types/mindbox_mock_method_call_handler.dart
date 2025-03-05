@@ -17,6 +17,10 @@ Future mindboxMockMethodCallHandler(MethodCall methodCall) async {
       return Future.value('dummy-device-uuid');
     case 'getToken':
       return Future.value('dummy-token');
+    case 'getTokens':
+      return Future.value('dummy-tokens');
+    case 'getSdkVersion':
+      return Future.value('dummy-sdk-version');
     case 'executeSyncOperation':
       final String operationSystemName = methodCall.arguments[0];
       if (operationSystemName == 'dummy-validation-error') {
@@ -62,6 +66,6 @@ Future mindboxMockMethodCallHandler(MethodCall methodCall) async {
       }
       return Future.value('dummy-response');
     default:
-      return 'dummy-sdk-version';
+      return 'dummy-not-mocked';
   }
 }

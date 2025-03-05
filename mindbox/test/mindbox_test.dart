@@ -64,7 +64,7 @@ void main() {
   test('When SDK was initialized, getToken() should return token', () async {
     final completer = Completer<String>();
 
-    Mindbox.instance.getTokens((deviceToken) => completer.complete(deviceToken));
+    Mindbox.instance.getToken((deviceToken) => completer.complete(deviceToken));
 
     final validConfig = Configuration(
         domain: 'domain',
@@ -75,6 +75,22 @@ void main() {
     Mindbox.instance.init(configuration: validConfig);
 
     expect(await completer.future, equals('dummy-token'));
+  });
+
+  test('When SDK was initialized, getTokens() should return tokens', () async {
+    final completer = Completer<String>();
+
+    Mindbox.instance.getTokens((deviceToken) => completer.complete(deviceToken));
+
+    final validConfig = Configuration(
+        domain: 'domain',
+        endpointIos: 'endpointIos',
+        endpointAndroid: 'endpointAndroid',
+        subscribeCustomerIfCreated: true);
+
+    Mindbox.instance.init(configuration: validConfig);
+
+    expect(await completer.future, equals('dummy-tokens'));
   });
 
   test('When SDK was not initialized, getToken() should not return token',
