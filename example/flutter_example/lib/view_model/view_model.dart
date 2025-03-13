@@ -1,12 +1,7 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_example/view/push_info_page/push_info_page.dart';
 import 'package:mindbox/mindbox.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class ViewModel {
-  static BuildContext? context;
-  static String pushLink = 'null';
-  static String pushPayload = 'null';
 
   //https://developers.mindbox.ru/docs/%D0%BC%D0%B5%D1%82%D0%BE%D0%B4%D1%8B-flutter-sdk
   static syncOperation() {
@@ -68,17 +63,6 @@ class ViewModel {
     Mindbox.instance.getDeviceUUID((value) {
       print(value);
       complition(value);
-    });
-  }
-
-  static onPushClickReceived() {
-    Mindbox.instance.onPushClickReceived((link, payload) {
-      pushLink = link;
-      pushPayload = payload;
-      if (context != null) {
-        Navigator.push(context!,
-            MaterialPageRoute(builder: (context) => const PushInfoPage()));
-      }
     });
   }
 

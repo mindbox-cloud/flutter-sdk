@@ -2,22 +2,32 @@ include: package:flutter_lints/flutter.yaml
 
 linter:
   rules:
-    - file_names
-    - lines_longer_than_80_chars
-    - prefer_single_quotes
-    - avoid_print
-    - cancel_subscriptions
-    - constant_identifier_names
-    - directives_ordering
-    - empty_constructor_bodies
-    - flutter_style_todos
-    - implementation_imports
-    - package_names
-    - package_prefixed_library_names
-    - prefer_final_locals
-    - sort_child_properties_last
-    - sort_constructors_first
-    - sort_unnamed_constructors_first
-    - type_annotate_public_apis
-    - unnecessary_await_in_return
-    - public_member_api_docs
+    file_names: true
+    avoid_print: true
+    lines_longer_than_80_chars: false
+    cancel_subscriptions: true
+    constant_identifier_names: true
+    directives_ordering: false
+    empty_constructor_bodies: true
+    flutter_style_todos: true
+    implementation_imports: true
+    package_names: true
+    package_prefixed_library_names: true
+    prefer_final_locals: true
+    sort_child_properties_last: true
+    sort_constructors_first: true
+    sort_unnamed_constructors_first: true
+    type_annotate_public_apis: false
+    unnecessary_await_in_return: true
+    prefer_is_not_empty: true
+    avoid_empty_else: true
+    avoid_returning_null_for_void: true
+    no_duplicate_case_values: true
+    prefer_typing_uninitialized_variables: true
+    public_member_api_docs: true
+    always_put_control_body_on_new_line: true
+    curly_braces_in_flow_control_structures: true
+
+analyzer:
+  errors:
+    deprecated_member_use_from_same_package: ignore

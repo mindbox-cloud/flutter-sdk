@@ -25,5 +25,4 @@ void main() {
 
   runApp(const Example());
 
-  ViewModel.onPushClickReceived();
 }

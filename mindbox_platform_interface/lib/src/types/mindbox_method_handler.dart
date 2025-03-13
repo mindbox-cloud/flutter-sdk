@@ -120,6 +120,16 @@ class MindboxMethodHandler {
     }
   }
 
+  /// Returns token to callback.
+  void getTokens({required Function(String token) callback}) async {
+    if (_initialized) {
+      callback(await channel.invokeMethod('getTokens') ?? 'null');
+    } else {
+      _pendingCallbackMethods.add(
+          _PendingCallbackMethod(methodName: 'getTokens', callback: callback));
+    }
+  }
+
   /// Method for managing SDK logging
   void setLogLevel({required LogLevel logLevel}) async {
     await channel.invokeMethod('setLogLevel', logLevel.index);

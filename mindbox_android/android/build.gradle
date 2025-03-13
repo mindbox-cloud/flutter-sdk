@@ -2,14 +2,15 @@ group 'cloud.mindbox.mindbox_android'
 version '1.0-SNAPSHOT'
 
 buildscript {
-    ext.kotlin_version = '1.8.0'
+    ext.kotlin_version = '1.9.22'
     repositories {
         google()
         mavenCentral()
+        mavenLocal()
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:7.4.2'
+        classpath 'com.android.tools.build:gradle:8.6.0'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
@@ -25,7 +26,8 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
 android {
-    compileSdkVersion 33
+    namespace "cloud.mindbox.mindbox_android"
+    compileSdk 34
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -41,12 +43,12 @@ android {
     }
 
     defaultConfig {
-        minSdkVersion 19
-        targetSdkVersion 33
+        minSdkVersion 21
+        targetSdkVersion 34
     }
 }
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    api 'cloud.mindbox:mobile-sdk:2.11.0'
+    api 'cloud.mindbox:mobile-sdk:2.13.0'
 }

@@ -33,14 +33,18 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen>
 
     // Subscription to events from native side
     _subscription = eventChannel.receiveBroadcastStream().listen((event) {
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
       if (event == "newNotification") {
         itemsManager.loadItemsFromPreferences();
       }
     }, onError: (error) {});
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
       showCustomToast(context, "Send operation NC.Open");
     });
   }
@@ -62,7 +66,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen>
 
   // send info about click on push in notification center
   void onItemClick(BuildContext context, MindboxRemoteMessage item) {
-    Payload? payload = item.getPayloadObject();
+    final Payload? payload = item.getPayloadObject();
     if (payload != null) {
       ViewModel.asyncOperationNCPushOpen(payload.pushName, payload.pushDate);
     }
@@ -89,7 +93,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen>
                     return ListView.builder(
                       itemCount: items.length,
                       itemBuilder: (context, index) {
-                        int reverseIndex = items.length - 1 - index;
+                        final int reverseIndex = items.length - 1 - index;
                         return MindboxRemoteMessageCard(
                           item: items[reverseIndex],
                           onItemClick: (item) => onItemClick(context, item),
@@ -122,7 +126,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen>
 }
 
 void showCustomToast(BuildContext context, String message) {
-  OverlayEntry overlayEntry = OverlayEntry(
+  final OverlayEntry overlayEntry = OverlayEntry(
     builder: (context) => Positioned(
       bottom: 50.0,
       left: MediaQuery.of(context).size.width * 0.1,
@@ -137,7 +141,7 @@ void showCustomToast(BuildContext context, String message) {
           ),
           child: Text(
             message,
-            style: TextStyle(color: Colors.white),
+            style: const TextStyle(color: Colors.white),
           ),
         ),
       ),

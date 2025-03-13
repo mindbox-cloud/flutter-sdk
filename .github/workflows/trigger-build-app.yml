@@ -20,16 +20,10 @@ jobs:
           commits=$(git log -3 --pretty=format:"%s")
           echo "commits=$commits" >> $GITHUB_ENV
 
-      - name: Get Flutter Mindbox SDK Version
-        run: |
-          sdkVersion=$(grep 'version:' mindbox/pubspec.yaml | awk '{print $2}')
-          echo "sdkVersion=$sdkVersion" >> $GITHUB_ENV
- 
       - name: Trigger build workflow in flutter-app repo
-        uses: benc-uk/workflow-dispatch@v1
-        with:
-          token: ${{ secrets.PAT_FLUTTER_APP }}
-          workflow: buildApplicationAfterTrigger.yml
-          repo: mindbox-cloud/flutter-app
-          ref: develop
-          inputs: '{"branch": "{{ github.head_ref }}", "commits": "${{ env.commits }}", "sdkVersion": "${{ env.sdkVersion }}"}'
+        run: |
+          curl --location 'https://mindbox.gitlab.yandexcloud.net/api/v4/projects/1089/trigger/pipeline' \
+            --form 'token="${{ secrets.GITLAB_TRIGGER_TOKEN }}"' \
+            --form 'ref="develop"' \
+            --form "variables[INPUT_BRANCH]=\"${{ github.head_ref }}\"" \
+            --form "variables[INPUT_COMMITS]=\"${{ env.commits }}\""

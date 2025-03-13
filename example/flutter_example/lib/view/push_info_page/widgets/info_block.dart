@@ -1,20 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_example/assets/MBColors.dart';
 import 'package:flutter_example/view/main_page/widgets/info_block/ingo_block_line.dart';
-import 'package:flutter_example/view_model/view_model.dart';
 
-class InfoBlock extends StatefulWidget {
-  const InfoBlock({
-    super.key,
-  });
+class InfoBlock extends StatelessWidget {
 
-  @override
-  State<InfoBlock> createState() => _InfoBlockState();
-}
-
-class _InfoBlockState extends State<InfoBlock> {
-
-
+  const InfoBlock({super.key, required this.link, required this.payload});
+  final String link;
+  final dynamic payload;
 
   @override
   Widget build(BuildContext context) {
@@ -43,12 +35,12 @@ class _InfoBlockState extends State<InfoBlock> {
                   ],
                 ),
                 const SizedBox(height: 3),
-                InfoBlockLine(title: 'Link', data: ViewModel.pushLink),
+                InfoBlockLine(title: 'Link', data: link),
                 const Divider(
                   color: MBColors.deviderColor,
                 ),
                 const SizedBox(height: 3),
-                InfoBlockLine(title: 'Payload', data: ViewModel.pushPayload),
+                InfoBlockLine(title: 'Payload', data: payload),
 
               ],
             ),

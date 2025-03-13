@@ -1,17 +1,18 @@
 package cloud.mindbox.flutter_example
 
+import cloud.mindbox.mindbox_rustore.MindboxRuStore
 import cloud.mindbox.mobile_sdk.Mindbox
-import com.huawei.hms.push.*
-import cloud.mindbox.mindbox_huawei.MindboxHuawei
 import kotlinx.coroutines.*
+import ru.rustore.sdk.pushclient.messaging.model.RemoteMessage
+import ru.rustore.sdk.pushclient.messaging.service.RuStoreMessagingService
 
-class MindboxHuaweiMessagingService: HmsMessageService() {
+class MindboxRuStoreMessagingService: RuStoreMessagingService() {
 
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     override fun onNewToken(token: String) {
         super.onNewToken(token)
-        Mindbox.updatePushToken(applicationContext, token, MindboxHuawei)
+        Mindbox.updatePushToken(applicationContext, token, MindboxRuStore)
     }
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
@@ -36,11 +37,11 @@ class MindboxHuaweiMessagingService: HmsMessageService() {
             )
 
             // Method for checking if push is from Mindbox
-            val isMindboxPush = MindboxHuawei.isMindboxPush(remoteMessage = remoteMessage)
+            val isMindboxPush = MindboxRuStore.isMindboxPush(remoteMessage = remoteMessage)
 
             // Method for getting info from Mindbox push
             val mindboxMessage =
-                MindboxHuawei.convertToMindboxRemoteMessage(remoteMessage = remoteMessage)
+                MindboxRuStore.convertToMindboxRemoteMessage(remoteMessage = remoteMessage)
             // If you want to save the notification you can call your save function from here.
             mindboxMessage?.let {
                 val app = applicationContext as MainApplication
