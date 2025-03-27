@@ -67,12 +67,12 @@ class ViewModel {
   }
 
   static Future<void> requestPermissions() async {
-    Permission.notification.isDenied.then((bool isGranted) async {
-      final PermissionStatus status = await Permission.notification.request();
-
-      Mindbox.instance
-          .updateNotificationPermissionStatus(granted: status.isGranted);
-    });
+    var status = await Permission.notification.status;
+    if (!status.isGranted) {
+      status = await Permission.notification.request();
+      Mindbox.instance.updateNotificationPermissionStatus(
+          granted: status.isGranted);
+    }
   }
 
   //https://developers.mindbox.ru/docs/in-app
