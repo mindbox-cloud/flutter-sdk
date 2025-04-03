@@ -28,4 +28,7 @@ linter:
     always_put_control_body_on_new_line: true
     curly_braces_in_flow_control_structures: true
 
+analyzer:
+  errors:
+    deprecated_member_use: ignore
 # See lint rules here https://dart.dev/tools/linter-rules#lints
