@@ -59,7 +59,9 @@ class MindboxMethodHandler {
                 'before initialization.');
       }
       await channel.invokeMethod('init', configuration.toMap());
-      for (final callbackMethod in _pendingCallbackMethods) {
+      final callbackMethodsCopy = 
+        List<_PendingCallbackMethod>.from(_pendingCallbackMethods);
+      for (final callbackMethod in callbackMethodsCopy) {
         callbackMethod.callback(
             await channel.invokeMethod(callbackMethod.methodName) ?? 'null');
       }
