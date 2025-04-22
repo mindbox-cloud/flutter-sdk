@@ -1,4 +1,8 @@
--e ## 2.13.1
+## 2.13.2-rc
+
+* Upgrade native iOS SDK dependency to v2.13.2-rc.
+
+## 2.13.1
 
 * Upgrade native iOS SDK dependency to v2.13.1.
 
