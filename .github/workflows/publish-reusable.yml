@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     name: mindbox_platform_interface publishing
     steps:
-      - uses: actions/checkout@v2.3.3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 2
           ref: ${{ inputs.branch }}
@@ -68,7 +68,7 @@ jobs:
       fail-fast: false
 
     steps:
-      - uses: actions/checkout@v2.3.3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 2
           ref: ${{ inputs.branch }}
@@ -109,7 +109,7 @@ jobs:
     runs-on: ubuntu-latest
     name: mindbox publishing
     steps:
-      - uses: actions/checkout@v2.3.3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 2
           ref: ${{ inputs.branch }}
@@ -166,3 +166,21 @@ jobs:
           gh pr merge $pr_number --merge
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  message-to-loop-if-success:
+    needs: [ merge ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send message to LOOP
+        env:
+          LOOP_NOTIFICATION_WEBHOOK_URL: ${{ secrets.LOOP_NOTIFICATION_WEBHOOK_URL }}
+          VERSION: ${{ inputs.branch }}
+        run: |
+          MESSAGE=$(cat <<EOF
+          {
+            "text": "**🤖 Flutter release was successful. Version: ${VERSION}**"
+          }
+          EOF)
+          curl -X POST "$LOOP_NOTIFICATION_WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -d "$MESSAGE"
