@@ -4,6 +4,10 @@ on:
   pull_request:
     branches: [ develop ]
   workflow_call:
+    inputs:
+      branch:
+        required: true
+        type: string
 
 jobs:
   platform_interface_flutter_test:
@@ -11,6 +15,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.branch || github.head_ref }}
       - uses: actions/setup-java@v1
         with:
           java-version: "12.x"
@@ -29,6 +35,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.branch || github.head_ref }}
       - uses: actions/setup-java@v1
         with:
           java-version: "12.x"
@@ -50,6 +58,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.branch || github.head_ref }}
       - uses: actions/setup-java@v1
         with:
           java-version: "12.x"
@@ -71,6 +81,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.branch || github.head_ref }}
       - uses: actions/setup-java@v1
         with:
           java-version: "12.x"
@@ -86,6 +98,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.branch || github.head_ref }}
       - uses: actions/setup-java@v1
         with:
           java-version: "12.x"
