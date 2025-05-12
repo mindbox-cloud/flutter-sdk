@@ -13,6 +13,7 @@ jobs:
     uses: ./.github/workflows/analyze_and_test.yml
     with:
       branch: ${{ inputs.branch }}
+    secrets: inherit
 
   platform_interface_publish:
     needs: [analyze_and_test]
