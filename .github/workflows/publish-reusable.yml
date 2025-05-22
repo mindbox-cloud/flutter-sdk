@@ -1,4 +1,4 @@
-name: publish
+name: SDK publish
 
 on:
   workflow_call:

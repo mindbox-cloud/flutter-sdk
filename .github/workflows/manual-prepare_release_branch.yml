@@ -15,11 +15,11 @@ on:
         required: false
         default: ''
       source_branch:
-        description: 'Create release branch from'
+        description: 'Create branch from'
         required: true
         default: 'develop'
       target_branch:
-        description: 'Base branch for the pull request'
+        description: 'Pull Request to'
         required: true
         default: 'master'
 
