@@ -1,4 +1,4 @@
-name: analyze_and_test
+name: Analyzes and Tests
 
 on:
   push:
