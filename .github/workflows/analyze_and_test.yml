@@ -1,8 +1,20 @@
 name: analyze_and_test
 
 on:
+  push:
+    branches:
+      - '**'
+      - '!master'
+    paths-ignore:
+      - '**.md'
+    tags-ignore:
+      - '**'
   pull_request:
-    branches: [ develop ]
+    branches:
+      - master
+      - mission/*
+    types:
+      - opened
   workflow_call:
     inputs:
       branch:
@@ -139,4 +151,3 @@ jobs:
       - run: cd mindbox && flutter pub get
       - run: cd mindbox && flutter analyze
       - run: cd mindbox && flutter test
-      

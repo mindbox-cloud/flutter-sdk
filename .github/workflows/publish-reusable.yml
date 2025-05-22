@@ -55,9 +55,16 @@ jobs:
           release_name: mindbox_platform_interface v${{ env.VERSION }}
           draft: false
           prerelease: false
+          
+  first-delay:
+    needs: [platform_interface_publish]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delay for 1 minutes
+        run: sleep 60
 
   native_components_publish:
-    needs: [analyze_and_test, platform_interface_publish]
+    needs: [analyze_and_test, platform_interface_publish, first-delay]
     timeout-minutes: 4
     runs-on: ubuntu-latest
     name: ${{ matrix.package }} publishing
@@ -103,9 +110,16 @@ jobs:
           release_name: ${{ matrix.package }} v${{ env.VERSION }}
           draft: false
           prerelease: false
+          
+  second-delay:
+    needs: [native_components_publish]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delay for 1 minutes
+        run: sleep 60
 
   plugin_publish:
-    needs: [analyze_and_test, platform_interface_publish, native_components_publish]
+    needs: [analyze_and_test, platform_interface_publish, native_components_publish, second-delay]
     timeout-minutes: 4
     runs-on: ubuntu-latest
     name: mindbox publishing
@@ -152,6 +166,8 @@ jobs:
       startsWith(github.head_ref, 'release') && 
       github.base_ref == 'master'
     runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.PAT_FOR_TRIGGERING_BRANCH_PROTECTION }}
     steps:
       - name: Checkout develop branch
         uses: actions/checkout@v4
@@ -159,14 +175,10 @@ jobs:
           ref: develop
       - name: Create Pull Request
         run: gh pr create --base develop --head master --title "Merge 'master' into 'develop' after release" --body "Automated Pull Request to merge 'master' into 'develop' after release"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Merge Pull Request
         run: |
           pr_number=$(gh pr list --base develop --head master --json number --jq '.[0].number')
           gh pr merge $pr_number --merge
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   message-to-loop-if-success:
     needs: [ merge ]
