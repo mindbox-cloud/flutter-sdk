@@ -56,7 +56,7 @@ jobs:
           draft: false
           prerelease: false
           
-  first-delay:
+  waiting-while-platform-interface-publish:
     needs: [platform_interface_publish]
     runs-on: ubuntu-latest
     steps:
@@ -64,7 +64,7 @@ jobs:
         run: sleep 60
 
   native_components_publish:
-    needs: [analyze_and_test, platform_interface_publish, first-delay]
+    needs: [analyze_and_test, platform_interface_publish, waiting-while-platform-interface-publish]
     timeout-minutes: 4
     runs-on: ubuntu-latest
     name: ${{ matrix.package }} publishing
@@ -111,7 +111,7 @@ jobs:
           draft: false
           prerelease: false
           
-  second-delay:
+  waiting-while-native_components_publish:
     needs: [native_components_publish]
     runs-on: ubuntu-latest
     steps:
@@ -119,7 +119,7 @@ jobs:
         run: sleep 60
 
   plugin_publish:
-    needs: [analyze_and_test, platform_interface_publish, native_components_publish, second-delay]
+    needs: [analyze_and_test, platform_interface_publish, native_components_publish, waiting-while-native_components_publish]
     timeout-minutes: 4
     runs-on: ubuntu-latest
     name: mindbox publishing
@@ -178,7 +178,7 @@ jobs:
       - name: Merge Pull Request
         run: |
           pr_number=$(gh pr list --base develop --head master --json number --jq '.[0].number')
-          gh pr merge $pr_number --merge
+          gh pr merge $pr_number --merge --auto
 
   message-to-loop-if-success:
     needs: [ merge ]

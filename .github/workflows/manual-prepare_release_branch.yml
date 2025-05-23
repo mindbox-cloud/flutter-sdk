@@ -131,22 +131,22 @@ jobs:
               mindbox_ios/pubspec.yaml \
               mindbox_platform_interface/pubspec.yaml; do
 
-            # bump версии пакета
+            # bump version of the package
             sed -i "s/^version:.*/version: $VERSION/" "$yaml"
 
-            # в корневом pubspec поднимать все flutter-зависимости
+            # raise all flutter dependencies in the root pubspec
             if [ "$yaml" = "mindbox/pubspec.yaml" ]; then
               sed -i "s/^  mindbox_android:.*/  mindbox_android: ^$VERSION/" "$yaml"
               sed -i "s/^  mindbox_ios:.*/  mindbox_ios: ^$VERSION/" "$yaml"
               sed -i "s/^  mindbox_platform_interface:.*/  mindbox_platform_interface: ^$VERSION/" "$yaml"
             fi
 
-            # в Android-плагине тоже обновляем platform_interface
+            # in the Android plugin also update platform_interface
             if [ "$yaml" = "mindbox_android/pubspec.yaml" ]; then
               sed -i "s/^  mindbox_platform_interface:.*/  mindbox_platform_interface: ^$VERSION/" "$yaml"
             fi
 
-            # в iOS-плагине: только platform_interface
+            # in iOS plugin: only platform_interface
             if [ "$yaml" = "mindbox_ios/pubspec.yaml" ]; then
               sed -i "s/^  mindbox_platform_interface:.*/  mindbox_platform_interface: ^$VERSION/" "$yaml"
             fi
@@ -233,7 +233,7 @@ jobs:
           [ -z "$IO_VER" ]  && IO_VER="${{ github.event.inputs.release_version }}"
           
           BODY=$(
-            printf 'Автоматический PR: слияние `%s` → `%s`\n\n**Версии:**\n- Flutter SDK: `%s`\n- Android SDK: `%s`\n- iOS SDK: `%s`' \
+            printf 'Automated PR: merge `%s` into `%s`\n\n**Versions:**\n- Flutter SDK: `%s`\n- Android SDK: `%s`\n- iOS SDK: `%s`' \
               "$SRC" "$DST" "${{ github.event.inputs.release_version }}" "$AND_VER" "$IO_VER"
           )
 
