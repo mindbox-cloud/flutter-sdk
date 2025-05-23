@@ -1,0 +1,245 @@
+name: "Manual Release Prep: Branch & Version Bump"
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_version:
+        description: 'Cross-platform release version (e.g. 1.2.3 or 1.2.3-rc)'
+        required: true
+      android_sdk_version:
+        description: 'Native Android SDK version (optional, defaults to cross-platform version)'
+        required: false
+        default: ''
+      ios_sdk_version:
+        description: 'Native iOS SDK version (optional, defaults to cross-platform version)'
+        required: false
+        default: ''
+      source_branch:
+        description: 'Create branch from'
+        required: true
+        default: 'develop'
+      target_branch:
+        description: 'Pull Request to'
+        required: true
+        default: 'master'
+
+jobs:
+  validate-input:
+    name: Validate versions format
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check release_version matches semver
+        run: |
+          V=${{ github.event.inputs.release_version }}
+          echo "Input release_version=$V"
+          if ! [[ "$V" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-rc)?$ ]]; then
+            echo "❌ release_version must be X.Y.Z or X.Y.Z-rc"
+            exit 1
+          fi
+      - name: Validate Android SDK version if provided
+        if: ${{ github.event.inputs.android_sdk_version != '' }}
+        run: |
+          A=${{ github.event.inputs.android_sdk_version }}
+          echo "Input android_sdk_version=$A"
+          if ! [[ "$A" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-rc)?$ ]]; then
+            echo "❌ android_sdk_version must be X.Y.Z or X.Y.Z-rc"
+            exit 1
+          fi
+      - name: Validate iOS SDK version if provided
+        if: ${{ github.event.inputs.ios_sdk_version != '' }}
+        run: |
+          I=${{ github.event.inputs.ios_sdk_version }}
+          echo "Input ios_sdk_version=$I"
+          if ! [[ "$I" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-rc)?$ ]]; then
+            echo "❌ ios_sdk_version must be X.Y.Z or X.Y.Z-rc"
+            exit 1
+          fi
+
+  validate-branches:
+    name: Validate branch names exist
+    runs-on: ubuntu-latest
+    needs: validate-input
+    steps:
+      - name: Checkout minimal repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check source branch
+        run: |
+          SRC=${{ github.event.inputs.source_branch }}
+          echo "Source branch: $SRC"
+          if ! git ls-remote --heads origin "$SRC" | grep -q "$SRC"; then
+            echo "❌ source_branch '$SRC' does not exist"
+            exit 1
+          fi
+      - name: Check target branch
+        run: |
+          DST=${{ github.event.inputs.target_branch }}
+          echo "Target branch: $DST"
+          if ! git ls-remote --heads origin "$DST" | grep -q "$DST"; then
+            echo "❌ target_branch '$DST' does not exist"
+            exit 1
+          fi
+
+  bump_and_branch:
+    name: Create release branch & bump versions
+    runs-on: ubuntu-latest
+    needs: validate-branches
+    outputs:
+      release_branch: ${{ steps.bump.outputs.release_branch }}
+    steps:
+      - name: Checkout source branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.source_branch }}
+          fetch-depth: 0
+
+      - name: Configure Git identity for GitHub Action Bot
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Create branch and update versions
+        id: bump
+        run: |
+          set -euo pipefail
+          VERSION="${{ github.event.inputs.release_version }}"
+          AND_VER="${{ github.event.inputs.android_sdk_version }}"
+          IO_VER="${{ github.event.inputs.ios_sdk_version }}"
+          SRC="${{ github.event.inputs.source_branch }}"
+          REL="release/$VERSION"
+
+          echo "Parameters before fallback: AND_VER=$AND_VER, IO_VER=$IO_VER"
+          # fallback to cross-platform version
+          [ -z "$AND_VER" ] && AND_VER="$VERSION"
+          [ -z "$IO_VER" ] && IO_VER="$VERSION"
+          echo "Using versions: Flutter=$VERSION, Android=$AND_VER, iOS=$IO_VER"
+
+          echo "→ Branching from $SRC into $REL"
+          git checkout -b "$REL"
+
+          echo "→ Current pubspec versions before bump:"
+          grep '^version:' mindbox/pubspec.yaml || true
+          grep '^version:' mindbox_android/pubspec.yaml || true
+          grep '^version:' mindbox_ios/pubspec.yaml || true
+          grep '^version:' mindbox_platform_interface/pubspec.yaml || true
+
+          echo "→ Updating pubspec versions"
+          for yaml in \
+              mindbox/pubspec.yaml \
+              mindbox_android/pubspec.yaml \
+              mindbox_ios/pubspec.yaml \
+              mindbox_platform_interface/pubspec.yaml; do
+
+            # bump version of the package
+            sed -i "s/^version:.*/version: $VERSION/" "$yaml"
+
+            # raise all flutter dependencies in the root pubspec
+            if [ "$yaml" = "mindbox/pubspec.yaml" ]; then
+              sed -i "s/^  mindbox_android:.*/  mindbox_android: ^$VERSION/" "$yaml"
+              sed -i "s/^  mindbox_ios:.*/  mindbox_ios: ^$VERSION/" "$yaml"
+              sed -i "s/^  mindbox_platform_interface:.*/  mindbox_platform_interface: ^$VERSION/" "$yaml"
+            fi
+
+            # in the Android plugin also update platform_interface
+            if [ "$yaml" = "mindbox_android/pubspec.yaml" ]; then
+              sed -i "s/^  mindbox_platform_interface:.*/  mindbox_platform_interface: ^$VERSION/" "$yaml"
+            fi
+
+            # in iOS plugin: only platform_interface
+            if [ "$yaml" = "mindbox_ios/pubspec.yaml" ]; then
+              sed -i "s/^  mindbox_platform_interface:.*/  mindbox_platform_interface: ^$VERSION/" "$yaml"
+            fi
+
+          done
+
+          echo "→ Bumping Android native SDK in build.gradle"
+          echo "  Before:" && grep "cloud.mindbox:mobile-sdk" mindbox_android/android/build.gradle || true
+          sed -i "s/cloud.mindbox:mobile-sdk:.*/cloud.mindbox:mobile-sdk:$AND_VER'/" mindbox_android/android/build.gradle
+          echo "  After:"  && grep "cloud.mindbox:mobile-sdk" mindbox_android/android/build.gradle || true
+
+          echo "→ Bumping iOS native SDK in podspec"
+          echo "  Before s.version:" && grep -E "s\.version" mindbox_ios/ios/mindbox_ios.podspec || true
+          sed -i -E "s/(s\.version *= *')[^']+(')/\1$IO_VER\2/" mindbox_ios/ios/mindbox_ios.podspec
+          echo "  After s.version:"  && grep -E "s\.version" mindbox_ios/ios/mindbox_ios.podspec || true
+
+          echo "  Before Mindbox dependency:" && grep "s.dependency 'Mindbox'," mindbox_ios/ios/mindbox_ios.podspec || true
+          sed -i -E "s/(s\.dependency 'Mindbox', *')[^']+(')/\1$IO_VER\2/" mindbox_ios/ios/mindbox_ios.podspec
+          echo "  After Mindbox dependency:" && grep "s.dependency 'Mindbox'," mindbox_ios/ios/mindbox_ios.podspec || true
+
+          echo "  Before Notifications dep:" && grep "MindboxNotifications" mindbox_ios/ios/mindbox_ios.podspec || true
+          sed -i -E "s/(s\.dependency 'MindboxNotifications', *')[^']+(')/\1$IO_VER\2/" mindbox_ios/ios/mindbox_ios.podspec
+          echo "  After Notifications dep:" && grep "MindboxNotifications" mindbox_ios/ios/mindbox_ios.podspec || true
+
+          echo "→ Now inspect pubspec.yaml versions:"
+          echo "  mindbox/pubspec.yaml:" && grep "^version\|mindbox_" mindbox/pubspec.yaml || true
+          echo "  mindbox_android/pubspec.yaml:" && grep "^version\|platform_interface" mindbox_android/pubspec.yaml || true
+          echo "  mindbox_ios/pubspec.yaml:" && grep "^version\|platform_interface" mindbox_ios/pubspec.yaml || true
+          echo "  mindbox_platform_interface/pubspec.yaml:" && grep "^version" mindbox_platform_interface/pubspec.yaml || true
+
+          echo "→ Generating changelogs"
+          # mindbox: both native
+          file="mindbox/CHANGELOG.md"
+          echo -e "## $VERSION\n\n* Upgrade native Android SDK dependency to v$AND_VER.\n* Upgrade native iOS SDK dependency to v$IO_VER.\n\n$(cat $file)" > "$file"
+          git add "$file"
+
+          # mindbox_android: only Android
+          file="mindbox_android/CHANGELOG.md"
+          echo -e "## $VERSION\n\n* Upgrade native Android SDK dependency to v$AND_VER.\n\n$(cat $file)" > "$file"
+          git add "$file"
+
+          # mindbox_ios: only iOS
+          file="mindbox_ios/CHANGELOG.md"
+          echo -e "## $VERSION\n\n* Upgrade native iOS SDK dependency to v$IO_VER.\n\n$(cat $file)" > "$file"
+          git add "$file"
+
+          # mindbox_platform_interface: both native
+          file="mindbox_platform_interface/CHANGELOG.md"
+          echo -e "## $VERSION\n\n* Upgrade native Android SDK dependency to v$AND_VER.\n* Upgrade native iOS SDK dependency to v$IO_VER.\n\n$(cat $file)" > "$file"
+          git add "$file"
+
+          echo "→ Commit diff summary:"
+          git diff --stat
+
+          echo "→ Staging all bumped files"
+          git add mindbox/pubspec.yaml \
+                  mindbox_android/pubspec.yaml \
+                  mindbox_ios/pubspec.yaml \
+                  mindbox_platform_interface/pubspec.yaml \
+                  mindbox_android/android/build.gradle \
+                  mindbox_ios/ios/mindbox_ios.podspec
+
+          git commit -m "Bump SDK versions: Flutter=$VERSION, Android=$AND_VER, iOS=$IO_VER"
+          echo "release_branch=$REL" >> $GITHUB_OUTPUT
+
+      - name: Push release branch
+        run: git push --set-upstream origin ${{ steps.bump.outputs.release_branch }}
+
+  create_pull_request:
+    name: Create Pull Request
+    runs-on: ubuntu-latest
+    needs: bump_and_branch
+    steps:
+      - name: Create PR via GitHub CLI
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT_FOR_TRIGGERING_BRANCH_PROTECTION }}
+          SRC: ${{ needs.bump_and_branch.outputs.release_branch }}
+          DST: ${{ github.event.inputs.target_branch }}
+          REPO: ${{ github.repository }}
+        run: |
+          AND_VER=${{ github.event.inputs.android_sdk_version }}
+          IO_VER=${{ github.event.inputs.ios_sdk_version }}
+          [ -z "$AND_VER" ] && AND_VER="${{ github.event.inputs.release_version }}"
+          [ -z "$IO_VER" ]  && IO_VER="${{ github.event.inputs.release_version }}"
+          
+          BODY=$(
+            printf 'Automated PR: merge `%s` into `%s`\n\n**Versions:**\n- Flutter SDK: `%s`\n- Android SDK: `%s`\n- iOS SDK: `%s`' \
+              "$SRC" "$DST" "${{ github.event.inputs.release_version }}" "$AND_VER" "$IO_VER"
+          )
+
+          gh pr create \
+            --repo "$REPO" \
+            --base "$DST" \
+            --head "$SRC" \
+            --title "Release ${{ github.event.inputs.release_version }}" \
+            --body "$BODY"

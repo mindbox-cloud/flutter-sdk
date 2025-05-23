@@ -1,4 +1,4 @@
-name: Build application
+name: Distribute PushOk - Reusable
 
 on:
   workflow_call:
@@ -24,7 +24,7 @@ jobs:
       - name: Trigger build workflow in flutter-app repo
         run: |
           curl --location 'https://mindbox.gitlab.yandexcloud.net/api/v4/projects/1089/trigger/pipeline' \
-            --form 'token="${{ secrets.GITLAB_TRIGGER_TOKEN }}"' \
-            --form 'ref="develop"' \
-            --form "variables[INPUT_BRANCH]=\"${{ inputs.branch }}\"" \
-            --form "variables[INPUT_COMMITS]=\"${{ env.commits }}\""
+            --form "token=${{ secrets.GITLAB_TRIGGER_TOKEN }}" \
+            --form "ref=develop" \
+            --form "variables[INPUT_BRANCH]=${{ inputs.branch }}" \
+            --form "variables[INPUT_COMMITS]=${{ env.commits }}"
