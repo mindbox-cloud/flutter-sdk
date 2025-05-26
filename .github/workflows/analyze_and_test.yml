@@ -3,18 +3,13 @@ name: Analyzes and Tests
 on:
   push:
     branches:
-      - '**'
-      - '!master'
-    paths-ignore:
-      - '**.md'
-    tags-ignore:
-      - '**'
-  pull_request:
-    branches:
-      - master
+      - develop
       - mission/*
+  pull_request:
     types:
       - opened
+      - reopened
+      - synchronize
   workflow_call:
     inputs:
       branch:
