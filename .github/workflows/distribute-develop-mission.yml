@@ -1,10 +1,11 @@
-name: PushOk (Develop PR Merge)
+name: Distribute PushOk (Develop / Mission PR Merge)
 
 on:
   pull_request:
     types: [closed]
     branches:
-      - 'develop'
+      - develop
+      - mission/*
 
 jobs:
   call-reusable:
