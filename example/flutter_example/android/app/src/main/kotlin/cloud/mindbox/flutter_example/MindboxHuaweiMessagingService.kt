@@ -19,7 +19,7 @@ class MindboxHuaweiMessagingService: HmsMessageService() {
         val channelId = "default_channel_id"
         val channelName = "default_channel_name"
         val channelDescription = "default_channel_description"
-        val pushSmallIcon = android.R.drawable.ic_dialog_info
+        val pushSmallIcon = R.mipmap.ic_notification
 
         // On some devices, onMessageReceived may be executed on the main thread
         // We recommend handling push messages asynchronously

@@ -5,7 +5,7 @@
     <application
         android:label="flutter_example"
         android:name=".MainApplication"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_notification">
 
         <service android:name=".MindboxFirebaseMessagingService" android:exported="false">
             <intent-filter>
