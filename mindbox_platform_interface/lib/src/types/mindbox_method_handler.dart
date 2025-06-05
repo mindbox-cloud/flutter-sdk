@@ -49,6 +49,7 @@ class MindboxMethodHandler {
   InAppClickHandler? _inAppClickHandler;
   InAppDismissedHandler? _inAppDismissedHandler;
   bool _methodHandlerSet = false;
+  Future<void> _initFuture = Future.value();
 
   /// Returns native SDK version.
   Future<String> get nativeSdkVersion async =>
@@ -59,6 +60,13 @@ class MindboxMethodHandler {
   /// You can call this method multiple times to set new configuration params.
   /// Read more about [Configuration] parameter.
   Future<void> init({required Configuration configuration}) async {
+    _initFuture = _initFuture.then((_) async {
+      await _init(configuration: configuration);
+    });
+    await _initFuture;
+  }
+
+  Future<void> _init({required Configuration configuration}) async {
     try {
       //ignore: unnecessary_null_comparison
       if (ServicesBinding.instance == null) {
@@ -73,11 +81,15 @@ class MindboxMethodHandler {
         _setMethodCallHandler();
       }
 
-      for (final callbackMethod in _pendingCallbackMethods) {
+      final pendingCallbackMethodsCopy =
+      List<_PendingCallbackMethod>.from(_pendingCallbackMethods);
+      for (final callbackMethod in pendingCallbackMethodsCopy) {
         callbackMethod.callback(
             await channel.invokeMethod(callbackMethod.methodName) ?? 'null');
       }
-      for (final operation in _pendingOperations) {
+      final pendingOperationsCopy =
+      List<_PendingOperations>.from(_pendingOperations);
+      for (final operation in pendingOperationsCopy) {
         channel.invokeMethod(operation.methodName, operation.parameters).then(
                 (result) {
               if (operation.successCallback != null) {
@@ -92,8 +104,8 @@ class MindboxMethodHandler {
       }
       _pendingCallbackMethods.clear();
       _pendingOperations.clear();
-      _initialized = true;
       _logInfo('Init in Flutter');
+      _initialized = true;
     } on PlatformException catch (e) {
       throw MindboxInitializeError(
           message: e.message ?? '', data: e.details ?? '');
@@ -102,6 +114,7 @@ class MindboxMethodHandler {
 
   /// Returns device UUID to callback.
   void getDeviceUUID({required Function(String uuid) callback}) async {
+    await _initFuture;
     if (_initialized) {
       callback(await channel.invokeMethod('getDeviceUUID'));
     } else {
@@ -112,6 +125,7 @@ class MindboxMethodHandler {
 
   /// Returns token to callback.
   void getToken({required Function(String token) callback}) async {
+    await _initFuture;
     if (_initialized) {
       callback(await channel.invokeMethod('getToken') ?? 'null');
     } else {
@@ -122,6 +136,7 @@ class MindboxMethodHandler {
 
   /// Returns token to callback.
   void getTokens({required Function(String token) callback}) async {
+    await _initFuture;
     if (_initialized) {
       callback(await channel.invokeMethod('getTokens') ?? 'null');
     } else {
@@ -143,25 +158,25 @@ class MindboxMethodHandler {
   /// Method for registers a list of InAppCallback instances to handle clicks
   /// and dismiss in in-apps.
   void registerInAppCallbacks({required List<InAppCallback> callbacks}) async {
-   final List<String> types = [];
-   bool custom = false;
-   for (var element in callbacks) {
-     if (element is CustomInAppCallback) {
-       _inAppClickHandler = element.clickHandler;
-       _inAppDismissedHandler = element.dismissedHandler;
-       custom = true;
-     }
-     types.add(element.type);
-   }
+    final List<String> types = [];
+    bool custom = false;
+    for (var element in callbacks) {
+      if (element is CustomInAppCallback) {
+        _inAppClickHandler = element.clickHandler;
+        _inAppDismissedHandler = element.dismissedHandler;
+        custom = true;
+      }
+      types.add(element.type);
+    }
 
-   if (custom == false
-       && (_inAppClickHandler != null || _inAppDismissedHandler != null)) {
-     types.add('CustomInAppCallback');
-   }
+    if (custom == false &&
+        (_inAppClickHandler != null || _inAppDismissedHandler != null)) {
+      types.add('CustomInAppCallback');
+    }
 
-   if (types.isNotEmpty) {
-     await channel.invokeMethod('registerInAppCallbacks', types);
-   }
+    if (types.isNotEmpty) {
+      await channel.invokeMethod('registerInAppCallbacks', types);
+    }
   }
 
   /// Method for handling push-notification click.
@@ -211,6 +226,7 @@ class MindboxMethodHandler {
     required String operationSystemName,
     required Map<String, dynamic> operationBody,
   }) async {
+    await _initFuture;
     if (_initialized) {
       channel.invokeMethod('executeAsyncOperation', [
         operationSystemName,
@@ -231,6 +247,7 @@ class MindboxMethodHandler {
     required Function(String success) onSuccess,
     required Function(MindboxError) onError,
   }) async {
+    await _initFuture;
     if (_initialized) {
       channel.invokeMethod('executeSyncOperation', [
         operationSystemName,
@@ -313,6 +330,7 @@ class MindboxMethodHandler {
           data: exception.message!);
     }
   }
+
   /// Writes a log message to the native Mindbox logging system.
   /// [message]: The message to be logged
   /// [logLevel]: The severity level of the log message [LogLevel]
@@ -324,9 +342,9 @@ class MindboxMethodHandler {
 
   void _setMethodCallHandler() {
     channel.setMethodCallHandler((call) {
-        switch (call.method) {
-          case 'pushClicked':
-            _logInfo('Handle method pushClicked');
+      switch (call.method) {
+        case 'pushClicked':
+          _logInfo('Handle method pushClicked');
           if (_pushClickHandler != null) {
             if (call.arguments is List) {
               _logInfo('Return data from push with parameters link = '
@@ -339,18 +357,18 @@ class MindboxMethodHandler {
                 link: call.arguments[0], payload: call.arguments[1]));
           }
           break;
-          case 'onInAppClick':
-            if (call.arguments is List) {
-              _inAppClickHandler?.call(
-                  call.arguments[0], call.arguments[1], call.arguments[2]);
-            }
-            break;
-          case 'onInAppDismissed':
-            if (call.arguments is String) {
-              _inAppDismissedHandler?.call(call.arguments);
-            }
-            break;
-        }
+        case 'onInAppClick':
+          if (call.arguments is List) {
+            _inAppClickHandler?.call(
+                call.arguments[0], call.arguments[1], call.arguments[2]);
+          }
+          break;
+        case 'onInAppDismissed':
+          if (call.arguments is String) {
+            _inAppDismissedHandler?.call(call.arguments);
+          }
+          break;
+      }
       return Future.value(true);
     });
     _methodHandlerSet = true;
