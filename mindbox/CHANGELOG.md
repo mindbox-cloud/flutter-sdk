@@ -1,3 +1,8 @@
+## 2.13.4
+
+* Upgrade native Android SDK dependency to v2.13.4.
+* Upgrade native iOS SDK dependency to v2.13.4.
+
 ## 2.13.2-rc
 
 * Upgrade native Android SDK dependency to v2.13.2-rc.
