@@ -1,26 +1,30 @@
-name: publish
+name: SDK publish
 
 on:
-  pull_request:
-    types: [ closed ]
-    branches:
-      - master
+  workflow_call:
+    inputs:
+      branch:
+        required: true
+        type: string
 
 jobs:
- analyze_and_test:
-  name: Analyze code and run tests before publishing
-  uses: ./.github/workflows/analyze_and_test.yml
-   
- platform_interface_publish:
+  analyze_and_test:
+    name: Analyze code and run tests before publishing
+    uses: ./.github/workflows/analyze_and_test.yml
+    with:
+      branch: ${{ inputs.branch }}
+    secrets: inherit
+
+  platform_interface_publish:
     needs: [analyze_and_test]
-    if: github.event.pull_request.merged
     timeout-minutes: 4
     runs-on: ubuntu-latest
     name: mindbox_platform_interface publishing
     steps:
-      - uses: actions/checkout@v2.3.3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 2
+          ref: ${{ inputs.branch }}
       - name: Check package Pubspec
         id: pubspec
         run: |
@@ -51,10 +55,16 @@ jobs:
           release_name: mindbox_platform_interface v${{ env.VERSION }}
           draft: false
           prerelease: false
+          
+  waiting-while-platform-interface-publish:
+    needs: [platform_interface_publish]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delay for 1 minutes
+        run: sleep 60
 
- native_components_publish:
-    needs: [analyze_and_test,platform_interface_publish]
-    if: github.event.pull_request.merged
+  native_components_publish:
+    needs: [analyze_and_test, platform_interface_publish, waiting-while-platform-interface-publish]
     timeout-minutes: 4
     runs-on: ubuntu-latest
     name: ${{ matrix.package }} publishing
@@ -66,9 +76,10 @@ jobs:
       fail-fast: false
 
     steps:
-      - uses: actions/checkout@v2.3.3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 2
+          ref: ${{ inputs.branch }}
       - name: Check package Pubspec
         id: pubspec
         run: |
@@ -100,16 +111,23 @@ jobs:
           draft: false
           prerelease: false
           
- plugin_publish:
-    needs: [analyze_and_test,platform_interface_publish, native_components_publish]
-    if: github.event.pull_request.merged
+  waiting-while-native_components_publish:
+    needs: [native_components_publish]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delay for 1 minutes
+        run: sleep 60
+
+  plugin_publish:
+    needs: [analyze_and_test, platform_interface_publish, native_components_publish, waiting-while-native_components_publish]
     timeout-minutes: 4
     runs-on: ubuntu-latest
     name: mindbox publishing
     steps:
-      - uses: actions/checkout@v2.3.3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 2
+          ref: ${{ inputs.branch }}
       - name: Check package Pubspec
         id: pubspec
         run: |
@@ -141,3 +159,41 @@ jobs:
           release_name: mindbox v${{ env.VERSION }}
           draft: false
           prerelease: false
+
+  merge:
+    needs: [plugin_publish]
+    if: |
+      startsWith(github.head_ref, 'release') && 
+      github.base_ref == 'master'
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.PAT_FOR_TRIGGERING_BRANCH_PROTECTION }}
+    steps:
+      - name: Checkout develop branch
+        uses: actions/checkout@v4
+        with:
+          ref: develop
+      - name: Create Pull Request
+        run: gh pr create --base develop --head master --title "Merge 'master' into 'develop' after release" --body "Automated Pull Request to merge 'master' into 'develop' after release"
+      - name: Merge Pull Request
+        run: |
+          pr_number=$(gh pr list --base develop --head master --json number --jq '.[0].number')
+          gh pr merge $pr_number --merge --auto
+
+  message-to-loop-if-success:
+    needs: [ merge ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send message to LOOP
+        env:
+          LOOP_NOTIFICATION_WEBHOOK_URL: ${{ secrets.LOOP_NOTIFICATION_WEBHOOK_URL }}
+          VERSION: ${{ inputs.branch }}
+        run: |
+          MESSAGE=$(cat <<EOF
+          {
+            "text": "**🤖 Flutter release was successful. Version: ${VERSION}**"
+          }
+          EOF)
+          curl -X POST "$LOOP_NOTIFICATION_WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -d "$MESSAGE"

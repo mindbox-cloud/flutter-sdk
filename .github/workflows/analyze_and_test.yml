@@ -1,9 +1,20 @@
-name: analyze_and_test
+name: Analyzes and Tests
 
 on:
+  push:
+    branches:
+      - develop
+      - mission/*
   pull_request:
-    branches: [ develop ]
+    types:
+      - opened
+      - reopened
+      - synchronize
   workflow_call:
+    inputs:
+      branch:
+        required: true
+        type: string
 
 jobs:
   platform_interface_flutter_test:
@@ -11,6 +22,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.branch || github.head_ref }}
       - uses: actions/setup-java@v1
         with:
           java-version: "12.x"
@@ -29,6 +42,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.branch || github.head_ref }}
       - uses: actions/setup-java@v1
         with:
           java-version: "12.x"
@@ -50,6 +65,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.branch || github.head_ref }}
       - uses: actions/setup-java@v1
         with:
           java-version: "12.x"
@@ -71,6 +88,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.branch || github.head_ref }}
       - uses: actions/setup-java@v1
         with:
           java-version: "12.x"
@@ -86,6 +105,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.branch || github.head_ref }}
       - uses: actions/setup-java@v1
         with:
           java-version: "12.x"
@@ -125,4 +146,3 @@ jobs:
       - run: cd mindbox && flutter pub get
       - run: cd mindbox && flutter analyze
       - run: cd mindbox && flutter test
-      
