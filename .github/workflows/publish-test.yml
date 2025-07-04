@@ -1,0 +1,49 @@
+name: Dry Run SDK Publish
+
+on:
+  push:
+    branches:
+      - 'release-test/**'
+
+jobs:
+  release:
+    name: Dry-run release of ${{ matrix.package }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        package:
+          - mindbox_platform_interface
+          - mindbox_android
+          - mindbox_ios
+          - mindbox
+
+    steps:
+      # 1. Клонируем нужную ветку
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      # 2. Извлекаем версию из pubspec.yaml
+      - name: Extract version
+        run: |
+          cd ${{ matrix.package }}
+          VERSION=$(awk '/^version:/ {print $2}' pubspec.yaml)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      # 3. Dry run публикации в Pub (проверяет ваши PUB_CREDENTIALS)
+      - name: Dry run pub publisher
+        uses: sakebook/actions-flutter-pub-publisher@v1.3.1
+        with:
+          package_directory: ${{ matrix.package }}
+          credential: ${{ secrets.PUB_CREDENTIALS }}
+          flutter_package: true
+          skip_test: true
+          dry_run: true
+
+      # 4. Симуляция создания релиза (никакого реального API вызова)
+      - name: Simulate release creation
+        if: success()
+        env:
+          PACKAGE: ${{ matrix.package }}
+        run: |
+          echo "✅ Would create GitHub Release $PACKAGE v${VERSION}"
