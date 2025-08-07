@@ -1,5 +1,2 @@
 .DS_Store
 .idea/
-
-example/flutter_example/ios/Pods/
-example/flutter_example/ios/Podfile.lock
