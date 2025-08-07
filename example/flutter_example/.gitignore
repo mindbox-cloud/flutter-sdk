@@ -44,3 +44,7 @@ app.*.map.json
 
 /android/app/google-services.json
 /android/app/agconnect-services.json
+
+# iOS
+/ios/Pods/
+/ios/Podfile.lock
