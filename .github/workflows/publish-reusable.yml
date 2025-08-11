@@ -60,8 +60,8 @@ jobs:
     needs: [platform_interface_publish]
     runs-on: ubuntu-latest
     steps:
-      - name: Delay for 1 minutes
-        run: sleep 60
+      - name: Delay for 10 minutes
+        run: sleep 600
 
   native_components_publish:
     needs: [analyze_and_test, platform_interface_publish, waiting-while-platform-interface-publish]
@@ -115,8 +115,8 @@ jobs:
     needs: [native_components_publish]
     runs-on: ubuntu-latest
     steps:
-      - name: Delay for 1 minutes
-        run: sleep 60
+      - name: Delay for 10 minutes
+        run: sleep 600
 
   plugin_publish:
     needs: [analyze_and_test, platform_interface_publish, native_components_publish, waiting-while-native_components_publish]
@@ -181,7 +181,7 @@ jobs:
           gh pr merge $pr_number --merge --auto
 
   message-to-loop-if-success:
-    needs: [ merge ]
+    needs: [plugin_publish]
     runs-on: ubuntu-latest
     steps:
       - name: Send message to LOOP
