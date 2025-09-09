@@ -1,3 +1,7 @@
+## 2.14.1
+
+* Upgrade native Android SDK dependency to v2.14.1.
+
 ## 2.14.0
 
 * Upgrade native Android SDK dependency to v2.14.0.
