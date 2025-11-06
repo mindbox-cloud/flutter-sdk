@@ -124,9 +124,8 @@ abstract class MindboxPlatform {
           'setLogLevel() has not been implemented.');
 
   /// Method for sending notification permission status
-  void updateNotificationPermissionStatus({required bool granted}) =>
-      throw UnimplementedError(
-          'updateNotificationPermissionStatus() has not been implemented');
+  void refreshNotificationPermissionStatus() => throw UnimplementedError(
+      'refreshNotificationPermissionStatus() has not been implemented');
 
   /// Writes a log message to the native Mindbox logging system.
   void writeNativeLog({required String message, required LogLevel logLevel}) =>

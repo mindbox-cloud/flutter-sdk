@@ -147,20 +147,24 @@ class Mindbox {
     MindboxPlatform.instance.registerInAppCallbacks(inAppCallbacks: callbacks);
   }
 
-  /// Updates the notification permission status.
+  /// This method is kept for backward compatibility. The `granted` argument is ignored.
   ///
-  /// The [granted] parameter specifies whether the permission for notifications
-  /// has been granted:
-  ///
-  /// - `true` indicates that the user has granted permission.
-  /// - `false` indicates that the user has denied permission.
+  /// The SDK reads the current system authorization status and, if it differs
+  /// from the last known value, sends an update to the backend.
+  @Deprecated('Use `refreshNotificationPermissionStatus` instead')
+  void updateNotificationPermissionStatus({required bool granted}) {
+    MindboxPlatform.instance.refreshNotificationPermissionStatus();
+  }
+
+  /// Checks the current system authorization status for push notifications
+  /// and reports any changes to Mindbox.
   ///
   /// Example usage:
   /// ```dart
-  /// Mindbox.instance.updateNotificationPermissionStatus(granted: true);
-  void updateNotificationPermissionStatus({required bool granted}) {
-    MindboxPlatform.instance
-        .updateNotificationPermissionStatus(granted: granted);
+  /// Mindbox.instance.refreshNotificationPermissionStatus();
+  /// ```
+  void refreshNotificationPermissionStatus() {
+    MindboxPlatform.instance.refreshNotificationPermissionStatus();
   }
 
   /// Writes a log message to the native Mindbox logging system.
