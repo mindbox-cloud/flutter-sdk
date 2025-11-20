@@ -1,3 +1,7 @@
+## 2.14.3
+
+* Upgrade native iOS SDK dependency to v2.14.4.
+
 ## 2.14.2
 
 * Upgrade native iOS SDK dependency to v2.14.3.
