@@ -2,7 +2,6 @@ import 'package:mindbox/mindbox.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class ViewModel {
-
   //https://developers.mindbox.ru/docs/%D0%BC%D0%B5%D1%82%D0%BE%D0%B4%D1%8B-flutter-sdk
   static syncOperation() {
     Mindbox.instance.executeSyncOperation(
@@ -34,17 +33,14 @@ class ViewModel {
   //used for send action "notification center was opened"
   static asyncOperationNCOpen() {
     Mindbox.instance.executeAsyncOperation(
-        operationSystemName: "mobileapp.NCOpen",
-        operationBody: {}
-    );
+        operationSystemName: "mobileapp.NCOpen", operationBody: {});
   }
 
   //used for send action "click on push from notification center"
   static asyncOperationNCPushOpen(String pushName, String pushDate) {
     Mindbox.instance.executeAsyncOperation(
         operationSystemName: "mobileapp.NCPushOpen",
-        operationBody: getPushOpenOperationBody(pushName, pushDate)
-    );
+        operationBody: getPushOpenOperationBody(pushName, pushDate));
   }
 
   static getSDKVersion(Function complition) {
@@ -70,8 +66,8 @@ class ViewModel {
     var status = await Permission.notification.status;
     if (!status.isGranted) {
       status = await Permission.notification.request();
-      Mindbox.instance.updateNotificationPermissionStatus(
-          granted: status.isGranted);
+      Mindbox.instance
+          .updateNotificationPermissionStatus(granted: status.isGranted);
     }
   }
 
@@ -103,7 +99,8 @@ class ViewModel {
     }
   }
 
-  static Map<String, dynamic> getPushOpenOperationBody(String pushName, String pushDate) {
+  static Map<String, dynamic> getPushOpenOperationBody(
+      String pushName, String pushDate) {
     return {
       "data": {
         "customerAction": {

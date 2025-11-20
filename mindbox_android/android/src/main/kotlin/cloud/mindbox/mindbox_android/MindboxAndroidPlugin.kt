@@ -160,7 +160,8 @@ class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, Ne
                     }
                 }
             }
-            "updateNotificationPermissionStatus" -> {
+
+            "refreshNotificationPermissionStatus" -> {
                 Mindbox.updateNotificationPermissionStatus(context = context)
             }
 
