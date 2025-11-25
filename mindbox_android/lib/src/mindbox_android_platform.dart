@@ -104,8 +104,8 @@ class MindboxAndroidPlatform extends MindboxPlatform {
 
   // Method for to send notification permission status
   @override
-  void updateNotificationPermissionStatus({required bool granted}) {
-    _methodHandler.updateNotificationPermissionStatus(granted: granted);
+  void refreshNotificationPermissionStatus() {
+    _methodHandler.refreshNotificationPermissionStatus();
   }
 
   @override
