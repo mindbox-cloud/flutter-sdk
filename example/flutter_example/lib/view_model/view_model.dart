@@ -66,8 +66,8 @@ class ViewModel {
     var status = await Permission.notification.status;
     if (!status.isGranted) {
       status = await Permission.notification.request();
-      Mindbox.instance
-          .updateNotificationPermissionStatus(granted: status.isGranted);
+      print("Permission status: $status");
+      Mindbox.instance.refreshNotificationPermissionStatus();
     }
   }
 
