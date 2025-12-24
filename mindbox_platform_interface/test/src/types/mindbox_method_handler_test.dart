@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mindbox_platform_interface/mindbox_platform_interface.dart';
 
@@ -403,6 +404,72 @@ void main() {
       );
 
       expect(() => completer.future, throwsA(isA<MindboxInternalError>()));
+    },
+  );
+
+  test(
+    'Verify that init completes even if pending getDeviceUUID hangs, allowing retries',
+    () async {
+      int getDeviceUUIDCallCount = 0;
+
+      // Mock handler that hangs on first getDeviceUUID
+      Future slowMockMethodCallHandler(MethodCall methodCall) async {
+        switch (methodCall.method) {
+          case 'init':
+            return Future.value(true);
+          case 'getDeviceUUID':
+            getDeviceUUIDCallCount++;
+            if (getDeviceUUIDCallCount == 1) {
+              // First call hangs (pending one)
+              return Completer<String>().future;
+            } else {
+              // Subsequent calls succeed
+              return Future.value('retry-uuid');
+            }
+          case 'writeNativeLog':
+            return Future.value(null);
+          default:
+            return 'dummy-response';
+        }
+      }
+
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, slowMockMethodCallHandler);
+
+      // 1. Call getDeviceUUID before init. It goes to pending.
+      bool callback1Called = false;
+      handler.getDeviceUUID(callback: (uuid) {
+        callback1Called = true;
+      });
+
+      // 2. Call init.
+      final validConfig = Configuration(
+        domain: 'domain',
+        endpointIos: 'endpointIos',
+        endpointAndroid: 'endpointAndroid',
+        subscribeCustomerIfCreated: true,
+      );
+
+      // This should now complete even though the first getDeviceUUID is hanging
+      // Adding timeout to fail faster if regression occurs (hangs indefinitely)
+      await handler
+          .init(configuration: validConfig)
+          .timeout(const Duration(seconds: 5));
+
+      expect(getDeviceUUIDCallCount, equals(1),
+          reason: 'First call should have been triggered');
+      expect(callback1Called, isFalse,
+          reason: 'First callback is still hanging');
+
+      // 3. Call getDeviceUUID again (retry).
+      // This should succeed because init is complete.
+      final completer = Completer<String>();
+      handler.getDeviceUUID(callback: (uuid) => completer.complete(uuid));
+
+      final result = await completer.future.timeout(const Duration(seconds: 1));
+
+      expect(result, equals('retry-uuid'));
+      expect(getDeviceUUIDCallCount, equals(2));
     },
   );
 }

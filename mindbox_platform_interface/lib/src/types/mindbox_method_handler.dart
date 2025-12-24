@@ -84,8 +84,13 @@ class MindboxMethodHandler {
       final pendingCallbackMethodsCopy =
       List<_PendingCallbackMethod>.from(_pendingCallbackMethods);
       for (final callbackMethod in pendingCallbackMethodsCopy) {
-        callbackMethod.callback(
-            await channel.invokeMethod(callbackMethod.methodName) ?? 'null');
+        channel
+            .invokeMethod(callbackMethod.methodName)
+            .then((result) {
+          callbackMethod.callback(result ?? 'null');
+        }).catchError((e) {
+          _logError('Error processing pending method ${callbackMethod.methodName}: $e');
+        });
       }
       final pendingOperationsCopy =
       List<_PendingOperations>.from(_pendingOperations);
@@ -99,6 +104,8 @@ class MindboxMethodHandler {
           if (operation.errorCallback != null) {
             final mindboxError = _convertPlatformExceptionToMindboxError(e);
             operation.errorCallback!(mindboxError);
+          } else {
+            _logError('Error processing pending operation ${operation.methodName}: $e');
           }
         });
       }
