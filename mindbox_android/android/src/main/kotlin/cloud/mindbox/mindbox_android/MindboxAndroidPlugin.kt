@@ -18,13 +18,15 @@ import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
 import io.flutter.plugin.common.PluginRegistry.NewIntentListener
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicReference
 
 /** MindboxAndroidPlugin */
 class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, NewIntentListener {
     private lateinit var context: Activity
     private var binding: ActivityPluginBinding? = null
-    private var deviceUuidSubscription: String? = null
-    private var tokenSubscription: String? = null
+    private val deviceUuidSubscriptions = mutableListOf<String>()
+    private val tokenSubscriptions = mutableListOf<String>()
     private lateinit var channel: MethodChannel
 
     inner class InAppCallbackImpl : InAppCallback {
@@ -83,27 +85,76 @@ class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, Ne
                 }
             }
             "getDeviceUUID" -> {
-                if (deviceUuidSubscription != null) {
-                    Mindbox.disposeDeviceUuidSubscription(deviceUuidSubscription!!)
+                val subscriptionRef = AtomicReference<String?>(null)
+                val isResultSent = AtomicBoolean(false)
+
+                val subscriptionId = Mindbox.subscribeDeviceUuid { uuid ->
+                    if (isResultSent.compareAndSet(false, true)) {
+                        result.success(uuid)
+
+                        val id = subscriptionRef.get()
+                        if (id != null) {
+                            Mindbox.disposeDeviceUuidSubscription(id)
+                            deviceUuidSubscriptions.remove(id)
+                        }
+                    }
                 }
-                deviceUuidSubscription = Mindbox.subscribeDeviceUuid { uuid ->
-                    result.success(uuid)
+                
+                subscriptionRef.set(subscriptionId)
+                deviceUuidSubscriptions.add(subscriptionId)
+
+                // If callback was synchronous, unsubscribe immediately
+                if (isResultSent.get()) {
+                    Mindbox.disposeDeviceUuidSubscription(subscriptionId)
+                    deviceUuidSubscriptions.remove(subscriptionId)
                 }
             }
             "getToken" -> {
-                if (tokenSubscription != null) {
-                    Mindbox.disposePushTokenSubscription(tokenSubscription!!)
+                val subscriptionRef = AtomicReference<String?>(null)
+                val isResultSent = AtomicBoolean(false)
+
+                val subscriptionId = Mindbox.subscribePushToken { token ->
+                    if (isResultSent.compareAndSet(false, true)) {
+                        result.success(token)
+                        
+                        val id = subscriptionRef.get()
+                        if (id != null) {
+                            Mindbox.disposePushTokenSubscription(id)
+                            tokenSubscriptions.remove(id)
+                        }
+                    }
                 }
-                tokenSubscription = Mindbox.subscribePushToken { token ->
-                    result.success(token)
+                
+                subscriptionRef.set(subscriptionId)
+                tokenSubscriptions.add(subscriptionId)
+
+                if (isResultSent.get()) {
+                    Mindbox.disposePushTokenSubscription(subscriptionId)
+                    tokenSubscriptions.remove(subscriptionId)
                 }
             }
             "getTokens" -> {
-                if (tokenSubscription != null) {
-                    Mindbox.disposePushTokenSubscription(tokenSubscription!!)
+                val subscriptionRef = AtomicReference<String?>(null)
+                val isResultSent = AtomicBoolean(false)
+
+                val subscriptionId = Mindbox.subscribePushTokens { token ->
+                    if (isResultSent.compareAndSet(false, true)) {
+                        result.success(token)
+                        
+                        val id = subscriptionRef.get()
+                        if (id != null) {
+                            Mindbox.disposePushTokenSubscription(id)
+                            tokenSubscriptions.remove(id)
+                        }
+                    }
                 }
-                tokenSubscription = Mindbox.subscribePushTokens { token ->
-                    result.success(token)
+                
+                subscriptionRef.set(subscriptionId)
+                tokenSubscriptions.add(subscriptionId)
+
+                if (isResultSent.get()) {
+                    Mindbox.disposePushTokenSubscription(subscriptionId)
+                    tokenSubscriptions.remove(subscriptionId)
                 }
             }
             "executeAsyncOperation" -> {

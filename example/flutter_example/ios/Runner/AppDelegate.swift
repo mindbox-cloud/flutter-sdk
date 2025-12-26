@@ -13,10 +13,7 @@ import UserNotifications
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
         
-        UIApplication.shared.registerForRemoteNotifications()
-        
-        // Calling the notification request method
-        registerForRemoteNotifications()
+        UNUserNotificationCenter.current().delegate = self
         
         // tracking sources of referrals to the application via push notifications
         Mindbox.shared.track(.launch(launchOptions))
@@ -72,27 +69,15 @@ import UserNotifications
     override func userNotificationCenter(
         _ center: UNUserNotificationCenter,
         didReceive response: UNNotificationResponse,
-        withCompletionHandler completionHandler: @escaping () -> Void) {
-            // Send click to Mindbox
-            Mindbox.shared.pushClicked(response: response)
-            
-            // Sending the fact that the application was opened when switching to push notification
-            Mindbox.shared.track(.push(response))
-            completionHandler()
-            super.userNotificationCenter(center, didReceive: response, withCompletionHandler: completionHandler)
-        }
-    
-    func registerForRemoteNotifications() {
-        UNUserNotificationCenter.current().delegate = self
-        DispatchQueue.main.async {
-            UNUserNotificationCenter.current().requestAuthorization(options: [ .alert, .sound, .badge]) { granted, error in
-                print("Permission granted: \(granted)")
-                if let error = error {
-                    print("NotificationsRequestAuthorization failed with error: \(error.localizedDescription)")
-                }
-                Mindbox.shared.notificationsRequestAuthorization(granted: granted)
-            }
-        }
+        withCompletionHandler completionHandler: @escaping () -> Void
+    ) {
+        // Send click to Mindbox
+        Mindbox.shared.pushClicked(response: response)
+        
+        // Sending the fact that the application was opened when switching to push notification
+        Mindbox.shared.track(.push(response))
+        completionHandler()
+        super.userNotificationCenter(center, didReceive: response, withCompletionHandler: completionHandler)
     }
     
     func notifyFlutterNewData() {
