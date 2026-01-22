@@ -5,10 +5,12 @@ import com.google.firebase.messaging.*
 import cloud.mindbox.mindbox_firebase.MindboxFirebase
 import android.util.Log
 import com.google.firebase.messaging.RemoteMessage
+import io.flutter.plugins.firebase.messaging.FlutterFirebaseTokenLiveData
 
 class MindboxFirebaseMessagingService: FirebaseMessagingService() {
     override fun onNewToken(token: String) {
         Mindbox.updatePushToken(applicationContext, token, MindboxFirebase)
+        FlutterFirebaseTokenLiveData.getInstance().postToken(token);
         super.onNewToken(token)
     }
 

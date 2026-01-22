@@ -1,6 +1,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_example/assets/MBColors.dart';
+import 'package:flutter_example/utils/messaging_utils.dart';
 import 'package:flutter_example/view/main_page/widgets/buttons_block/buttons_block.dart';
 import 'package:flutter_example/view/main_page/widgets/info_block/info_block.dart';
 import 'package:flutter_example/view/main_page/widgets/buttons_block/button_nc.dart';
@@ -8,6 +9,7 @@ import 'package:flutter_example/view/notification_center_page/notification_cente
 import 'package:flutter_example/view_model/view_model.dart';
 import 'package:mindbox/mindbox.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import '../push_info_page/push_info_page.dart';
 
 class MyHomePage extends StatefulWidget {
@@ -28,6 +30,8 @@ class _MyHomePageState extends State<MyHomePage> {
     Mindbox.instance.onPushClickReceived((link, payload) {
       _handlePushNotification(link, payload);
     });
+
+    setupInteractedMessage();
   }
 
   void _handlePushNotification(String link, dynamic payload) {
@@ -61,6 +65,25 @@ class _MyHomePageState extends State<MyHomePage> {
         },
       );
     }
+  }
+
+  Future<void> setupInteractedMessage() async {
+    RemoteMessage? initialMessage = await FirebaseMessaging.instance.getInitialMessage();
+
+    if (initialMessage != null) {
+      _handleMessage(initialMessage);
+    }
+
+    FirebaseMessaging.onMessageOpenedApp.listen(_handleMessage);
+  }
+
+  void _handleMessage(RemoteMessage message) {
+    print('App launched from terminated state by push notification!');
+    print('Push data: ${message.data}');
+    print('Notification: ${message.notification?.title} - ${message.notification?.body}');
+
+    final isMindbox = isMindboxMessage(message);
+    print('Is Mindbox message: $isMindbox');
   }
 
   @override
