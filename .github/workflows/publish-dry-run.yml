@@ -1,0 +1,33 @@
+name: SDK publish dry run
+
+on:
+  workflow_dispatch:
+
+jobs:
+  dry-run-publish:
+    runs-on: ubuntu-latest
+    name: ${{ matrix.package }} dry-run
+    strategy:
+      matrix:
+        package:
+          - mindbox_platform_interface
+          - mindbox_android
+          - mindbox_ios
+          - mindbox
+      fail-fast: false
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Dry run publish
+        uses: sakebook/actions-flutter-pub-publisher@v1.3.1
+        with:
+          package_directory: ${{ matrix.package }}
+          credential: ${{ secrets.PUB_CREDENTIALS }}
+          flutter_package: true
+          skip_test: true
+          dry_run: true
