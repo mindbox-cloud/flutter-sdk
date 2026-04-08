@@ -2,6 +2,9 @@ name: SDK publish dry run
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - 'publish-dry-run/**'
 
 jobs:
   dry-run-publish:
