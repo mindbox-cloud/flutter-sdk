@@ -4,7 +4,7 @@ import mindbox_ios
 import Mindbox
 import UserNotifications
 
-@UIApplicationMain
+@main
 @objc class AppDelegate: FlutterAppDelegate {
     private var eventSink: FlutterEventSink?
     
@@ -12,6 +12,9 @@ import UserNotifications
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
+        
+        Mindbox.logger.logLevel = .debug
+        
         
         UNUserNotificationCenter.current().delegate = self
         

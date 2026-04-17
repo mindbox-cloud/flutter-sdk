@@ -17,6 +17,16 @@ dependencies:
   shared_preferences: ^2.5.2
   shared_preference_app_group: ^1.1.1
 
+dependency_overrides:
+  mindbox:
+    path: ../../mindbox
+  mindbox_ios:
+    path: ../../mindbox_ios
+  mindbox_android:
+    path: ../../mindbox_android
+  mindbox_platform_interface:
+    path: ../../mindbox_platform_interface
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

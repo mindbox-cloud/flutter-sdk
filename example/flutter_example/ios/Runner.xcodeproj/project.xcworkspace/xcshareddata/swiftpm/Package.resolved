@@ -1,0 +1,14 @@
+{
+  "pins" : [
+    {
+      "identity" : "ios-sdk",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mindbox-cloud/ios-sdk",
+      "state" : {
+        "revision" : "0f3f0642b0e4b21eae10bbd221b2052157eac451",
+        "version" : "2.15.0"
+      }
+    }
+  ],
+  "version" : 2
+}

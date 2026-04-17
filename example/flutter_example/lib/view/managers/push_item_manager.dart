@@ -47,7 +47,7 @@ class ItemsManager {
     }
   }
   static const int removeStartIndex = 3;
-  static const appGroupID = 'group.cloud.Mindbox.cloud.mindbox.flutterExample';
+  static const appGroupID = 'group.cloud.Mindbox.mindbox.Flutter.Example';
   ValueNotifier<List<MindboxRemoteMessage>> itemsNotifier;
 
 
