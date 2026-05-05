@@ -9,10 +9,15 @@ class Configuration {
     this.previousDeviceUUID = '',
     this.previousInstallationId = '',
     this.shouldCreateCustomer = true,
+    this.operationsDomain,
   });
 
   /// Used for generating baseurl for REST.
   final String domain;
+
+  /// Optional host for sending operations. Overridden by
+  /// the value from the mobile JSON config when present. Default `nil` (use `domain`).
+  final String? operationsDomain;
 
   /// Used for app identification on iOS.
   final String endpointIos;
@@ -34,13 +39,19 @@ class Configuration {
   final bool shouldCreateCustomer;
 
   /// Returns map of parameters
-  Map<String, dynamic> toMap() => {
-        'domain': domain,
-        'endpointIos': endpointIos,
-        'endpointAndroid': endpointAndroid,
-        'previousDeviceUUID': previousDeviceUUID,
-        'previousInstallationId': previousInstallationId,
-        'subscribeCustomerIfCreated': subscribeCustomerIfCreated,
-        'shouldCreateCustomer': shouldCreateCustomer,
-      };
+  Map<String, dynamic> toMap() {
+    final map = <String, dynamic>{
+      'domain': domain,
+      'endpointIos': endpointIos,
+      'endpointAndroid': endpointAndroid,
+      'previousDeviceUUID': previousDeviceUUID,
+      'previousInstallationId': previousInstallationId,
+      'subscribeCustomerIfCreated': subscribeCustomerIfCreated,
+      'shouldCreateCustomer': shouldCreateCustomer,
+    };
+    if (operationsDomain != null && operationsDomain!.isNotEmpty) {
+      map['operationsDomain'] = operationsDomain;
+    }
+    return map;
+  }
 }
