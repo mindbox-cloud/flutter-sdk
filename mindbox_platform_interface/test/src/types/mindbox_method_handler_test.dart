@@ -51,6 +51,56 @@ void main() {
   );
 
   test(
+    'init() forwards operationsDomain to native channel',
+    () async {
+      final capturedArgs = <String, dynamic>{};
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+        if (call.method == 'init') {
+          capturedArgs.addAll(Map<String, dynamic>.from(call.arguments));
+        }
+        return mindboxMockMethodCallHandler(call);
+      });
+
+      await handler.init(
+        configuration: Configuration(
+          domain: 'domain',
+          endpointIos: 'endpointIos',
+          endpointAndroid: 'endpointAndroid',
+          operationsDomain: 'operations.example.com',
+        ),
+      );
+
+      expect(capturedArgs['operationsDomain'], 'operations.example.com');
+    },
+  );
+
+  test(
+    'init() forwards empty operationsDomain by default',
+    () async {
+      final capturedArgs = <String, dynamic>{};
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+        if (call.method == 'init') {
+          capturedArgs.addAll(Map<String, dynamic>.from(call.arguments));
+        }
+        return mindboxMockMethodCallHandler(call);
+      });
+
+      await handler.init(
+        configuration: Configuration(
+          domain: 'domain',
+          endpointIos: 'endpointIos',
+          endpointAndroid: 'endpointAndroid',
+        ),
+      );
+
+      expect(capturedArgs.containsKey('operationsDomain'), isTrue);
+      expect(capturedArgs['operationsDomain'], '');
+    },
+  );
+
+  test(
     'When config is invalid, init() calling should throws MindboxException',
     () async {
       final invalidConfig = Configuration(
