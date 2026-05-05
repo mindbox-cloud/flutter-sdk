@@ -15,8 +15,8 @@ class Configuration {
   /// Used for generating baseurl for REST.
   final String domain;
 
-  /// Optional host for sending operations. Overridden by
-  /// the value from the mobile JSON config when present. Default `nil` (use `domain`).
+  /// Optional separate host for sending operations. When empty, [domain]
+  /// is used. Default is an empty string.
   final String operationsDomain;
 
   /// Used for app identification on iOS.
