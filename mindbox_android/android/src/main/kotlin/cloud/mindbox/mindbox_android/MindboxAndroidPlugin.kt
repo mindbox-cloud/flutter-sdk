@@ -73,15 +73,13 @@ class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, Ne
                     val subscribeIfCreated: Boolean = args["subscribeCustomerIfCreated"] as Boolean
                     val shouldCreateCustomer: Boolean = args["shouldCreateCustomer"] as Boolean
                     val operationsDomainArg: String = args["operationsDomain"] as? String ?: ""
-                    val builder = MindboxConfiguration.Builder(context.applicationContext, domain, endpointId)
+                    val config = MindboxConfiguration.Builder(context.applicationContext, domain, endpointId)
                         .setPreviousDeviceUuid(previousDeviceUuid)
                         .setPreviousInstallationId(previousInstallId)
                         .subscribeCustomerIfCreated(subscribeIfCreated)
                         .shouldCreateCustomer(shouldCreateCustomer)
-                    if (operationsDomainArg.isNotEmpty()) {
-                        builder.operationsDomain(operationsDomainArg)
-                    }
-                    val config = builder.build()
+                        .operationsDomain(operationsDomainArg)
+                        .build()
                     Mindbox.init(activity = context, config, listOf())
                     result.success("initialized")
                 } else {
