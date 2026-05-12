@@ -3,7 +3,7 @@ import Flutter
 import Mindbox
 import MindboxNotifications
 
-open class MindboxFlutterAppDelegate: FlutterAppDelegate{
+open class MindboxFlutterAppDelegate: FlutterAppDelegate {
 
     open func shouldRegisterForRemoteNotifications() -> Bool {
             return true
@@ -13,7 +13,7 @@ open class MindboxFlutterAppDelegate: FlutterAppDelegate{
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
-        
+
         if #available(iOS 10.0, *) {
             UNUserNotificationCenter.current().delegate = self
         }
@@ -21,36 +21,40 @@ open class MindboxFlutterAppDelegate: FlutterAppDelegate{
         if shouldRegisterForRemoteNotifications() {
             registerForRemoteNotifications()
         }
-        // Регистрация фоновых задач для iOS выше 13
+        // Background task registration for iOS 13+
         if #available(iOS 13.0, *) {
             Mindbox.shared.registerBGTasks()
         } else {
             UIApplication.shared.setMinimumBackgroundFetchInterval(UIApplication.backgroundFetchIntervalMinimum)
         }
-        
-        // Передача факта открытия приложения
+
+        // Pass the application launch event.
+        // Under UISceneDelegate, launchOptions == nil — the real cold-start
+        // payload arrives in scene(_:willConnectTo:options:) of the customer's
+        // SceneDelegate and must be forwarded via
+        // Mindbox.shared.track(.launchScene(...)).
         Mindbox.shared.track(.launch(launchOptions))
         return super.application(application, didFinishLaunchingWithOptions: launchOptions)
     }
-    
+
     //    MARK: didRegisterForRemoteNotificationsWithDeviceToken
-    //    Передача токена APNS в SDK Mindbox
+    //    Pass the APNS token to the Mindbox SDK.
     open override func application(
         _ application: UIApplication,
         didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
             Mindbox.shared.apnsTokenUpdate(deviceToken: deviceToken)
         }
-    
-    // Регистрация фоновых задач для iOS до 13
+
+    // Background task registration for iOS below 13.
     open override func application(
         _ application: UIApplication,
         performFetchWithCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
             Mindbox.shared.application(application, performFetchWithCompletionHandler: completionHandler)
             super.application(application, performFetchWithCompletionHandler: completionHandler)
         }
-    
+
     //    MARK: registerForRemoteNotifications
-    //    Функция запроса разрешения на уведомления. В комплишн блоке надо передать статус разрешения в SDK Mindbox
+    //    Notification permission request. The completion block must forward the permission status to the Mindbox SDK.
     func registerForRemoteNotifications() {
         DispatchQueue.main.async {
             UIApplication.shared.registerForRemoteNotifications()
@@ -63,37 +67,40 @@ open class MindboxFlutterAppDelegate: FlutterAppDelegate{
             }
         }
     }
-    
+
+    // Under UISceneDelegate this callback is not invoked — universal links
+    // arrive in scene(_:continue:) of the customer's SceneDelegate and
+    // must be forwarded via Mindbox.shared.track(.universalLink(...)).
     open override func application(
         _ application: UIApplication,
         continue userActivity: NSUserActivity,
         restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void
     ) -> Bool {
-        // Передача ссылки, если приложение открыто через universalLink
+        // Pass the link if the application was opened via a universal link.
         Mindbox.shared.track(.universalLink(userActivity))
         return super.application(application, continue: userActivity, restorationHandler: restorationHandler)
     }
-    
+
     open override func userNotificationCenter(
         _ center: UNUserNotificationCenter,
         willPresent notification: UNNotification,
         withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
             completionHandler([.alert, .badge, .sound])
         }
-    
+
     //    MARK: didReceive response
-    //    Функция обработки кликов по нотификации
+    //    Push notification click handler.
     open override func userNotificationCenter(
         _ center: UNUserNotificationCenter,
         didReceive response: UNNotificationResponse,
         withCompletionHandler completionHandler: @escaping () -> Void) {
-            
-            // передача факта клика по пушу
+
+            // Pass the push click event.
             Mindbox.shared.pushClicked(response: response)
-            
-            // передача факта открытия приложения по переходу на пуш
+
+            // Pass the application launch event from push notification tap.
             Mindbox.shared.track(.push(response))
-            
+
             completionHandler()
             super.userNotificationCenter(center, didReceive: response, withCompletionHandler: completionHandler)
         }
