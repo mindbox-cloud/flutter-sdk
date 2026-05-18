@@ -5,9 +5,11 @@
 *.swp
 .DS_Store
 .atom/
+.build/
 .buildlog/
 .history
 .svn/
+.swiftpm/
 migrate_working_dir/
 
 # IntelliJ related
@@ -48,3 +50,6 @@ app.*.map.json
 # iOS
 /ios/Pods/
 /ios/Podfile.lock
+
+# FVM Version Cache
+.fvm/
