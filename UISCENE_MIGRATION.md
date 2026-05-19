@@ -43,7 +43,7 @@ forward them from your scene delegate.
 ## What to add in your scene delegate
 
 Copy
-[`example/flutter_example/ios/Runner/SceneDelegate.swift`](../example/flutter_example/ios/Runner/SceneDelegate.swift)
+[`example/flutter_example/ios/Runner/SceneDelegate.swift`](https://github.com/mindbox-cloud/flutter-sdk/blob/develop/example/flutter_example/ios/Runner/SceneDelegate.swift)
 into your `Runner` target. The two relevant calls:
 
 ```swift
@@ -103,7 +103,7 @@ nothing to do with the host app's scene flow. They need no changes.
 
 ## Reference implementation
 
-[`example/flutter_example/ios/Runner`](../example/flutter_example/ios/Runner)
+[`example/flutter_example/ios/Runner`](https://github.com/mindbox-cloud/flutter-sdk/tree/develop/example/flutter_example/ios/Runner)
 is fully migrated and serves as a working reference for both the
 Flutter-side and Mindbox-side parts of the migration.
 

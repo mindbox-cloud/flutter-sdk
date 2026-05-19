@@ -2,9 +2,12 @@ import UIKit
 import Flutter
 import Mindbox
 
-// Sample SceneDelegate forwarding scene events to Mindbox. Requires Flutter >= 3.35.
+// Sample SceneDelegate forwarding scene events to Mindbox.
+// `FlutterSceneDelegate` itself requires Flutter >= 3.35; this example app
+// also relies on `FlutterImplicitEngineDelegate` in AppDelegate, which is
+// Flutter >= 3.41.
 // Mindbox-side notes:
-// https://github.com/mindbox-cloud/flutter-sdk/blob/develop/mindbox_ios/UISCENE_MIGRATION.md
+// https://github.com/mindbox-cloud/flutter-sdk/blob/develop/UISCENE_MIGRATION.md
 @available(iOS 13.0, *)
 class SceneDelegate: FlutterSceneDelegate {
 
