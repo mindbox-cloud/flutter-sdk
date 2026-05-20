@@ -6,6 +6,11 @@ version: 1.0.0+1
 
 environment:
   sdk: '>=3.3.4 <4.0.0'
+  # Example is migrated to UISceneDelegate (FlutterImplicitEngineDelegate).
+  # Flutter 3.41 is the first version where UISceneDelegate-based lifecycle
+  # is the recommended path for new iOS Flutter apps. See:
+  # https://docs.flutter.dev/release/breaking-changes/uiscenedelegate
+  flutter: '>=3.41.0'
 
 dependencies:
   flutter:
