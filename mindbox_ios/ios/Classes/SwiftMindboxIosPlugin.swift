@@ -84,8 +84,10 @@ public class SwiftMindboxIosPlugin: NSObject, FlutterPlugin {
                let shouldCreateCustomer = args["shouldCreateCustomer"] as? Bool{
                 let prevUuid = previousUuid.isEmpty ? nil : previousUuid
                 let prevId = previousInstallId.isEmpty ? nil : previousInstallId
+                let operationsDomainRaw = args["operationsDomain"] as? String ?? ""
+                let operationsDomain = operationsDomainRaw.isEmpty ? nil : operationsDomainRaw
                 do{
-                    let config = try MBConfiguration(endpoint: endpoint, domain: domain,previousInstallationId: prevId, previousDeviceUUID: prevUuid, subscribeCustomerIfCreated: subscribeIfCreated, shouldCreateCustomer: shouldCreateCustomer)
+                    let config = try MBConfiguration(endpoint: endpoint, domain: domain, operationsDomain: operationsDomain, previousInstallationId: prevId, previousDeviceUUID: prevUuid, subscribeCustomerIfCreated: subscribeIfCreated, shouldCreateCustomer: shouldCreateCustomer)
                     Mindbox.shared.initialization(configuration: config)
                     result("initialized")
                 }catch let error {

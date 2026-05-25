@@ -9,10 +9,15 @@ class Configuration {
     this.previousDeviceUUID = '',
     this.previousInstallationId = '',
     this.shouldCreateCustomer = true,
+    this.operationsDomain = '',
   });
 
   /// Used for generating baseurl for REST.
   final String domain;
+
+  /// Optional separate host for sending operations. When empty, [domain]
+  /// is used. Default is an empty string.
+  final String operationsDomain;
 
   /// Used for app identification on iOS.
   final String endpointIos;
@@ -42,5 +47,6 @@ class Configuration {
         'previousInstallationId': previousInstallationId,
         'subscribeCustomerIfCreated': subscribeCustomerIfCreated,
         'shouldCreateCustomer': shouldCreateCustomer,
+        'operationsDomain': operationsDomain,
       };
 }
