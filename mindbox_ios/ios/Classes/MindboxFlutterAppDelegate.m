@@ -1,5 +1,4 @@
 #import <MindboxFlutterAppDelegate.h>
-#import <MindboxIosPlugin.h>
 
 @import Mindbox;
 
