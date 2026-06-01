@@ -3,18 +3,18 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 54;
+	objectVersion = 60;
 	objects = {
 
 /* Begin PBXBuildFile section */
 		1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */ = {isa = PBXBuildFile; fileRef = 1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */; };
+		256F9F9FDB3D4DD436246818 /* MindboxNotificationsContent in Frameworks */ = {isa = PBXBuildFile; productRef = 0EA7F2BCC87452E0C5E83025 /* MindboxNotificationsContent */; };
 		331C808B294A63AB00263BE5 /* RunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331C807B294A618700263BE5 /* RunnerTests.swift */; };
+		34D4D0D0DA45AF8FE0E2E2F5 /* MindboxNotificationsService in Frameworks */ = {isa = PBXBuildFile; productRef = 52D6F1212F70CD404ED943FA /* MindboxNotificationsService */; };
 		3A04C4242C18A6EA008FB1C3 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A04C41C2C183779008FB1C3 /* Models.swift */; };
 		3AFCC3DC2C6A0B4000F047AB /* AppDelegateUsedMindboxDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AFCC3DB2C6A0B4000F047AB /* AppDelegateUsedMindboxDelegate.swift */; };
 		3AFCC3E02C6A0B4000F047AB /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AFCC3DF2C6A0B4000F047AB /* SceneDelegate.swift */; };
 		3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */; };
-		47445E052FCDAE7D004449EC /* MindboxNotificationsContent in Frameworks */ = {isa = PBXBuildFile; productRef = 47445E042FCDAE7D004449EC /* MindboxNotificationsContent */; };
-		47445E072FCDAE7D004449EC /* MindboxNotificationsService in Frameworks */ = {isa = PBXBuildFile; productRef = 47445E062FCDAE7D004449EC /* MindboxNotificationsService */; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
 		78A318202AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage in Frameworks */ = {isa = PBXBuildFile; productRef = 78A3181F2AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage */; };
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
@@ -130,7 +130,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				47445E072FCDAE7D004449EC /* MindboxNotificationsService in Frameworks */,
+				34D4D0D0DA45AF8FE0E2E2F5 /* MindboxNotificationsService in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -139,8 +139,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				E1B395562BD985350090F3D2 /* UserNotificationsUI.framework in Frameworks */,
-				47445E052FCDAE7D004449EC /* MindboxNotificationsContent in Frameworks */,
 				E1B395542BD985350090F3D2 /* UserNotifications.framework in Frameworks */,
+				256F9F9FDB3D4DD436246818 /* MindboxNotificationsContent in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -299,6 +299,9 @@
 			dependencies = (
 			);
 			name = MindboxNotificationServiceExtension;
+			packageProductDependencies = (
+				52D6F1212F70CD404ED943FA /* MindboxNotificationsService */,
+			);
 			productName = MindboxNotificationServiceExtension;
 			productReference = E19AAFB92BD93664002D7897 /* MindboxNotificationServiceExtension.appex */;
 			productType = "com.apple.product-type.app-extension";
@@ -316,6 +319,9 @@
 			dependencies = (
 			);
 			name = MindboxNotificationContentExtension;
+			packageProductDependencies = (
+				0EA7F2BCC87452E0C5E83025 /* MindboxNotificationsContent */,
+			);
 			productName = MindboxNotificationContentExtension;
 			productReference = E1B395522BD985350090F3D2 /* MindboxNotificationContentExtension.appex */;
 			productType = "com.apple.product-type.app-extension";
@@ -357,8 +363,8 @@
 			);
 			mainGroup = 97C146E51CF9000F007C117D;
 			packageReferences = (
-				781AD8BC2B33823900A9FFBB /* XCLocalSwiftPackageReference "FlutterGeneratedPluginSwiftPackage" */,
-				47445E032FCDAE7D004449EC /* XCRemoteSwiftPackageReference "ios-sdk" */,
+				781AD8BC2B33823900A9FFBB /* XCLocalSwiftPackageReference "Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage" */,
+				C4A124B3CCD84B28F602BCFA /* XCRemoteSwiftPackageReference "ios-sdk" */,
 			);
 			productRefGroup = 97C146EF1CF9000F007C117D /* Products */;
 			projectDirPath = "";
@@ -1106,14 +1112,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		781AD8BC2B33823900A9FFBB /* XCLocalSwiftPackageReference "FlutterGeneratedPluginSwiftPackage" */ = {
+		781AD8BC2B33823900A9FFBB /* XCLocalSwiftPackageReference "Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage;
 		};
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		47445E032FCDAE7D004449EC /* XCRemoteSwiftPackageReference "ios-sdk" */ = {
+		C4A124B3CCD84B28F602BCFA /* XCRemoteSwiftPackageReference "ios-sdk" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/mindbox-cloud/ios-sdk";
 			requirement = {
@@ -1124,14 +1130,14 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		47445E042FCDAE7D004449EC /* MindboxNotificationsContent */ = {
+		0EA7F2BCC87452E0C5E83025 /* MindboxNotificationsContent */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 47445E032FCDAE7D004449EC /* XCRemoteSwiftPackageReference "ios-sdk" */;
+			package = C4A124B3CCD84B28F602BCFA /* XCRemoteSwiftPackageReference "ios-sdk" */;
 			productName = MindboxNotificationsContent;
 		};
-		47445E062FCDAE7D004449EC /* MindboxNotificationsService */ = {
+		52D6F1212F70CD404ED943FA /* MindboxNotificationsService */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 47445E032FCDAE7D004449EC /* XCRemoteSwiftPackageReference "ios-sdk" */;
+			package = C4A124B3CCD84B28F602BCFA /* XCRemoteSwiftPackageReference "ios-sdk" */;
 			productName = MindboxNotificationsService;
 		};
 		78A3181F2AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage */ = {
