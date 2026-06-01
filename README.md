@@ -42,6 +42,13 @@ flow don't need any code changes.
 
 [flutter-uiscene]: https://docs.flutter.dev/release/breaking-changes/uiscenedelegate
 
+### iOS Swift Package Manager
+
+The plugin supports Swift Package Manager alongside CocoaPods. In SPM mode the
+main app gets Mindbox automatically; notification extensions need a one-time
+Xcode wiring step. See [SPM_MIGRATION.md](SPM_MIGRATION.md). CocoaPods users
+need no changes.
+
 ## Troubleshooting
 
 Refer to the [Example of integration(IOS)](https://github.com/mindbox-cloud/flutter-sdk/tree/develop/mindbox_ios/example) or [Example of integration(Android)](https://github.com/mindbox-cloud/flutter-sdk/tree/develop/mindbox_android/example) in case of any issues.
