@@ -1,5 +1,4 @@
-# Uncomment this line to define a global platform for your project
-# platform :ios, '13.0'
+platform :ios, '13.0'
 
 # CocoaPods analytics sends network stats synchronously affecting flutter build latency.
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
@@ -30,8 +29,10 @@ flutter_ios_podfile_setup
 target 'Runner' do
   use_frameworks!
   use_modular_headers!
-# add this pod if doesn't use MindboxFlutterAppDelegate
-  pod 'Mindbox'
+  # Mindbox / MindboxNotifications are pulled transitively by the mindbox_ios
+  # plugin (Package.swift in SPM mode, podspec in CocoaPods mode). Declaring
+  # `pod 'Mindbox'` here on top of that produces a duplicate framework load
+  # and a version mismatch — leave it out.
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
 #  target 'RunnerTests' do
 #    inherit! :search_paths
@@ -40,15 +41,12 @@ target 'Runner' do
 end
 
 
-target 'MindboxNotificationServiceExtension' do
-  use_frameworks!
-   pod 'MindboxNotifications'
-end
-
-target 'MindboxNotificationContentExtension' do
-  use_frameworks!
-   pod 'MindboxNotifications'
-end
+# Notification extensions are integrated via Swift Package Manager, not CocoaPods:
+# the mindbox-cloud/ios-sdk package is added at the Xcode project level and its
+# MindboxNotificationsService / MindboxNotificationsContent products are linked
+# directly onto the NSE / NCE targets (Frameworks build phase). SPM unifies that
+# with the same ios-sdk that mindbox_ios pulls transitively, so the whole app
+# resolves to a single ios-sdk version. No `pod 'MindboxNotifications'` needed.
 
 post_install do |installer|
   installer.pods_project.targets.each do |target|

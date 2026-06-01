@@ -29,3 +29,9 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  # Per-project override of the global `flutter config` flag. Forced to true
+  # so the example always exercises the SPM path the plugin now ships,
+  # regardless of the consumer's global flutter config. Flip to false locally
+  # to test the CocoaPods-only path.
+  config:
+    enable-swift-package-manager: true
