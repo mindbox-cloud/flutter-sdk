@@ -36,10 +36,6 @@ migrate_working_dir/
 # Local pub overrides (dev-only, wires example to local packages)
 pubspec_overrides.yaml
 
-# cocoapods-spm plugin scratch (not used by this project, left over locally if
-# the global gem was previously installed)
-ios/.spm.pods/
-
 # Xcode/Flutter SwiftPM workspace dir. Ignore the per-machine scratch
 # (configuration/) but COMMIT Package.resolved — this is an app, so its SPM
 # lockfile is checked in for reproducible native-SDK resolution.
@@ -59,9 +55,6 @@ app.*.map.json
 
 /android/app/google-services.json
 /android/app/agconnect-services.json
-
-# iOS — Podfile.lock is committed (this is an app) for reproducible pod versions.
-/ios/Pods/
 
 # FVM Version Cache
 .fvm/
