@@ -43,22 +43,22 @@ class ViewModel {
         operationBody: getPushOpenOperationBody(pushName, pushDate));
   }
 
-  static void getSDKVersion(Function complition) {
+  static void getSDKVersion(void Function(String) completion) {
     Mindbox.instance.nativeSdkVersion.then((value) {
-      complition(value);
+      completion(value);
     });
   }
 
-  static void getToken(Function complition) {
+  static void getToken(void Function(String) completion) {
     Mindbox.instance.getToken((value) {
-      complition(value);
+      completion(value);
     });
   }
 
-  static void getDeviceUUID(Function complition) {
+  static void getDeviceUUID(void Function(String) completion) {
     Mindbox.instance.getDeviceUUID((value) {
       print(value);
-      complition(value);
+      completion(value);
     });
   }
 
