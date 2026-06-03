@@ -1,56 +1,55 @@
 import Flutter
 import UIKit
 import Mindbox
-import MindboxLogger
 
 
 
-public class SwiftMindboxIosPlugin: NSObject, FlutterPlugin {
+public class MindboxIosPlugin: NSObject, FlutterPlugin {
     private final var channel: FlutterMethodChannel
-    
+
     private final let compositeDelegate = CompositeClass()
-    
+
     public static func register(with registrar: FlutterPluginRegistrar) {
         let channel = FlutterMethodChannel(name: Constants.pluginChannelName, binaryMessenger: registrar.messenger())
-        let instance = SwiftMindboxIosPlugin(channel: channel)
+        let instance = MindboxIosPlugin(channel: channel)
         registrar.addMethodCallDelegate(instance, channel: channel)
         registrar.addApplicationDelegate(instance)
-        
+
     }
-    
+
     init(channel: FlutterMethodChannel) {
         self.channel = channel
         super.init()
     }
-    
+
     @available(*, deprecated)
     @objc
     public static func pushClicked(response: UNNotificationResponse){
     }
-    
-    
+
+
     public func pushClicked(response: UNNotificationResponse){
         let action = response.actionIdentifier as NSString
         let request = response.notification.request
         let userInfo = request.content.userInfo
-        
+
         var link: NSString?
         var payload: NSString?
-        
+
         if let url = userInfo["clickUrl"] as? NSString {
             link = url
         }
-        
+
         if let payloadData = userInfo["payload"] as? NSString {
             payload = payloadData
         }
-        
+
         if(link == nil){
             let aps = userInfo["aps"] as? NSDictionary
             link = aps?["clickUrl"] as? NSString
             payload = aps?["payload"] as? NSString
         }
-        
+
         if let buttons = userInfo["buttons"] as? NSArray {
             buttons.forEach{
                 guard
@@ -66,7 +65,7 @@ public class SwiftMindboxIosPlugin: NSObject, FlutterPlugin {
         }
         channel.invokeMethod("pushClicked", arguments: [link, payload])
     }
-    
+
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         switch call.method {
         case "getSdkVersion":
@@ -175,29 +174,27 @@ public class SwiftMindboxIosPlugin: NSObject, FlutterPlugin {
                     result(FlutterError(code: "-1", message: "error", details: "Wrong argument count or type"))
                     return
                 }
-                
+
             guard let message = args[0] as? String,
                     let levelIndex = args[1] as? Int else {
                     result(FlutterError(code: "-1", message: "error", details: "Wrong argument type"))
                     return
                 }
-            let logLevel: LogLevel
-            
+
+            // `LogLevel` lives in MindboxLogger, which isn't exposed as a product
+            // in ios-sdk's Package.swift — `import MindboxLogger` fails in SPM mode.
+            // Seed `level` from the logger's getter so the type is inferred without
+            // referencing `LogLevel` explicitly.
+            var level = Mindbox.logger.logLevel
             switch levelIndex {
-            case 0:
-                logLevel = .debug
-            case 1:
-                logLevel = .info
-            case 2:
-                logLevel = .default
-            case 3:
-                logLevel = .error
-            case 4:
-                logLevel = .fault
-            default:
-                logLevel = .none
+            case 0: level = .debug
+            case 1: level = .info
+            case 2: level = .default
+            case 3: level = .error
+            case 4: level = .fault
+            default: level = .none
             }
-            Mindbox.logger.log(level: logLevel, message: message)
+            Mindbox.logger.log(level: level, message: message)
             result(0)
 
         default:
@@ -206,18 +203,18 @@ public class SwiftMindboxIosPlugin: NSObject, FlutterPlugin {
     }
 }
 
-extension SwiftMindboxIosPlugin: UNUserNotificationCenterDelegate {
+extension MindboxIosPlugin: UNUserNotificationCenterDelegate {
     public func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
         completionHandler()
         pushClicked(response: response)
     }
 }
 
-extension SwiftMindboxIosPlugin: InAppMessagesDelegate {
+extension MindboxIosPlugin: InAppMessagesDelegate {
     public func inAppMessageTapAction(id: String, url: URL?, payload: String) {
         channel.invokeMethod("onInAppClick", arguments: [id, url?.absoluteString ?? "", payload])
     }
-    
+
     public func inAppMessageDismissed(id: String) {
         channel.invokeMethod("onInAppDismissed", arguments: id)
     }

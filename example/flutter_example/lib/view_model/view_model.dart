@@ -3,7 +3,7 @@ import 'package:permission_handler/permission_handler.dart';
 
 class ViewModel {
   //https://developers.mindbox.ru/docs/%D0%BC%D0%B5%D1%82%D0%BE%D0%B4%D1%8B-flutter-sdk
-  static syncOperation() {
+  static void syncOperation() {
     Mindbox.instance.executeSyncOperation(
       operationSystemName: 'APIMethodForReleaseExampleIos',
       operationBody: {
@@ -18,7 +18,7 @@ class ViewModel {
     );
   }
 
-  static asyncOperation() {
+  static void asyncOperation() {
     Mindbox.instance.executeAsyncOperation(
         operationSystemName: "APIMethodForReleaseExampleIos",
         operationBody: {
@@ -31,34 +31,34 @@ class ViewModel {
   }
 
   //used for send action "notification center was opened"
-  static asyncOperationNCOpen() {
+  static void asyncOperationNCOpen() {
     Mindbox.instance.executeAsyncOperation(
         operationSystemName: "mobileapp.NCOpen", operationBody: {});
   }
 
   //used for send action "click on push from notification center"
-  static asyncOperationNCPushOpen(String pushName, String pushDate) {
+  static void asyncOperationNCPushOpen(String pushName, String pushDate) {
     Mindbox.instance.executeAsyncOperation(
         operationSystemName: "mobileapp.NCPushOpen",
         operationBody: getPushOpenOperationBody(pushName, pushDate));
   }
 
-  static getSDKVersion(Function complition) {
+  static void getSDKVersion(void Function(String) completion) {
     Mindbox.instance.nativeSdkVersion.then((value) {
-      complition(value);
+      completion(value);
     });
   }
 
-  static getToken(Function complition) {
+  static void getToken(void Function(String) completion) {
     Mindbox.instance.getToken((value) {
-      complition(value);
+      completion(value);
     });
   }
 
-  static getDeviceUUID(Function complition) {
+  static void getDeviceUUID(void Function(String) completion) {
     Mindbox.instance.getDeviceUUID((value) {
       print(value);
-      complition(value);
+      completion(value);
     });
   }
 
@@ -72,7 +72,7 @@ class ViewModel {
   }
 
   //https://developers.mindbox.ru/docs/in-app
-  static chooseInAppCallback(ChooseInappCallback chooseInappCallback) {
+  static void chooseInAppCallback(ChooseInappCallback chooseInappCallback) {
     switch (chooseInappCallback) {
       case ChooseInappCallback.defaultInAppCallback:
         break;

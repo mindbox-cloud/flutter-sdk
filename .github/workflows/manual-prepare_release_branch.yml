@@ -158,6 +158,9 @@ jobs:
           sed -i "s/cloud.mindbox:mobile-sdk:.*/cloud.mindbox:mobile-sdk:$AND_VER'/" mindbox_android/android/build.gradle
           echo "  After:"  && grep "cloud.mindbox:mobile-sdk" mindbox_android/android/build.gradle || true
 
+          # Fail the release if a version substitution didn't land (stale pin).
+          assert_pin() { grep -qE "$2" "$1" || { echo "ERROR: pattern /$2/ not found in $1 — substitution failed"; exit 1; }; }
+
           echo "→ Bumping iOS native SDK in podspec"
           echo "  Before s.version:" && grep -E "s\.version" mindbox_ios/ios/mindbox_ios.podspec || true
           sed -i -E "s/(s\.version *= *')[^']+(')/\1$IO_VER\2/" mindbox_ios/ios/mindbox_ios.podspec
@@ -166,10 +169,18 @@ jobs:
           echo "  Before Mindbox dependency:" && grep "s.dependency 'Mindbox'," mindbox_ios/ios/mindbox_ios.podspec || true
           sed -i -E "s/(s\.dependency 'Mindbox', *')[^']+(')/\1$IO_VER\2/" mindbox_ios/ios/mindbox_ios.podspec
           echo "  After Mindbox dependency:" && grep "s.dependency 'Mindbox'," mindbox_ios/ios/mindbox_ios.podspec || true
+          assert_pin mindbox_ios/ios/mindbox_ios.podspec "s\.dependency 'Mindbox', *'$IO_VER'"
 
           echo "  Before Notifications dep:" && grep "MindboxNotifications" mindbox_ios/ios/mindbox_ios.podspec || true
           sed -i -E "s/(s\.dependency 'MindboxNotifications', *')[^']+(')/\1$IO_VER\2/" mindbox_ios/ios/mindbox_ios.podspec
           echo "  After Notifications dep:" && grep "MindboxNotifications" mindbox_ios/ios/mindbox_ios.podspec || true
+          assert_pin mindbox_ios/ios/mindbox_ios.podspec "s\.dependency 'MindboxNotifications', *'$IO_VER'"
+
+          echo "→ Bumping ios-sdk exact pin in SPM manifest"
+          echo "  Before:" && grep "mindbox-cloud/ios-sdk" mindbox_ios/ios/mindbox_ios/Package.swift || true
+          sed -i "/mindbox-cloud\/ios-sdk/ s/exact: \"[^\"]*\"/exact: \"$IO_VER\"/" mindbox_ios/ios/mindbox_ios/Package.swift
+          echo "  After:"  && grep "mindbox-cloud/ios-sdk" mindbox_ios/ios/mindbox_ios/Package.swift || true
+          assert_pin mindbox_ios/ios/mindbox_ios/Package.swift "exact: *\"$IO_VER\""
 
           echo "→ Now inspect pubspec.yaml versions:"
           echo "  mindbox/pubspec.yaml:" && grep "^version\|mindbox_" mindbox/pubspec.yaml || true
@@ -207,7 +218,8 @@ jobs:
                   mindbox_ios/pubspec.yaml \
                   mindbox_platform_interface/pubspec.yaml \
                   mindbox_android/android/build.gradle \
-                  mindbox_ios/ios/mindbox_ios.podspec
+                  mindbox_ios/ios/mindbox_ios.podspec \
+                  mindbox_ios/ios/mindbox_ios/Package.swift
 
           git commit -m "Bump SDK versions: Flutter=$VERSION, Android=$AND_VER, iOS=$IO_VER"
           echo "release_branch=$REL" >> $GITHUB_OUTPUT
