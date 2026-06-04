@@ -10,7 +10,7 @@ import MindboxNotifications
 
 class NotificationService: UNNotificationServiceExtension {
     
-    static let suiteName = "group.cloud.Mindbox.cloud.mindbox.flutterExample"
+    static let suiteName = "group.cloud.Mindbox.mindbox.Flutter.Example"
     lazy var mindboxService = MindboxNotificationService()
     
     override func didReceive(_ request: UNNotificationRequest, withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void) {
