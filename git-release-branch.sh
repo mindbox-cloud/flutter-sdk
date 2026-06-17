@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
 # Check the current Git branch
 current_branch=$(git symbolic-ref --short HEAD)
@@ -9,7 +10,7 @@ if [[ $current_branch != "develop" && ! $current_branch =~ ^release/[0-9]+\.[0-9
 fi
 
 # Check if the parameter is provided
-read -p "Flutter SDK release version: " version
+read -r -p "Flutter SDK release version: " version
 
 # Check if the version number matches the semver format
 if ! [[ $version =~ ^[0-9]+\.[0-9]+\.[0-9]+(-rc)?$ ]]; then
@@ -19,8 +20,8 @@ fi
 
 # Create a branch with the version name
 branch_name="release/$version"
-git branch $branch_name
-git checkout $branch_name
+git branch "$branch_name"
+git checkout "$branch_name"
 
 echo "Branch $branch_name has been created."
 
@@ -51,7 +52,7 @@ git add $ios_yaml
 git add $android_yaml
 git add $common_yaml
 
-read -p "Android SDK version: " android_sdk_version
+read -r -p "Android SDK version: " android_sdk_version
 
 # Check if the version number matches the semver format
 if ! [[ $android_sdk_version =~ ^[0-9]+\.[0-9]+\.[0-9]+(-rc)?$ ]]; then
@@ -59,7 +60,7 @@ if ! [[ $android_sdk_version =~ ^[0-9]+\.[0-9]+\.[0-9]+(-rc)?$ ]]; then
   exit 1
 fi
 
-read -p "iOS SDK version: " ios_sdk_version
+read -r -p "iOS SDK version: " ios_sdk_version
 
 # Check if the version number matches the semver format
 if ! [[ $ios_sdk_version =~ ^[0-9]+\.[0-9]+\.[0-9]+(-rc)?$ ]]; then

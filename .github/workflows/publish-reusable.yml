@@ -6,6 +6,14 @@ on:
       branch:
         required: true
         type: string
+    secrets:
+      PUB_CREDENTIALS:
+        required: true
+      PAT_FOR_TRIGGERING_BRANCH_PROTECTION:
+        required: true
+
+permissions:
+  contents: read
 
 jobs:
   analyze_and_test:
@@ -13,31 +21,35 @@ jobs:
     uses: ./.github/workflows/analyze_and_test.yml
     with:
       branch: ${{ inputs.branch }}
-    secrets: inherit
 
   platform_interface_publish:
     needs: [analyze_and_test]
     timeout-minutes: 4
     runs-on: ubuntu-latest
     name: mindbox_platform_interface publishing
+    permissions:
+      contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           fetch-depth: 2
           ref: ${{ inputs.branch }}
       - name: Check package Pubspec
         id: pubspec
+        env:
+          HEAD_SHA: ${{ github.sha }}
         run: |
           set +e
-          git diff-tree --no-commit-id --name-only -r HEAD~1 ${{ github.sha }} | grep 'mindbox_platform_interface/pubspec.yaml'
-          echo ::set-output name=changed::$?
+          git diff-tree --no-commit-id --name-only -r HEAD~1 "$HEAD_SHA" | grep 'mindbox_platform_interface/pubspec.yaml'
+          rc=$?
           set -e
+          echo "changed=$rc" >> "$GITHUB_OUTPUT"
       - name: Extract package version
         if: steps.pubspec.outputs.changed == 0
         run: |
           cd mindbox_platform_interface
-          echo "VERSION=$(awk '{if ($1 ~ /^version:/) print $2}' pubspec.yaml)" >> $GITHUB_ENV
-      - uses: sakebook/actions-flutter-pub-publisher@v1.3.1
+          echo "VERSION=$(awk '{if ($1 ~ /^version:/) print $2}' pubspec.yaml)" >> "$GITHUB_ENV"
+      - uses: sakebook/actions-flutter-pub-publisher@7112915a1a834881d4c98ef7af12f3456e5c79c7 # v1.3.1
         if: steps.pubspec.outputs.changed == 0
         with:
           package_directory: mindbox_platform_interface
@@ -46,16 +58,11 @@ jobs:
           skip_test: true
       - name: Create Release
         if: steps.pubspec.outputs.changed == 0
-        id: create_release
-        uses: actions/create-release@v1.1.4
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: mindbox_platform_interface-v${{ env.VERSION }}
-          release_name: mindbox_platform_interface v${{ env.VERSION }}
-          draft: false
-          prerelease: false
-          
+          BRANCH: ${{ inputs.branch }}
+        run: ./.github/git-release-ci.sh "mindbox_platform_interface-v$VERSION" "mindbox_platform_interface v$VERSION" "$BRANCH"
+
   waiting-while-platform-interface-publish:
     needs: [platform_interface_publish]
     runs-on: ubuntu-latest
@@ -68,6 +75,8 @@ jobs:
     timeout-minutes: 4
     runs-on: ubuntu-latest
     name: ${{ matrix.package }} publishing
+    permissions:
+      contents: write
     strategy:
       matrix:
         package:
@@ -76,23 +85,29 @@ jobs:
       fail-fast: false
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           fetch-depth: 2
           ref: ${{ inputs.branch }}
       - name: Check package Pubspec
         id: pubspec
+        env:
+          HEAD_SHA: ${{ github.sha }}
+          PKG: ${{ matrix.package }}
         run: |
           set +e
-          git diff-tree --no-commit-id --name-only -r HEAD~1 ${{ github.sha }} | grep '${{ matrix.package }}/pubspec.yaml'
-          echo ::set-output name=changed::$?
+          git diff-tree --no-commit-id --name-only -r HEAD~1 "$HEAD_SHA" | grep "$PKG/pubspec.yaml"
+          rc=$?
           set -e
+          echo "changed=$rc" >> "$GITHUB_OUTPUT"
       - name: Extract package version
         if: steps.pubspec.outputs.changed == 0
+        env:
+          PKG: ${{ matrix.package }}
         run: |
-          cd ${{ matrix.package }}
-          echo "VERSION=$(awk '{if ($1 ~ /^version:/) print $2}' pubspec.yaml)" >> $GITHUB_ENV
-      - uses: sakebook/actions-flutter-pub-publisher@v1.3.1
+          cd "$PKG"
+          echo "VERSION=$(awk '{if ($1 ~ /^version:/) print $2}' pubspec.yaml)" >> "$GITHUB_ENV"
+      - uses: sakebook/actions-flutter-pub-publisher@7112915a1a834881d4c98ef7af12f3456e5c79c7 # v1.3.1
         if: steps.pubspec.outputs.changed == 0
         with:
           package_directory: ${{ matrix.package }}
@@ -101,16 +116,12 @@ jobs:
           skip_test: true
       - name: Create Release
         if: steps.pubspec.outputs.changed == 0
-        id: create_release
-        uses: actions/create-release@v1.1.4
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ matrix.package }}-v${{ env.VERSION }}
-          release_name: ${{ matrix.package }} v${{ env.VERSION }}
-          draft: false
-          prerelease: false
-          
+          BRANCH: ${{ inputs.branch }}
+          PKG: ${{ matrix.package }}
+        run: ./.github/git-release-ci.sh "$PKG-v$VERSION" "$PKG v$VERSION" "$BRANCH"
+
   waiting-while-native_components_publish:
     needs: [native_components_publish]
     runs-on: ubuntu-latest
@@ -123,24 +134,29 @@ jobs:
     timeout-minutes: 4
     runs-on: ubuntu-latest
     name: mindbox publishing
+    permissions:
+      contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           fetch-depth: 2
           ref: ${{ inputs.branch }}
       - name: Check package Pubspec
         id: pubspec
+        env:
+          HEAD_SHA: ${{ github.sha }}
         run: |
           set +e
-          git diff-tree --no-commit-id --name-only -r HEAD~1 ${{ github.sha }} | grep 'mindbox/pubspec.yaml'
-          echo ::set-output name=changed::$?
+          git diff-tree --no-commit-id --name-only -r HEAD~1 "$HEAD_SHA" | grep 'mindbox/pubspec.yaml'
+          rc=$?
           set -e
+          echo "changed=$rc" >> "$GITHUB_OUTPUT"
       - name: Extract package version
         if: steps.pubspec.outputs.changed == 0
         run: |
           cd mindbox
-          echo "VERSION=$(awk '{if ($1 ~ /^version:/) print $2}' pubspec.yaml)" >> $GITHUB_ENV
-      - uses: sakebook/actions-flutter-pub-publisher@v1.3.1
+          echo "VERSION=$(awk '{if ($1 ~ /^version:/) print $2}' pubspec.yaml)" >> "$GITHUB_ENV"
+      - uses: sakebook/actions-flutter-pub-publisher@7112915a1a834881d4c98ef7af12f3456e5c79c7 # v1.3.1
         if: steps.pubspec.outputs.changed == 0
         with:
           package_directory: mindbox
@@ -150,27 +166,25 @@ jobs:
           dry_run: false
       - name: Create Release
         if: steps.pubspec.outputs.changed == 0
-        id: create_release
-        uses: actions/create-release@v1.1.4
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: mindbox-v${{ env.VERSION }}
-          release_name: mindbox v${{ env.VERSION }}
-          draft: false
-          prerelease: false
+          BRANCH: ${{ inputs.branch }}
+        run: ./.github/git-release-ci.sh "mindbox-v$VERSION" "mindbox v$VERSION" "$BRANCH"
 
   merge:
     needs: [plugin_publish]
     if: |
-      startsWith(github.head_ref, 'release') && 
+      startsWith(github.head_ref, 'release/') &&
       github.base_ref == 'master'
     runs-on: ubuntu-latest
     env:
+      # gh uses this PAT, not the workflow GITHUB_TOKEN — needed so the merge PR
+      # re-triggers branch-protection checks. Job-level `permissions:` only scope
+      # the workflow token, so they don't apply to these gh calls.
       GITHUB_TOKEN: ${{ secrets.PAT_FOR_TRIGGERING_BRANCH_PROTECTION }}
     steps:
       - name: Checkout develop branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           ref: develop
       - name: Create Pull Request
@@ -178,22 +192,4 @@ jobs:
       - name: Merge Pull Request
         run: |
           pr_number=$(gh pr list --base develop --head master --json number --jq '.[0].number')
-          gh pr merge $pr_number --merge --auto
-
-  message-to-loop-if-success:
-    needs: [plugin_publish]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Send message to LOOP
-        env:
-          LOOP_NOTIFICATION_WEBHOOK_URL: ${{ secrets.LOOP_NOTIFICATION_WEBHOOK_URL }}
-          VERSION: ${{ inputs.branch }}
-        run: |
-          MESSAGE=$(cat <<EOF
-          {
-            "text": "**🤖 Flutter release was successful. Version: ${VERSION}**"
-          }
-          EOF)
-          curl -X POST "$LOOP_NOTIFICATION_WEBHOOK_URL" \
-            -H "Content-Type: application/json" \
-            -d "$MESSAGE"
+          gh pr merge "$pr_number" --merge --auto
