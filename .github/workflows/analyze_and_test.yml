@@ -29,7 +29,8 @@ jobs:
           ref: ${{ inputs.branch || github.head_ref }}
       - uses: actions/setup-java@ad2b38190b15e4d6bdf0c97fb4fca8412226d287 # v5.3.0
         with:
-          java-version: "12.x"
+          distribution: 'temurin'
+          java-version: '17'
       - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
           channel: "stable"
@@ -49,7 +50,8 @@ jobs:
           ref: ${{ inputs.branch || github.head_ref }}
       - uses: actions/setup-java@ad2b38190b15e4d6bdf0c97fb4fca8412226d287 # v5.3.0
         with:
-          java-version: "12.x"
+          distribution: 'temurin'
+          java-version: '17'
       - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
           channel: "stable"
@@ -72,7 +74,8 @@ jobs:
           ref: ${{ inputs.branch || github.head_ref }}
       - uses: actions/setup-java@ad2b38190b15e4d6bdf0c97fb4fca8412226d287 # v5.3.0
         with:
-          java-version: "12.x"
+          distribution: 'temurin'
+          java-version: '17'
       - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
           channel: "stable"
@@ -95,7 +98,8 @@ jobs:
           ref: ${{ inputs.branch || github.head_ref }}
       - uses: actions/setup-java@ad2b38190b15e4d6bdf0c97fb4fca8412226d287 # v5.3.0
         with:
-          java-version: "12.x"
+          distribution: 'temurin'
+          java-version: '17'
       - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
           channel: "stable"
@@ -112,7 +116,8 @@ jobs:
           ref: ${{ inputs.branch || github.head_ref }}
       - uses: actions/setup-java@ad2b38190b15e4d6bdf0c97fb4fca8412226d287 # v5.3.0
         with:
-          java-version: "12.x"
+          distribution: 'temurin'
+          java-version: '17'
       - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
           channel: "stable"
