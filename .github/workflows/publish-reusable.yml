@@ -30,7 +30,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 2
           ref: ${{ inputs.branch }}
@@ -49,7 +49,7 @@ jobs:
         run: |
           cd mindbox_platform_interface
           echo "VERSION=$(awk '{if ($1 ~ /^version:/) print $2}' pubspec.yaml)" >> "$GITHUB_ENV"
-      - uses: sakebook/actions-flutter-pub-publisher@ccd9fbba502ea7ef33ea2479e0cdac5a2a9766e1 # v1.4.1
+      - uses: sakebook/actions-flutter-pub-publisher@150ed867828c76c47814ff8bcdfe936273ff7fd1 # v1.21
         if: steps.pubspec.outputs.changed == 0
         with:
           package_directory: mindbox_platform_interface
@@ -85,7 +85,7 @@ jobs:
       fail-fast: false
 
     steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 2
           ref: ${{ inputs.branch }}
@@ -107,7 +107,7 @@ jobs:
         run: |
           cd "$PKG"
           echo "VERSION=$(awk '{if ($1 ~ /^version:/) print $2}' pubspec.yaml)" >> "$GITHUB_ENV"
-      - uses: sakebook/actions-flutter-pub-publisher@ccd9fbba502ea7ef33ea2479e0cdac5a2a9766e1 # v1.4.1
+      - uses: sakebook/actions-flutter-pub-publisher@150ed867828c76c47814ff8bcdfe936273ff7fd1 # v1.21
         if: steps.pubspec.outputs.changed == 0
         with:
           package_directory: ${{ matrix.package }}
@@ -137,7 +137,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 2
           ref: ${{ inputs.branch }}
@@ -156,7 +156,7 @@ jobs:
         run: |
           cd mindbox
           echo "VERSION=$(awk '{if ($1 ~ /^version:/) print $2}' pubspec.yaml)" >> "$GITHUB_ENV"
-      - uses: sakebook/actions-flutter-pub-publisher@ccd9fbba502ea7ef33ea2479e0cdac5a2a9766e1 # v1.4.1
+      - uses: sakebook/actions-flutter-pub-publisher@150ed867828c76c47814ff8bcdfe936273ff7fd1 # v1.21
         if: steps.pubspec.outputs.changed == 0
         with:
           package_directory: mindbox
@@ -184,7 +184,7 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.PAT_FOR_TRIGGERING_BRANCH_PROTECTION }}
     steps:
       - name: Checkout develop branch
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           ref: develop
       - name: Create Pull Request
