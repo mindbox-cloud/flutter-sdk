@@ -56,4 +56,35 @@ void main() {
 
     expect(configuration.toMap()['operationsDomain'], '');
   });
+
+  test('shouldIncludeVersionCode defaults to true when not provided', () {
+    final Configuration configuration = Configuration(
+      domain: 'domain',
+      endpointIos: 'iOSEndpoint',
+      endpointAndroid: 'androidEndpoint',
+    );
+
+    expect(configuration.shouldIncludeVersionCode, true);
+  });
+
+  test('toMap includes shouldIncludeVersionCode when set to false', () {
+    final Configuration configuration = Configuration(
+      domain: 'domain',
+      endpointIos: 'iOSEndpoint',
+      endpointAndroid: 'androidEndpoint',
+      shouldIncludeVersionCode: false,
+    );
+
+    expect(configuration.toMap()['shouldIncludeVersionCode'], false);
+  });
+
+  test('toMap returns true shouldIncludeVersionCode when not provided', () {
+    final Configuration configuration = Configuration(
+      domain: 'domain',
+      endpointIos: 'iOSEndpoint',
+      endpointAndroid: 'androidEndpoint',
+    );
+
+    expect(configuration.toMap()['shouldIncludeVersionCode'], true);
+  });
 }
