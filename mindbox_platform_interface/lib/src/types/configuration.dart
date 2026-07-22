@@ -10,7 +10,7 @@ class Configuration {
     this.previousInstallationId = '',
     this.shouldCreateCustomer = true,
     this.operationsDomain = '',
-    this.shouldIncludeVersionCode = true,
+    this.shouldIncludeVersionCode,
   });
 
   /// Used for generating baseurl for REST.
@@ -41,8 +41,11 @@ class Configuration {
 
   /// Specifies whether the app versionCode is included in the app version
   /// reported to Mindbox. When `false`, only versionName is reported.
-  /// Android only, ignored on iOS. Default is `true`.
-  final bool shouldIncludeVersionCode;
+  /// Android only, ignored on iOS.
+  ///
+  /// When not provided, the key is not sent to the native SDK and its
+  /// default is used (`true` — versionCode is reported).
+  final bool? shouldIncludeVersionCode;
 
   /// Returns map of parameters
   Map<String, dynamic> toMap() => {
@@ -54,6 +57,7 @@ class Configuration {
         'subscribeCustomerIfCreated': subscribeCustomerIfCreated,
         'shouldCreateCustomer': shouldCreateCustomer,
         'operationsDomain': operationsDomain,
-        'shouldIncludeVersionCode': shouldIncludeVersionCode,
+        if (shouldIncludeVersionCode != null)
+          'shouldIncludeVersionCode': shouldIncludeVersionCode,
       };
 }

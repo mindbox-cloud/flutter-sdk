@@ -126,7 +126,7 @@ void main() {
   );
 
   test(
-    'init() forwards true shouldIncludeVersionCode by default',
+    'init() does not forward shouldIncludeVersionCode when not provided',
     () async {
       final capturedArgs = <String, dynamic>{};
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
@@ -145,8 +145,7 @@ void main() {
         ),
       );
 
-      expect(capturedArgs.containsKey('shouldIncludeVersionCode'), isTrue);
-      expect(capturedArgs['shouldIncludeVersionCode'], true);
+      expect(capturedArgs.containsKey('shouldIncludeVersionCode'), isFalse);
     },
   );
 
