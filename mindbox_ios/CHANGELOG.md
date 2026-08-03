@@ -1,3 +1,7 @@
+## 2.15.3
+
+* Upgrade native iOS SDK dependency to v2.15.2.
+
 ## 2.15.2
 
 * Upgrade native iOS SDK dependency to v2.15.1.

@@ -10,7 +10,7 @@ let package = Package(
         .library(name: "mindbox-ios", targets: ["mindbox_ios"])
     ],
     dependencies: [
-        .package(url: "https://github.com/mindbox-cloud/ios-sdk", exact: "2.15.1"),
+        .package(url: "https://github.com/mindbox-cloud/ios-sdk", exact: "2.15.2"),
     ],
     targets: [
         .target(
