@@ -79,6 +79,10 @@ class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, Ne
                         .subscribeCustomerIfCreated(subscribeIfCreated)
                         .shouldCreateCustomer(shouldCreateCustomer)
                         .operationsDomain(operationsDomainArg)
+                        .apply {
+                            (args["shouldIncludeVersionCode"] as? Boolean)
+                                ?.let { shouldIncludeVersionCode(it) }
+                        }
                         .build()
                     Mindbox.init(activity = context, config, listOf())
                     result.success("initialized")
