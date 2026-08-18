@@ -2,7 +2,7 @@
 ///
 /// The block is a view, not a call, so nothing here lands on `MindboxPlatform`: what crosses the
 /// boundary is a platform view type, one channel per created view, and the two signals the native
-/// block sends up — whether it occupies space and how its load ended.
+/// block sends up — how it occupies its place and how its load ended.
 
 /// The type both native factories register the block under.
 const String embeddedBlockViewType = 'mindbox.cloud/flutter-sdk/embedded_block';
@@ -19,6 +19,19 @@ class EmbeddedBlockParams {
 
   static const String placeSystemName = 'placeSystemName';
   static const String height = 'height';
+
+  /// Whether the host draws a loading screen of its own.
+  ///
+  /// Not the screen itself: a Flutter widget cannot be handed to a native container, and a widget
+  /// that could would leave its tree and lose the theme, the locale and the inherited objects it was
+  /// written against. The container is told only that the place is taken, and answers by holding
+  /// back its own shimmer.
+  static const String hasPlaceholder = 'hasPlaceholder';
+
+  /// Whether the host draws a failure of its own — the same arrangement as [hasPlaceholder], with
+  /// one difference: this is also what opts the block into showing a failure at all. Without it a
+  /// failed block collapses.
+  static const String hasErrorView = 'hasErrorView';
 }
 
 /// Methods of the per-view channel.
@@ -28,8 +41,46 @@ class EmbeddedBlockMethods {
   /// Native → Dart: where the block stands now, as an [EmbeddedBlockReport].
   static const String report = 'report';
 
+  /// Dart → native: report where the block stands, whatever it is.
+  ///
+  /// Asked once, as soon as the channel has a handler. The native block hands out its appearance the
+  /// moment the wrapper subscribes — which happens while the platform view is being built, before
+  /// Dart can listen — and a place with nothing behind it settles synchronously right there. Without
+  /// this the first report of such a block goes to a channel nobody is on yet, and the widget waits
+  /// out its whole life on a loading screen for a block that already collapsed.
+  static const String sync = 'sync';
+
   /// Dart → native: whether the host still shows the block.
   static const String setHostVisible = 'setHostVisible';
+
+  /// Dart → native: whether the host draws its own placeholder and failure, as the two
+  /// [EmbeddedBlockParams] booleans.
+  ///
+  /// The same answer as the creation params, for a block that is already live: the host may gain or
+  /// lose either screen between builds.
+  static const String setStandIns = 'setStandIns';
+}
+
+/// How the block occupies its place right now — what the wrapper draws, not what happened.
+///
+/// The rules behind the decision stay in the native container: the content states, the rule that an
+/// empty place shows no failure, the one that a place taken by loading is a place drawn. Dart
+/// mirrors the answer in its layout and nothing more, so every wrapper of the SDK shows the same
+/// thing at the same moment by construction.
+enum EmbeddedBlockAppearance {
+  /// The content is loading. A host with a placeholder of its own draws it; without one the
+  /// container's shimmer is already on screen.
+  placeholder,
+
+  /// The block content is shown — the host draws nothing over it.
+  content,
+
+  /// The block failed and the host opted into showing it. Never appears for an empty place.
+  error,
+
+  /// The block occupies no space: a failure without a host failure screen, or an empty place. The
+  /// space goes back to the layout.
+  collapsed,
 }
 
 /// How the block's load ended. There are two outcomes and no more: the block is either shown or it
@@ -38,36 +89,38 @@ enum EmbeddedBlockOutcome { load, fail }
 
 /// What the native block says about itself.
 class EmbeddedBlockReport {
-  const EmbeddedBlockReport({required this.isVisible, this.outcome});
+  const EmbeddedBlockReport({this.appearance, this.outcome});
 
-  /// Whether the block occupies space. `false` — it collapsed, and the space is the host's again.
+  /// What to draw, or `null` when the message carries no answer this version understands.
   ///
-  /// The native container decides this: the rules for a placeholder, an opted-in error screen and
-  /// an empty place all live there, and Dart only mirrors the answer in its layout.
-  final bool isVisible;
+  /// The appearance is a state and not an event: the same value arrives more than once, and the
+  /// host keeps the last one it knew when a message brings none.
+  final EmbeddedBlockAppearance? appearance;
 
   /// How the load ended, or `null` while it has not ended.
+  ///
+  /// Sent apart from [appearance] because the two are decided apart: the container settles its
+  /// layers inside its own state change and delivers the outcome on the next turn of the main
+  /// queue. Deriving one from the other would move the host's callback to the wrong moment.
   final EmbeddedBlockOutcome? outcome;
 
   /// Reads a report off the channel, or `null` if the message is not one.
   ///
-  /// Tolerant on purpose: a native side newer than the Dart one may send fields this version does
-  /// not know, and that is no reason to break the block.
+  /// Tolerant on purpose: a native side newer than the Dart one may send fields — or appearances —
+  /// this version does not know, and that is no reason to break the block.
   static EmbeddedBlockReport? tryParse(Object? arguments) {
     if (arguments is! Map) {
       return null;
     }
 
-    final Object? isVisible = arguments[_isVisibleKey];
-    if (isVisible is! bool) {
-      return null;
-    }
-
     return EmbeddedBlockReport(
-      isVisible: isVisible,
+      appearance: _appearanceOf(arguments[_appearanceKey]),
       outcome: _outcomeOf(arguments[_outcomeKey]),
     );
   }
+
+  static EmbeddedBlockAppearance? _appearanceOf(Object? raw) =>
+      _appearances[raw];
 
   static EmbeddedBlockOutcome? _outcomeOf(Object? raw) {
     if (raw == _loadOutcome) {
@@ -79,7 +132,15 @@ class EmbeddedBlockReport {
     return null;
   }
 
-  static const String _isVisibleKey = 'isVisible';
+  static const Map<Object?, EmbeddedBlockAppearance> _appearances =
+      <Object?, EmbeddedBlockAppearance>{
+    'placeholder': EmbeddedBlockAppearance.placeholder,
+    'content': EmbeddedBlockAppearance.content,
+    'error': EmbeddedBlockAppearance.error,
+    'collapsed': EmbeddedBlockAppearance.collapsed,
+  };
+
+  static const String _appearanceKey = 'appearance';
   static const String _outcomeKey = 'outcome';
   static const String _loadOutcome = 'load';
   static const String _failOutcome = 'fail';

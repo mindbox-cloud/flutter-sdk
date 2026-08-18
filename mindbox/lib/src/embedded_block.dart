@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
@@ -18,14 +20,35 @@ import 'package:mindbox_platform_interface/mindbox_platform_interface.dart';
 /// )
 /// ```
 ///
+/// Both outcomes can be customized, the same way as in SwiftUI and Compose: [placeholder] replaces
+/// the stock loading shimmer, and [errorBuilder] opts into showing a failure instead of collapsing.
+/// Both stay ordinary widgets, built in place and mounted inside the block, so they resolve the
+/// theme, the locale and the inherited objects of the tree the block itself stands in — and a
+/// callback of the host works from them like from any other widget.
+///
+/// ```dart
+/// MindboxEmbeddedBlock(
+///   placeSystemName: 'stories',
+///   height: 104,
+///   placeholder: (_) => const StoriesSkeleton(),
+///   errorBuilder: (_) => const StoriesUnavailable(),
+/// )
+/// ```
+///
 /// The widget is a thin layer over the native block: the platform view holds the SDK's own container
-/// — with its placeholder, its waiting budget and its web page — and this widget only mirrors the
-/// container's decisions in the Flutter layout.
-class MindboxEmbeddedBlock extends StatefulWidget {
+/// — with its waiting budget and its web page — and this widget only mirrors the container's
+/// decisions in the Flutter layout, and draws the host's own screens over it when it asks for them.
+///
+/// **iOS and Android.** On any other platform the block collapses right away and reports [onFail], so
+/// a layout that hides its section on failure behaves the same everywhere.
+class MindboxEmbeddedBlock extends StatelessWidget {
+  /// Creates a block for the place named [placeSystemName], occupying [height].
   const MindboxEmbeddedBlock({
     Key? key,
     required this.placeSystemName,
     required this.height,
+    this.placeholder,
+    this.errorBuilder,
     this.onLoad,
     this.onFail,
   }) : super(key: key);
@@ -36,7 +59,27 @@ class MindboxEmbeddedBlock extends StatefulWidget {
 
   /// The height the block occupies while it loads and while it is shown. Fixed when the block is
   /// created: a new value given to a live block is ignored and reported to the log.
+  ///
+  /// To resize a block that is already on screen, give the widget a new [Key] — that is a new block,
+  /// built from scratch, and it reloads its content.
   final double height;
+
+  /// Built instead of the SDK shimmer while the block is loading.
+  ///
+  /// Fills the whole place, as the native placeholder does: the widget is given the block's full
+  /// width and height as tight constraints. A screen that should be smaller says so itself, with an
+  /// [Align] or a [Center]; one that could be taller has to fit — anything over [height] overflows.
+  final WidgetBuilder? placeholder;
+
+  /// Built instead of collapsing when the block cannot be shown.
+  ///
+  /// Applies only to failures: an empty place — one with nothing behind its place system name —
+  /// always collapses, so a host cannot fill the space of a block that was never meant to be there.
+  ///
+  /// Adding it to a block that has *already* collapsed does not bring the space back: reopening
+  /// space the layout has reclaimed would make it jump. Such a builder takes effect on the next
+  /// load. Passing it from the start is what a host that wants a failure screen should do.
+  final WidgetBuilder? errorBuilder;
 
   /// The content is shown.
   final VoidCallback? onLoad;
@@ -46,18 +89,57 @@ class MindboxEmbeddedBlock extends StatefulWidget {
   final VoidCallback? onFail;
 
   @override
-  State<MindboxEmbeddedBlock> createState() => _MindboxEmbeddedBlockState();
+  Widget build(BuildContext context) {
+    return _EmbeddedBlock(
+      // A different place is a different block, and everything remembered about the old one has to
+      // go with it — the outcome already delivered, the appearance last shown, the height fixed at
+      // creation. Keying the state and not just the platform view is what `.id(placeSystemName)`
+      // does in SwiftUI; keying only the view would keep a live State pointing at a dead block.
+      key: ValueKey<String>(placeSystemName),
+      placeSystemName: placeSystemName,
+      height: height,
+      placeholder: placeholder,
+      errorBuilder: errorBuilder,
+      onLoad: onLoad,
+      onFail: onFail,
+    );
+  }
 }
 
-class _MindboxEmbeddedBlockState extends State<MindboxEmbeddedBlock> {
-  /// Fixed at creation, like in the SwiftUI and Compose wrappers: the native block is built with a
-  /// height, and re-creating it on every new value would reload the web page — which is what a
-  /// `GeometryReader` or a height animation would otherwise do on every frame.
-  late final double _height = widget.height;
+class _EmbeddedBlock extends StatefulWidget {
+  const _EmbeddedBlock({
+    Key? key,
+    required this.placeSystemName,
+    required this.height,
+    required this.placeholder,
+    required this.errorBuilder,
+    required this.onLoad,
+    required this.onFail,
+  }) : super(key: key);
 
-  /// Starts where the native container starts: the space is taken and the placeholder is up. The
+  final String placeSystemName;
+  final double height;
+  final WidgetBuilder? placeholder;
+  final WidgetBuilder? errorBuilder;
+  final VoidCallback? onLoad;
+  final VoidCallback? onFail;
+
+  @override
+  State<_EmbeddedBlock> createState() => _EmbeddedBlockState();
+}
+
+class _EmbeddedBlockState extends State<_EmbeddedBlock> {
+  /// The height as given, kept to tell an ignored new value from the one the block was built with.
+  late final double _creationHeight = widget.height;
+
+  /// The height as laid out. Clamped like the native container and the SwiftUI wrapper do — a
+  /// negative height computed from a `MediaQuery` reaches the block as a broken constraint here,
+  /// while on the native side it is only a log line and an invisible block.
+  late final double _height = math.max(0, _creationHeight);
+
+  /// Starts where the native container starts: the space is taken and the loading screen is up. The
   /// block occupies its height right away, not from the container's first report.
-  bool _isVisible = true;
+  EmbeddedBlockAppearance _appearance = EmbeddedBlockAppearance.placeholder;
 
   EmbeddedBlockOutcome? _deliveredOutcome;
 
@@ -65,10 +147,64 @@ class _MindboxEmbeddedBlockState extends State<MindboxEmbeddedBlock> {
 
   MethodChannel? _channel;
 
+  /// What the native side was last *told*, not what the widget last held.
+  ///
+  /// The difference is the whole point: a change that happens before the platform view exists has
+  /// nowhere to go, and comparing against the previous widget would call that change delivered and
+  /// never mention it again. Compared against this, an undelivered change stays pending until the
+  /// channel appears.
+  bool? _syncedHasPlaceholder;
+  bool? _syncedHasErrorView;
+  bool? _syncedHostVisible;
+
+  bool _isHostVisible = true;
+
+  bool get _hasPlaceholder => widget.placeholder != null;
+
+  bool get _hasErrorView => widget.errorBuilder != null;
+
+  /// The platforms that have a native block behind the widget. Both wrap the very same container,
+  /// speak the same channel and answer with the same appearances — that is the whole point of the
+  /// arrangement, and it is why the widget itself needs no per-platform branch beyond which platform
+  /// view class to build.
+  static bool get _isSupported =>
+      defaultTargetPlatform == TargetPlatform.iOS ||
+      defaultTargetPlatform == TargetPlatform.android;
+
   @override
-  void didUpdateWidget(covariant MindboxEmbeddedBlock oldWidget) {
+  void initState() {
+    super.initState();
+    if (!_isSupported) {
+      // No platform view means no reports and no outcome — and a host told to drop its section in
+      // `onFail` would keep an empty hole forever waiting for one. Answer the way an empty place
+      // answers, so the layout around the block behaves the same on every platform.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) {
+          return;
+        }
+        setState(() => _appearance = EmbeddedBlockAppearance.collapsed);
+        _deliver(EmbeddedBlockOutcome.fail);
+      });
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // `Overlay` turns tickers off for a route covered by an opaque one, which is exactly when a
+    // Flutter screen stops being seen while its platform view stays in the window.
+    // `valuesOf` is the non-deprecated spelling, but it is newer than the Flutter floor this
+    // package declares, and `of` says everything the block needs.
+    // ignore: deprecated_member_use
+    _isHostVisible = TickerMode.of(context);
+    _pushHostVisible();
+  }
+
+  @override
+  void didUpdateWidget(covariant _EmbeddedBlock oldWidget) {
     super.didUpdateWidget(oldWidget);
     _warnIfHeightIsIgnored();
+    _pushStandIns();
   }
 
   @override
@@ -79,41 +215,85 @@ class _MindboxEmbeddedBlockState extends State<MindboxEmbeddedBlock> {
 
   @override
   Widget build(BuildContext context) {
+    final Widget? hostLayer = _hostLayer(context);
+
     return SizedBox(
-      width: double.infinity,
-      height: _isVisible ? _height : 0,
-      child: _nativeBlock(),
+      height: _appearance == EmbeddedBlockAppearance.collapsed ? 0 : _height,
+      child: Stack(
+        fit: StackFit.expand,
+        children: <Widget>[
+          _nativeBlock(),
+          // Nothing to draw is no child at all. An empty widget would be harmless to touches — it
+          // hit-tests to nothing and the block underneath still hears them — but it is a layer the
+          // engine has to composite over the platform view for no reason at all.
+          if (hostLayer != null) hostLayer,
+        ],
+      ),
     );
   }
 
+  /// The host's own screen for the current appearance, or `null` when the host draws nothing.
+  Widget? _hostLayer(BuildContext context) {
+    switch (_appearance) {
+      case EmbeddedBlockAppearance.placeholder:
+        return widget.placeholder?.call(context);
+      case EmbeddedBlockAppearance.error:
+        return widget.errorBuilder?.call(context);
+      case EmbeddedBlockAppearance.content:
+      case EmbeddedBlockAppearance.collapsed:
+        return null;
+    }
+  }
+
   Widget _nativeBlock() {
-    if (defaultTargetPlatform != TargetPlatform.iOS) {
-      // Only iOS registers the platform view so far. The place still holds its height, so a layout
-      // built around the block does not jump when the other platform catches up.
+    if (!_isSupported) {
       return const SizedBox.shrink();
     }
 
-    return KeyedSubtree(
-      // A different place is a different block: the platform view is recreated rather than
-      // repointed, the same way `key(placeSystemName)` works in Compose and `.id(…)` in SwiftUI.
-      key: ValueKey<String>(widget.placeSystemName),
-      child: UiKitView(
+    final Map<String, Object> creationParams = <String, Object>{
+      EmbeddedBlockParams.placeSystemName: widget.placeSystemName,
+      EmbeddedBlockParams.height: _height,
+      // The container is told that the place is taken, not what goes into it: it holds back its
+      // shimmer and keeps a failed block standing, and Dart draws the screen itself.
+      EmbeddedBlockParams.hasPlaceholder: _hasPlaceholder,
+      EmbeddedBlockParams.hasErrorView: _hasErrorView,
+    };
+
+    // A block is typically a horizontal carousel inside a vertical scroll. Flutter has no parent to
+    // ask not to intercept touches — the gesture arena decides — so the platform view has to claim
+    // horizontal drags itself, or the surrounding list takes them first.
+    //
+    // Only while the content is what is on screen. Under a host's own screen the block has nothing
+    // to scroll, and claiming drags there would take them from a placeholder or a failure screen
+    // that scrolls or swipes on its own.
+    final Set<Factory<OneSequenceGestureRecognizer>> gestureRecognizers =
+        _appearance == EmbeddedBlockAppearance.content
+            ? <Factory<OneSequenceGestureRecognizer>>{
+                Factory<OneSequenceGestureRecognizer>(
+                  () => HorizontalDragGestureRecognizer(),
+                ),
+              }
+            : const <Factory<OneSequenceGestureRecognizer>>{};
+
+    // The only place in the widget that knows which platform it is on. Everything else — the layers,
+    // the height, the outcome, the two signals sent down — is written once and reads the same answer
+    // from either native side.
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      return AndroidView(
         viewType: embeddedBlockViewType,
-        creationParams: <String, Object>{
-          EmbeddedBlockParams.placeSystemName: widget.placeSystemName,
-          EmbeddedBlockParams.height: _height,
-        },
+        creationParams: creationParams,
         creationParamsCodec: const StandardMessageCodec(),
-        // A block is typically a horizontal carousel inside a vertical scroll. Flutter has no
-        // parent to ask not to intercept touches — the gesture arena decides — so the platform view
-        // has to claim horizontal drags itself, or the surrounding list takes them first.
-        gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
-          Factory<OneSequenceGestureRecognizer>(
-            () => HorizontalDragGestureRecognizer(),
-          ),
-        },
+        gestureRecognizers: gestureRecognizers,
         onPlatformViewCreated: _listenTo,
-      ),
+      );
+    }
+
+    return UiKitView(
+      viewType: embeddedBlockViewType,
+      creationParams: creationParams,
+      creationParamsCodec: const StandardMessageCodec(),
+      gestureRecognizers: gestureRecognizers,
+      onPlatformViewCreated: _listenTo,
     );
   }
 
@@ -121,6 +301,17 @@ class _MindboxEmbeddedBlockState extends State<MindboxEmbeddedBlock> {
     final MethodChannel channel = MethodChannel(embeddedBlockChannelName(viewId));
     channel.setMethodCallHandler(_handle);
     _channel = channel;
+    // Where does the block stand? Asked rather than assumed: the container hands out its appearance
+    // the moment the native wrapper subscribes, which is while the platform view is being built —
+    // before this handler existed. A place with nothing behind it settles right there, and its only
+    // report would be lost, leaving the widget on a loading screen for a block that already gave its
+    // space back.
+    _invoke(channel, EmbeddedBlockMethods.sync, null);
+    // Everything the block was told before it existed is told now. The platform view is created a
+    // few frames after the first build, and a host that gains a failure screen — or leaves the
+    // screen — inside that window would otherwise be heard by nobody, permanently.
+    _pushStandIns();
+    _pushHostVisible();
   }
 
   Future<void> _handle(MethodCall call) async {
@@ -133,8 +324,9 @@ class _MindboxEmbeddedBlockState extends State<MindboxEmbeddedBlock> {
       return;
     }
 
-    if (report.isVisible != _isVisible) {
-      setState(() => _isVisible = report.isVisible);
+    final EmbeddedBlockAppearance? appearance = report.appearance;
+    if (appearance != null && appearance != _appearance) {
+      setState(() => _appearance = appearance);
     }
 
     _deliver(report.outcome);
@@ -155,15 +347,67 @@ class _MindboxEmbeddedBlockState extends State<MindboxEmbeddedBlock> {
     }
   }
 
+  /// Whether the host draws its own screens can change between builds — a placeholder given only
+  /// while a feature flag is on, a failure screen added once the section knows it can retry.
+  ///
+  /// Only the answer travels, not the builder: a widget rebuilt with a different closure that still
+  /// draws a placeholder is the same answer, and telling the container about it on every frame would
+  /// make it swap its layers for nothing.
+  void _pushStandIns() {
+    final MethodChannel? channel = _channel;
+    if (channel == null ||
+        (_syncedHasPlaceholder == _hasPlaceholder && _syncedHasErrorView == _hasErrorView)) {
+      return;
+    }
+
+    _syncedHasPlaceholder = _hasPlaceholder;
+    _syncedHasErrorView = _hasErrorView;
+    _invoke(
+      channel,
+      EmbeddedBlockMethods.setStandIns,
+      <String, Object>{
+        EmbeddedBlockParams.hasPlaceholder: _hasPlaceholder,
+        EmbeddedBlockParams.hasErrorView: _hasErrorView,
+      },
+    );
+  }
+
+  /// Tells the block whether the screen it stands on is still the one being looked at.
+  ///
+  /// The native container watches its window, and in Flutter that is not enough: every screen shares
+  /// one window, so pushing a route over the block never takes it out. Left alone, the block would
+  /// spend its whole waiting budget behind another screen and collapse before the user came back to
+  /// a place that never gets its space again.
+  void _pushHostVisible() {
+    final MethodChannel? channel = _channel;
+    if (channel == null || _syncedHostVisible == _isHostVisible) {
+      return;
+    }
+
+    _syncedHostVisible = _isHostVisible;
+    _invoke(channel, EmbeddedBlockMethods.setHostVisible, _isHostVisible);
+  }
+
+  /// Sends and forgets, but does not leave the failure unhandled: a call into a platform view the
+  /// engine has already disposed answers with a `MissingPluginException`, and an uncaught one
+  /// surfaces to the host as a crash report for a block that is simply gone.
+  void _invoke(MethodChannel channel, String method, Object? arguments) {
+    channel.invokeMethod<void>(method, arguments).catchError((Object error) {
+      debugPrint('[MindboxEmbeddedBlock] $method for block "${widget.placeSystemName}" '
+          'was not delivered: $error');
+    });
+  }
+
   void _warnIfHeightIsIgnored() {
-    if (_hasWarnedAboutHeight || widget.height == _height) {
+    if (_hasWarnedAboutHeight || widget.height == _creationHeight) {
       return;
     }
 
     _hasWarnedAboutHeight = true;
     debugPrint(
       '[MindboxEmbeddedBlock] Block "${widget.placeSystemName}" was given height ${widget.height} '
-      'after creation and keeps $_height: the height is fixed when the block is created.',
+      'after creation and keeps $_creationHeight: the height is fixed when the block is created. '
+      'Give the widget a new Key to build a block of a different height.',
     );
   }
 }
