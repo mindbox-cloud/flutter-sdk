@@ -3,10 +3,12 @@ package cloud.mindbox.mindbox_android
 import android.content.Context
 import android.graphics.Color
 import android.view.View
+import cloud.mindbox.mobile_sdk.Mindbox
 import cloud.mindbox.mobile_sdk.annotations.InternalMindboxApi
 import cloud.mindbox.mobile_sdk.embedded.MindboxEmbeddedBlockAppearance
 import cloud.mindbox.mobile_sdk.embedded.MindboxEmbeddedBlockListener
 import cloud.mindbox.mobile_sdk.embedded.MindboxEmbeddedBlockView
+import cloud.mindbox.mobile_sdk.logger.Level
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
@@ -67,6 +69,17 @@ internal class EmbeddedBlockPlatformView(
         // that parent is Flutter — the platform view is laid out to the height Dart gives it.
         blockView = MindboxEmbeddedBlockView(context, placeSystemName)
         channel = MethodChannel(messenger, "$VIEW_TYPE/$viewId")
+
+        // Said here rather than left to the container: it does warn about a place it cannot resolve,
+        // but in the words of the XML attribute it was written for, which names nothing a Flutter
+        // host can set. The same mistake is reported the same way on both platforms.
+        if (placeSystemName.isEmpty()) {
+            Mindbox.writeLog(
+                message = "[EmbeddedBlock] A Flutter block was created without a place system name " +
+                    "and has nothing to resolve",
+                logLevel = Level.ERROR,
+            )
+        }
 
         syncStandIns(
             hasPlaceholder = params?.get(KEY_HAS_PLACEHOLDER) as? Boolean ?: false,

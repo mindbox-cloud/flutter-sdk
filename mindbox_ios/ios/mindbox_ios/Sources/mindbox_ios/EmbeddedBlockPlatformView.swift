@@ -73,8 +73,11 @@ final class EmbeddedBlockPlatformView: NSObject, FlutterPlatformView {
     deinit {
         // The platform view is gone, so the block's screen is gone with it. Waiting for the last
         // reference to go instead would keep a page loading for a screen nobody can see.
-        blockView.setAppearanceObserver(nil)
-        blockView.delegate = nil
+        //
+        // `release()` and nothing else: it marks the block released before dropping the delegate and
+        // the observer itself. Dropping the delegate here first would do it while the block still
+        // counts as live, and its `didSet` would read the change as a new subscriber and schedule a
+        // delivery on the main queue for a view being torn down.
         blockView.release()
         channel.setMethodCallHandler(nil)
     }

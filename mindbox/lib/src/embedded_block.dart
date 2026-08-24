@@ -178,7 +178,11 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock> {
       // No platform view means no reports and no outcome — and a host told to drop its section in
       // `onFail` would keep an empty hole forever waiting for one. Answer the way an empty place
       // answers, so the layout around the block behaves the same on every platform.
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+      // `WidgetsBinding.instance` reads as non-nullable only from Flutter 3, and this package still
+      // declares a 2.0 floor. `ensureInitialized` returns the binding itself on both — inside a
+      // widget it is long up, so nothing is initialized here: this is the same instance, spelled in
+      // a way that compiles either side of the change.
+      WidgetsFlutterBinding.ensureInitialized().addPostFrameCallback((_) {
         if (!mounted) {
           return;
         }
@@ -298,6 +302,16 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock> {
   }
 
   void _listenTo(int viewId) {
+    // A platform view can be built again for the same `State` — a new id, a new native container
+    // that has heard nothing. What was sent to the previous one is not what this one knows, and
+    // left in place it would silence the resend below: a block whose host is already hidden would
+    // match the answer it sent the old view, say nothing, and let the new one — which starts out
+    // believing it is on screen — spend its whole waiting budget behind a covered route.
+    _channel?.setMethodCallHandler(null);
+    _syncedHasPlaceholder = null;
+    _syncedHasErrorView = null;
+    _syncedHostVisible = null;
+
     final MethodChannel channel = MethodChannel(embeddedBlockChannelName(viewId));
     channel.setMethodCallHandler(_handle);
     _channel = channel;
