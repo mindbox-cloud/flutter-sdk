@@ -17,7 +17,11 @@ String embeddedBlockChannelName(int viewId) => '$embeddedBlockViewType/$viewId';
 class EmbeddedBlockParams {
   EmbeddedBlockParams._();
 
+  /// The name of the place from the admin panel — what the native block resolves its content by.
   static const String placeSystemName = 'placeSystemName';
+
+  /// The height the block occupies, in logical pixels. Read only by the iOS factory: on Android the
+  /// block is sized by the platform view it is placed in.
   static const String height = 'height';
 
   /// Whether the host draws a loading screen of its own.
@@ -85,10 +89,18 @@ enum EmbeddedBlockAppearance {
 
 /// How the block's load ended. There are two outcomes and no more: the block is either shown or it
 /// is not — an empty place reaches the host as [EmbeddedBlockOutcome.fail], the same as a failure.
-enum EmbeddedBlockOutcome { load, fail }
+enum EmbeddedBlockOutcome {
+  /// The content is shown.
+  load,
+
+  /// The place ended up without content — the load failed or timed out, or there was nothing
+  /// behind the name.
+  fail,
+}
 
 /// What the native block says about itself.
 class EmbeddedBlockReport {
+  /// Both parts are optional: a message carries whichever of them it has to say.
   const EmbeddedBlockReport({this.appearance, this.outcome});
 
   /// What to draw, or `null` when the message carries no answer this version understands.

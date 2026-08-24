@@ -1,3 +1,7 @@
+## Unreleased
+
+* Add the embedded block's platform contract: the view type, the per-block channel and its reports.
+
 ## 2.15.2
 
 * Upgrade native Android SDK dependency to v2.15.2.

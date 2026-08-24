@@ -32,6 +32,38 @@ Learn how to send events to Mindbox. Create a new Operation class object and set
 
 Mindbox SDK helps handle push notifications. Configuration and usage instructions can be found in the SDK documentation [here](https://developers.mindbox.ru/docs/firebase-send-push-notifications-flutter),  [here](https://developers.mindbox.ru/docs/huawei-send-push-notifications-flutter) and [here](https://developers.mindbox.ru/docs/ios-send-push-notifications-flutter).
 
+### Embedded Blocks
+
+Mark a place in your layout with `MindboxEmbeddedBlock` and the SDK decides what goes into it from
+the admin panel — the app never learns what the content is, and it can change without a release.
+The host owns the size: pass the `height` the block should occupy. A place that ends up without
+content collapses to zero height and hands the space back.
+
+```dart
+MindboxEmbeddedBlock(
+  placeSystemName: 'main-screen-top',
+  height: 104,
+)
+```
+
+Both outcomes can be customized, the same way as in SwiftUI and Compose: `placeholder` replaces the
+stock loading shimmer, and `errorBuilder` opts into showing a failure instead of collapsing. An
+empty place always collapses — a host cannot fill the space of a block that was never meant to be
+there. `onLoad` and `onFail` report how the load ended.
+
+```dart
+MindboxEmbeddedBlock(
+  placeSystemName: 'stories',
+  height: 104,
+  placeholder: (_) => const StoriesSkeleton(),
+  errorBuilder: (_) => const StoriesUnavailable(),
+  onFail: () => setState(() => _showStoriesSection = false),
+)
+```
+
+Available on iOS and Android. On any other platform the block collapses right away and reports
+`onFail`, so a layout that hides its section on failure behaves the same everywhere.
+
 ## Troubleshooting
 
 Refer to the [Example of integration(IOS)](https://github.com/mindbox-cloud/flutter-sdk/tree/develop/mindbox_ios/example) or [Example of integration(Android)](https://github.com/mindbox-cloud/flutter-sdk/tree/develop/mindbox_android/example) in case of any issues.
