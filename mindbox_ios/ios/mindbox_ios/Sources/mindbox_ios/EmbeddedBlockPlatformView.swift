@@ -45,9 +45,14 @@ final class EmbeddedBlockPlatformView: NSObject, FlutterPlatformView {
         let params = arguments as? [String: Any]
         let placeSystemName = params?[Keys.placeSystemName] as? String ?? ""
         let height = (params?[Keys.height] as? NSNumber)?.doubleValue ?? 0
+        // Absent means the host named no budget, and that is exactly the container's own `nil`: the
+        // SDK default. Milliseconds on the wire, seconds here — the container counts in seconds, and
+        // an integer is what the standard codec carries the same way from either Dart side.
+        let timeout = (params?[Keys.timeoutMs] as? NSNumber).map { TimeInterval($0.doubleValue) / 1000 }
 
         blockView = MindboxEmbeddedBlockView(placeSystemName: placeSystemName,
-                                            height: CGFloat(height))
+                                            height: CGFloat(height),
+                                            timeout: timeout)
         channel = FlutterMethodChannel(name: "\(Constants.embeddedBlockViewType)/\(viewId)",
                                        binaryMessenger: messenger)
         super.init()
@@ -180,6 +185,7 @@ final class EmbeddedBlockPlatformView: NSObject, FlutterPlatformView {
     private enum Keys {
         static let placeSystemName = "placeSystemName"
         static let height = "height"
+        static let timeoutMs = "timeoutMs"
         static let hasPlaceholder = "hasPlaceholder"
         static let hasErrorView = "hasErrorView"
         static let report = "report"

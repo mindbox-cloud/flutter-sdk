@@ -35,6 +35,9 @@ import 'package:mindbox_platform_interface/mindbox_platform_interface.dart';
 /// )
 /// ```
 ///
+/// How long the block may wait before it gives its place back is the [timeout], and a host that
+/// leaves it out gets the SDK's own budget of 30 seconds.
+///
 /// The widget is a thin layer over the native block: the platform view holds the SDK's own container
 /// — with its waiting budget and its web page — and this widget only mirrors the container's
 /// decisions in the Flutter layout, and draws the host's own screens over it when it asks for them.
@@ -47,6 +50,7 @@ class MindboxEmbeddedBlock extends StatelessWidget {
     Key? key,
     required this.placeSystemName,
     required this.height,
+    this.timeout,
     this.placeholder,
     this.errorBuilder,
     this.onLoad,
@@ -63,6 +67,25 @@ class MindboxEmbeddedBlock extends StatelessWidget {
   /// To resize a block that is already on screen, give the widget a new [Key] — that is a new block,
   /// built from scratch, and it reloads its content.
   final double height;
+
+  /// How long the block waits to learn what it shows before it gives its place back. `null` — the
+  /// default — is the SDK's own budget of 30 seconds.
+  ///
+  /// The budget covers the wait for the answer, not the whole life of the block: a page that has
+  /// already arrived gets its own time to render, and that is not shortened by a small timeout here.
+  /// An answer that comes in later no longer expands a block that has given up; the next attempt
+  /// starts when the block comes back on screen.
+  ///
+  /// The wait is the user's, not the clock's: it is counted only while the screen the block stands
+  /// on is the one being looked at, and a block left behind a pushed route keeps the remainder of
+  /// its budget for when the user comes back.
+  ///
+  /// Zero or negative is not a budget — such a block would collapse before the SDK could answer at
+  /// all — so the native side keeps its default instead and writes down what it was given.
+  ///
+  /// Fixed when the block is created, exactly as [height] is: a new value given to a live block is
+  /// ignored and reported to the log. Give the widget a new [Key] to load a block on a new budget.
+  final Duration? timeout;
 
   /// Built instead of the SDK shimmer while the block is loading.
   ///
@@ -98,6 +121,7 @@ class MindboxEmbeddedBlock extends StatelessWidget {
       key: ValueKey<String>(placeSystemName),
       placeSystemName: placeSystemName,
       height: height,
+      timeout: timeout,
       placeholder: placeholder,
       errorBuilder: errorBuilder,
       onLoad: onLoad,
@@ -111,6 +135,7 @@ class _EmbeddedBlock extends StatefulWidget {
     Key? key,
     required this.placeSystemName,
     required this.height,
+    required this.timeout,
     required this.placeholder,
     required this.errorBuilder,
     required this.onLoad,
@@ -119,6 +144,7 @@ class _EmbeddedBlock extends StatefulWidget {
 
   final String placeSystemName;
   final double height;
+  final Duration? timeout;
   final WidgetBuilder? placeholder;
   final WidgetBuilder? errorBuilder;
   final VoidCallback? onLoad;
@@ -137,6 +163,14 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock> {
   /// while on the native side it is only a log line and an invisible block.
   late final double _height = math.max(0, _creationHeight);
 
+  /// The budget as given, kept for the same reason the height is: it goes to the native block once,
+  /// when the platform view is created, and a later value has no container left to reach.
+  ///
+  /// Taken in `initState` rather than on first read: on a platform without a native block nothing
+  /// reads it while the block is being built, and a lazy field would be filled in by the very
+  /// comparison meant to catch a changed budget — with the changed value.
+  late final Duration? _creationTimeout;
+
   /// Starts where the native container starts: the space is taken and the loading screen is up. The
   /// block occupies its height right away, not from the container's first report.
   EmbeddedBlockAppearance _appearance = EmbeddedBlockAppearance.placeholder;
@@ -144,6 +178,8 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock> {
   EmbeddedBlockOutcome? _deliveredOutcome;
 
   bool _hasWarnedAboutHeight = false;
+
+  bool _hasWarnedAboutTimeout = false;
 
   MethodChannel? _channel;
 
@@ -174,6 +210,7 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock> {
   @override
   void initState() {
     super.initState();
+    _creationTimeout = widget.timeout;
     if (!_isSupported) {
       // No platform view means no reports and no outcome — and a host told to drop its section in
       // `onFail` would keep an empty hole forever waiting for one. Answer the way an empty place
@@ -207,7 +244,7 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock> {
   @override
   void didUpdateWidget(covariant _EmbeddedBlock oldWidget) {
     super.didUpdateWidget(oldWidget);
-    _warnIfHeightIsIgnored();
+    _warnIfCreationValuesAreIgnored();
     _pushStandIns();
   }
 
@@ -262,6 +299,13 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock> {
       EmbeddedBlockParams.hasPlaceholder: _hasPlaceholder,
       EmbeddedBlockParams.hasErrorView: _hasErrorView,
     };
+
+    // Sent only when the host named one: an absent key is what tells either native side to keep its
+    // own default, and there is no number that means "no budget" to put there instead.
+    final Duration? timeout = _creationTimeout;
+    if (timeout != null) {
+      creationParams[EmbeddedBlockParams.timeoutMs] = timeout.inMilliseconds;
+    }
 
     // A block is typically a horizontal carousel inside a vertical scroll. Flutter has no parent to
     // ask not to intercept touches — the gesture arena decides — so the platform view has to claim
@@ -412,16 +456,26 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock> {
     });
   }
 
-  void _warnIfHeightIsIgnored() {
-    if (_hasWarnedAboutHeight || widget.height == _creationHeight) {
-      return;
+  /// Both the height and the budget are settled when the block is built and cannot be talked out of
+  /// it afterwards. Said once per value, and separately: a host that changed only one of them should
+  /// hear about that one.
+  void _warnIfCreationValuesAreIgnored() {
+    if (!_hasWarnedAboutHeight && widget.height != _creationHeight) {
+      _hasWarnedAboutHeight = true;
+      debugPrint(
+        '[MindboxEmbeddedBlock] Block "${widget.placeSystemName}" was given height ${widget.height} '
+        'after creation and keeps $_creationHeight: the height is fixed when the block is created. '
+        'Give the widget a new Key to build a block of a different height.',
+      );
     }
 
-    _hasWarnedAboutHeight = true;
-    debugPrint(
-      '[MindboxEmbeddedBlock] Block "${widget.placeSystemName}" was given height ${widget.height} '
-      'after creation and keeps $_creationHeight: the height is fixed when the block is created. '
-      'Give the widget a new Key to build a block of a different height.',
-    );
+    if (!_hasWarnedAboutTimeout && widget.timeout != _creationTimeout) {
+      _hasWarnedAboutTimeout = true;
+      debugPrint(
+        '[MindboxEmbeddedBlock] Block "${widget.placeSystemName}" was given timeout '
+        '${widget.timeout} after creation and keeps $_creationTimeout: the timeout is fixed when '
+        'the block is created. Give the widget a new Key to load a block on a different budget.',
+      );
+    }
   }
 }

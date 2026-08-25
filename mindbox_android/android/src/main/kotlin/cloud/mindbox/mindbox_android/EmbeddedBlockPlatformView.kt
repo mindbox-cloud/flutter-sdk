@@ -65,9 +65,15 @@ internal class EmbeddedBlockPlatformView(
         val params = arguments as? Map<*, *>
         val placeSystemName = params?.get(KEY_PLACE_SYSTEM_NAME) as? String ?: ""
 
+        // Absent means the host named no budget, and that is exactly the container's own `null`: the
+        // SDK default. Read as a Number rather than an Int: the standard codec sends a value that
+        // fits in 32 bits as an Int and a longer one as a Long, and a budget in milliseconds sits
+        // right where the two meet.
+        val timeoutMs = (params?.get(KEY_TIMEOUT_MS) as? Number)?.toLong()
+
         // The height is not passed on: on Android the block is a frame sized by its parent, and here
         // that parent is Flutter — the platform view is laid out to the height Dart gives it.
-        blockView = MindboxEmbeddedBlockView(context, placeSystemName)
+        blockView = MindboxEmbeddedBlockView(context, placeSystemName, timeoutMs)
         channel = MethodChannel(messenger, "$VIEW_TYPE/$viewId")
 
         // Said here rather than left to the container: it does warn about a place it cannot resolve,
@@ -209,6 +215,7 @@ internal class EmbeddedBlockPlatformView(
 
         const val VIEW_TYPE = EMBEDDED_BLOCK_VIEW_TYPE
         const val KEY_PLACE_SYSTEM_NAME = "placeSystemName"
+        const val KEY_TIMEOUT_MS = "timeoutMs"
         const val KEY_HAS_PLACEHOLDER = "hasPlaceholder"
         const val KEY_HAS_ERROR_VIEW = "hasErrorView"
         const val KEY_APPEARANCE = "appearance"

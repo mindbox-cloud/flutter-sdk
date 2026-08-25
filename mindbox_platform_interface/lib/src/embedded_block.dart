@@ -24,6 +24,14 @@ class EmbeddedBlockParams {
   /// block is sized by the platform view it is placed in.
   static const String height = 'height';
 
+  /// How long the block may wait to learn what it shows, in whole milliseconds. Absent means the
+  /// host said nothing and the native default stands.
+  ///
+  /// Milliseconds and not a [Duration]: what crosses the boundary is what the standard codec
+  /// carries, and each native side spells the budget its own way — seconds on iOS, milliseconds on
+  /// Android. The integer is the one spelling both can read.
+  static const String timeoutMs = 'timeoutMs';
+
   /// Whether the host draws a loading screen of its own.
   ///
   /// Not the screen itself: a Flutter widget cannot be handed to a native container, and a widget

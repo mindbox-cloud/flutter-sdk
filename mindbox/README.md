@@ -61,6 +61,23 @@ MindboxEmbeddedBlock(
 )
 ```
 
+How long a block may wait for its content before it gives the place back is `timeout`. Left out, it
+is the SDK's own budget of 30 seconds. The wait is the user's: it is counted only while the screen
+the block stands on is the one being looked at, so a block behind a pushed route keeps the remainder
+of its budget for the return.
+
+```dart
+MindboxEmbeddedBlock(
+  placeSystemName: 'stories',
+  height: 104,
+  timeout: const Duration(seconds: 5),
+)
+```
+
+Both `height` and `timeout` are fixed when the block is created — a new value given to a block
+already on screen is ignored and reported to the log. Give the widget a new `Key` to build a block
+on new terms.
+
 Available on iOS and Android. On any other platform the block collapses right away and reports
 `onFail`, so a layout that hides its section on failure behaves the same everywhere.
 
