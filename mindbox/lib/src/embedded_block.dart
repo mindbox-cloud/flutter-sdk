@@ -100,8 +100,9 @@ class MindboxEmbeddedBlock extends StatelessWidget {
   /// always collapses, so a host cannot fill the space of a block that was never meant to be there.
   ///
   /// Adding it to a block that has *already* collapsed does not bring the space back: reopening
-  /// space the layout has reclaimed would make it jump. Such a builder takes effect on the next
-  /// load. Passing it from the start is what a host that wants a failure screen should do.
+  /// space the layout has reclaimed would make it jump. Such a builder takes effect on a load that
+  /// starts the cycle anew, never on the silent retry a return to the screen brings. Passing it
+  /// from the start is what a host that wants a failure screen should do.
   final WidgetBuilder? errorBuilder;
 
   /// The content is shown.
@@ -203,9 +204,14 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock> {
   /// speak the same channel and answer with the same appearances — that is the whole point of the
   /// arrangement, and it is why the widget itself needs no per-platform branch beyond which platform
   /// view class to build.
+  ///
+  /// The web is excluded by name: there [defaultTargetPlatform] mirrors the browser's host OS, so
+  /// without [kIsWeb] a phone's browser would claim a native block no browser can build — instead
+  /// of collapsing the way every other platform without one does.
   static bool get _isSupported =>
-      defaultTargetPlatform == TargetPlatform.iOS ||
-      defaultTargetPlatform == TargetPlatform.android;
+      !kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.iOS ||
+          defaultTargetPlatform == TargetPlatform.android);
 
   @override
   void initState() {
