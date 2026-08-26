@@ -101,6 +101,55 @@ void main() {
   );
 
   test(
+    'init() forwards shouldIncludeVersionCode to native channel when set',
+    () async {
+      final capturedArgs = <String, dynamic>{};
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+        if (call.method == 'init') {
+          capturedArgs.addAll(Map<String, dynamic>.from(call.arguments));
+        }
+        return mindboxMockMethodCallHandler(call);
+      });
+
+      await handler.init(
+        configuration: Configuration(
+          domain: 'domain',
+          endpointIos: 'endpointIos',
+          endpointAndroid: 'endpointAndroid',
+          shouldIncludeVersionCode: false,
+        ),
+      );
+
+      expect(capturedArgs['shouldIncludeVersionCode'], false);
+    },
+  );
+
+  test(
+    'init() does not forward shouldIncludeVersionCode when not provided',
+    () async {
+      final capturedArgs = <String, dynamic>{};
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+        if (call.method == 'init') {
+          capturedArgs.addAll(Map<String, dynamic>.from(call.arguments));
+        }
+        return mindboxMockMethodCallHandler(call);
+      });
+
+      await handler.init(
+        configuration: Configuration(
+          domain: 'domain',
+          endpointIos: 'endpointIos',
+          endpointAndroid: 'endpointAndroid',
+        ),
+      );
+
+      expect(capturedArgs.containsKey('shouldIncludeVersionCode'), isFalse);
+    },
+  );
+
+  test(
     'When config is invalid, init() calling should throws MindboxException',
     () async {
       final invalidConfig = Configuration(

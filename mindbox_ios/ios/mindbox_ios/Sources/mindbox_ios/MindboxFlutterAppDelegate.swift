@@ -1,7 +1,6 @@
 import UIKit
 import Flutter
 import Mindbox
-import MindboxNotifications
 
 open class MindboxFlutterAppDelegate: FlutterAppDelegate {
 

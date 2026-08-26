@@ -4,7 +4,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'mindbox_ios'
-  s.version          = '2.15.1'
+  s.version          = '2.15.3'
   s.summary          = 'Mindbox Flutter SDK'
   s.description      = <<-DESC
 The implementation of 'mindbox' plugin for the iOS platform
@@ -13,10 +13,10 @@ The implementation of 'mindbox' plugin for the iOS platform
   s.license          = { :file => '../LICENSE' }
   s.author           = { 'Mindbox' => 'it@mindbox.ru' }
   s.source           = { :path => '.' }
-  s.source_files = 'Classes/**/*'
+  s.source_files = 'mindbox_ios/Sources/mindbox_ios/**/*.swift', 'Classes/MindboxFlutterAppDelegate.{h,m}'
   s.dependency 'Flutter'
-  s.dependency 'Mindbox', '2.15.1'
-  s.dependency 'MindboxNotifications', '2.15.1'
+  s.dependency 'Mindbox', '2.15.3'
+  s.dependency 'MindboxNotifications', '2.15.3'
   s.platform = :ios, '12.0'
 
   # Flutter.framework does not contain a i386 slice.

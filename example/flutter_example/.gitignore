@@ -33,6 +33,15 @@ migrate_working_dir/
 .pub/
 /build/
 
+# Local pub overrides (dev-only, wires example to local packages)
+pubspec_overrides.yaml
+
+# Xcode/Flutter SwiftPM workspace dir. Ignore the per-machine scratch
+# (configuration/) but COMMIT Package.resolved — this is an app, so its SPM
+# lockfile is checked in for reproducible native-SDK resolution.
+**/xcshareddata/swiftpm/*
+!**/xcshareddata/swiftpm/Package.resolved
+
 # Symbolication related
 app.*.symbols
 
@@ -46,10 +55,6 @@ app.*.map.json
 
 /android/app/google-services.json
 /android/app/agconnect-services.json
-
-# iOS
-/ios/Pods/
-/ios/Podfile.lock
 
 # FVM Version Cache
 .fvm/
