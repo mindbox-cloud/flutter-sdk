@@ -256,7 +256,14 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock> {
 
   @override
   void dispose() {
-    _channel?.setMethodCallHandler(null);
+    final MethodChannel? channel = _channel;
+    if (channel != null) {
+      // The block's screen is gone, and Dart is the only side that knows it on both platforms:
+      // Android's platform view has a dispose hook, iOS has none and would wait for the engine to
+      // let go of the view. Sent before the handler goes, so the native side is still answered.
+      _invoke(channel, EmbeddedBlockMethods.release, null);
+      channel.setMethodCallHandler(null);
+    }
     super.dispose();
   }
 

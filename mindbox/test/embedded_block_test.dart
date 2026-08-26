@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mindbox/mindbox.dart';
+import 'package:mindbox_platform_interface/mindbox_platform_interface.dart';
 
 /// Runs [body] on a platform the block has no native half for.
 ///
@@ -277,5 +278,74 @@ void main() {
       // would put the same rule in three places, spelled three ways.
       expect(params['timeoutMs'], 0);
     });
+  });
+
+  // Dart is the only side that knows the widget is gone on both platforms: Android's platform view
+  // has a dispose hook and iOS has none, where the block would otherwise be stopped by whenever the
+  // engine happens to let go of the view.
+  group('Leaving the screen', () {
+    late List<String> methods;
+
+    setUp(() {
+      methods = <String>[];
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(SystemChannels.platform_views, (MethodCall call) async {
+        if (call.method != 'create') {
+          return null;
+        }
+
+        final Map<Object?, Object?> arguments = call.arguments as Map<Object?, Object?>;
+        final int viewId = arguments['id']! as int;
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+          MethodChannel(embeddedBlockChannelName(viewId)),
+          (MethodCall call) async {
+            methods.add(call.method);
+            return null;
+          },
+        );
+        // A texture id, which is what the Android controller reads back and casts.
+        return 0;
+      });
+    });
+
+    tearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(SystemChannels.platform_views, null);
+    });
+
+    for (final TargetPlatform platform in <TargetPlatform>[
+      TargetPlatform.iOS,
+      TargetPlatform.android,
+    ]) {
+      final String name = platform == TargetPlatform.iOS ? 'iOS' : 'Android';
+
+      testWidgets('A disposed widget tells the $name block to stop',
+          (WidgetTester tester) async {
+        debugDefaultTargetPlatformOverride = platform;
+        try {
+          await tester.pumpWidget(const Directionality(
+            textDirection: TextDirection.ltr,
+            child: Align(
+              alignment: Alignment.topLeft,
+              child: MindboxEmbeddedBlock(
+                placeSystemName: 'stories',
+                height: 104,
+              ),
+            ),
+          ));
+          await tester.pumpAndSettle();
+
+          expect(methods, contains(EmbeddedBlockMethods.sync));
+          expect(methods, isNot(contains(EmbeddedBlockMethods.release)));
+
+          await tester.pumpWidget(const SizedBox.shrink());
+          await tester.pumpAndSettle();
+
+          expect(methods.last, EmbeddedBlockMethods.release);
+        } finally {
+          debugDefaultTargetPlatformOverride = null;
+        }
+      });
+    }
   });
 }

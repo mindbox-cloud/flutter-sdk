@@ -120,6 +120,12 @@ final class EmbeddedBlockPlatformView: NSObject, FlutterPlatformView {
 
             syncStandIns(hasPlaceholder: hasPlaceholder, hasErrorView: hasErrorView)
             result(nil)
+        case Keys.release:
+            // Dart's widget is gone, and it says so while `deinit` is still waiting for the engine
+            // to let go of the platform view. `release()` is idempotent, so the `deinit` that
+            // follows finds the block already stopped.
+            blockView.release()
+            result(nil)
         default:
             result(FlutterMethodNotImplemented)
         }
@@ -192,6 +198,7 @@ final class EmbeddedBlockPlatformView: NSObject, FlutterPlatformView {
         static let sync = "sync"
         static let setHostVisible = "setHostVisible"
         static let setStandIns = "setStandIns"
+        static let release = "release"
         static let appearance = "appearance"
         static let outcome = "outcome"
         static let load = "load"

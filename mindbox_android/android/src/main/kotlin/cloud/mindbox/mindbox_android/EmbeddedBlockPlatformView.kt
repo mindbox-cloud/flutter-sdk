@@ -148,6 +148,13 @@ internal class EmbeddedBlockPlatformView(
                 syncStandIns(hasPlaceholder = hasPlaceholder, hasErrorView = hasErrorView)
                 result.success(null)
             }
+            METHOD_RELEASE -> {
+                // Dart's widget is gone. Here that is the same news [dispose] brings a moment later,
+                // and the block is released idempotently, so whichever arrives first is the one that
+                // stops it — the method exists for iOS, where there is no dispose hook at all.
+                blockView.release()
+                result.success(null)
+            }
             else -> result.notImplemented()
         }
     }
@@ -224,6 +231,7 @@ internal class EmbeddedBlockPlatformView(
         const val METHOD_SYNC = "sync"
         const val METHOD_SET_HOST_VISIBLE = "setHostVisible"
         const val METHOD_SET_STAND_INS = "setStandIns"
+        const val METHOD_RELEASE = "release"
         const val ERROR_BAD_ARGUMENTS = "bad_arguments"
         const val LOAD = "load"
         const val FAIL = "fail"

@@ -71,6 +71,16 @@ class EmbeddedBlockMethods {
   /// The same answer as the creation params, for a block that is already live: the host may gain or
   /// lose either screen between builds.
   static const String setStandIns = 'setStandIns';
+
+  /// Dart → native: the widget is gone — stop the block now, not when the last reference to it is.
+  ///
+  /// Android has a dispose hook for the platform view and iOS has none, so there the block would be
+  /// released by `deinit` — whenever the engine happens to let go of the view. Dart knows the moment
+  /// exactly, and a page loading for a screen that no longer exists is what the wait costs.
+  ///
+  /// Both native sides release idempotently, so the one that also releases on its own is told
+  /// something it has already done, and nothing happens twice.
+  static const String release = 'release';
 }
 
 /// How the block occupies its place right now — what the wrapper draws, not what happened.
