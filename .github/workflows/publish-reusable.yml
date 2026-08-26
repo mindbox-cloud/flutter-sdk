@@ -49,7 +49,7 @@ jobs:
         run: |
           cd mindbox_platform_interface
           echo "VERSION=$(awk '{if ($1 ~ /^version:/) print $2}' pubspec.yaml)" >> "$GITHUB_ENV"
-      - uses: sakebook/actions-flutter-pub-publisher@ccd9fbba502ea7ef33ea2479e0cdac5a2a9766e1 # v1.4.1
+      - uses: sakebook/actions-flutter-pub-publisher@7112915a1a834881d4c98ef7af12f3456e5c79c7 # v1.3.1
         if: steps.pubspec.outputs.changed == 0
         with:
           package_directory: mindbox_platform_interface
@@ -107,7 +107,7 @@ jobs:
         run: |
           cd "$PKG"
           echo "VERSION=$(awk '{if ($1 ~ /^version:/) print $2}' pubspec.yaml)" >> "$GITHUB_ENV"
-      - uses: sakebook/actions-flutter-pub-publisher@ccd9fbba502ea7ef33ea2479e0cdac5a2a9766e1 # v1.4.1
+      - uses: sakebook/actions-flutter-pub-publisher@7112915a1a834881d4c98ef7af12f3456e5c79c7 # v1.3.1
         if: steps.pubspec.outputs.changed == 0
         with:
           package_directory: ${{ matrix.package }}
@@ -156,7 +156,7 @@ jobs:
         run: |
           cd mindbox
           echo "VERSION=$(awk '{if ($1 ~ /^version:/) print $2}' pubspec.yaml)" >> "$GITHUB_ENV"
-      - uses: sakebook/actions-flutter-pub-publisher@ccd9fbba502ea7ef33ea2479e0cdac5a2a9766e1 # v1.4.1
+      - uses: sakebook/actions-flutter-pub-publisher@7112915a1a834881d4c98ef7af12f3456e5c79c7 # v1.3.1
         if: steps.pubspec.outputs.changed == 0
         with:
           package_directory: mindbox
