@@ -106,10 +106,16 @@ class MindboxEmbeddedBlock extends StatelessWidget {
   final WidgetBuilder? errorBuilder;
 
   /// The content is shown.
+  ///
+  /// Delivered once per outcome, not once per lifetime: the same outcome is never repeated, and an
+  /// outcome that actually changed — a place that filled up after a failure — is delivered again.
+  /// The native block reports the same way, so every wrapper of the SDK calls back alike.
   final VoidCallback? onLoad;
 
   /// The place ended up without content: the load failed or timed out, or there is nothing behind
   /// the name. An empty place is a normal outcome, not a breakage.
+  ///
+  /// Delivered on the same rule as [onLoad]: once per outcome, again if the outcome changes.
   final VoidCallback? onFail;
 
   @override
@@ -404,7 +410,12 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock> {
   }
 
   /// The native side reports where the block stands, not what changed, so the same outcome can
-  /// arrive more than once — the host must hear it exactly once.
+  /// arrive more than once — the host must hear each one once.
+  ///
+  /// Deduplicated against the last outcome delivered and not against every outcome ever: a place
+  /// that fails and then fills up has genuinely changed its answer, and a host that dropped its
+  /// section on the failure has to hear that it can put it back. The native containers dedupe the
+  /// same way, so `load → fail → load` is three callbacks on every platform.
   void _deliver(EmbeddedBlockOutcome? outcome) {
     if (outcome == null || outcome == _deliveredOutcome) {
       return;
