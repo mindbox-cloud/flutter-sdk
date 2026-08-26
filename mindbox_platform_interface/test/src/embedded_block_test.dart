@@ -39,7 +39,6 @@ void main() {
             EmbeddedBlockReport.tryParse(<String, Object>{'appearance': word});
         expect(report?.appearance, expected, reason: word);
       });
-      // Every case is covered, so a new appearance cannot be added without this failing.
       expect(wire.length, EmbeddedBlockAppearance.values.length);
     });
 
@@ -65,7 +64,6 @@ void main() {
         <String, Object>{'appearance': 'sideways', 'outcome': 'maybe', 'extra': 1},
       );
 
-      // Parsed, not rejected: an unknown word leaves the host on what it already knew.
       expect(report, isNotNull);
       expect(report!.appearance, isNull);
       expect(report.outcome, isNull);

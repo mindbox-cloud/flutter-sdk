@@ -15,8 +15,6 @@ public class MindboxIosPlugin: NSObject, FlutterPlugin {
         registrar.addMethodCallDelegate(instance, channel: channel)
         registrar.addApplicationDelegate(instance)
 
-        // The embedded block is a view, not a call: it gets a platform view factory instead of a
-        // method on the plugin channel, and talks over a channel of its own per created block.
         registrar.register(EmbeddedBlockPlatformViewFactory(messenger: registrar.messenger()),
                            withId: Constants.embeddedBlockViewType)
     }
