@@ -254,6 +254,54 @@ void main() {
     });
   });
 
+  group('A height that reserves no space', () {
+    Future<void> buildWith(WidgetTester tester, String placeSystemName, double height) =>
+        tester.pumpWidget(Directionality(
+          textDirection: TextDirection.ltr,
+          child: Align(
+            alignment: Alignment.topLeft,
+            child: MindboxEmbeddedBlock(
+              placeSystemName: placeSystemName,
+              height: height,
+            ),
+          ),
+        ));
+
+    testWithoutNativeBlock('A block created with no height says so in the log',
+        (WidgetTester tester) async {
+      final List<String> log = <String>[];
+      final DebugPrintCallback printed = debugPrint;
+      debugPrint = (String? message, {int? wrapWidth}) => log.add(message ?? '');
+
+      try {
+        await buildWith(tester, 'stories', 0);
+        await buildWith(tester, 'promo', -8);
+      } finally {
+        debugPrint = printed;
+      }
+
+      final Iterable<String> lines =
+          log.where((String line) => line.contains('reserves no space'));
+      expect(lines, hasLength(2));
+      expect(lines.first, contains('"stories"'));
+      expect(lines.last, contains('"promo"'));
+    });
+
+    testWithoutNativeBlock('A block with a height says nothing', (WidgetTester tester) async {
+      final List<String> log = <String>[];
+      final DebugPrintCallback printed = debugPrint;
+      debugPrint = (String? message, {int? wrapWidth}) => log.add(message ?? '');
+
+      try {
+        await buildWith(tester, 'stories', 104);
+      } finally {
+        debugPrint = printed;
+      }
+
+      expect(log, isEmpty);
+    });
+  });
+
   group('Leaving the screen', () {
     late List<String> methods;
 

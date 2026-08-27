@@ -193,6 +193,7 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock> {
   void initState() {
     super.initState();
     _creationTimeout = widget.timeout;
+    _warnIfHeightReservesNoSpace();
     if (!_isSupported) {
       WidgetsFlutterBinding.ensureInitialized().addPostFrameCallback((_) {
         if (!mounted) {
@@ -383,6 +384,17 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock> {
       debugPrint('[MindboxEmbeddedBlock] $method for block "${widget.placeSystemName}" '
           'was not delivered: $error');
     });
+  }
+
+  void _warnIfHeightReservesNoSpace() {
+    if (widget.height > 0) {
+      return;
+    }
+
+    debugPrint(
+      '[MindboxEmbeddedBlock] Block "${widget.placeSystemName}" was created with height '
+      '${widget.height}: it reserves no space and nothing loads.',
+    );
   }
 
   void _warnIfCreationValuesAreIgnored() {
