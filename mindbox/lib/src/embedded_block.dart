@@ -61,11 +61,9 @@ class MindboxEmbeddedBlock extends StatelessWidget {
   /// scratch in place of the old one.
   final String placeSystemName;
 
-  /// The height the block occupies while it loads and while it is shown. Fixed when the block is
-  /// created: a new value given to a live block is ignored and reported to the log.
-  ///
-  /// To resize a block that is already on screen, give the widget a new [Key] — that is a new block,
-  /// built from scratch, and it reloads its content.
+  /// The height the block occupies while it loads and while it is shown. Live: a new value given
+  /// to a live block resizes it in place — the same content, no reload — exactly as the SwiftUI
+  /// and Compose wrappers behave.
   final double height;
 
   /// How long the block waits to learn what it shows before it gives its place back. `null` — the
@@ -83,8 +81,8 @@ class MindboxEmbeddedBlock extends StatelessWidget {
   /// Zero or negative is not a budget — such a block would collapse before the SDK could answer at
   /// all — so the native side keeps its default instead and writes down what it was given.
   ///
-  /// Fixed when the block is created, exactly as [height] is: a new value given to a live block is
-  /// ignored and reported to the log. Give the widget a new [Key] to load a block on a new budget.
+  /// Fixed when the block is created: a new value given to a live block is ignored and reported
+  /// to the log. Give the widget a new [Key] to load a block on a new budget.
   final Duration? timeout;
 
   /// Built instead of the SDK shimmer while the block is loading.
@@ -158,17 +156,13 @@ class _EmbeddedBlock extends StatefulWidget {
 }
 
 class _EmbeddedBlockState extends State<_EmbeddedBlock> {
-  late final double _creationHeight = widget.height;
-
-  late final double _height = math.max(0, _creationHeight);
+  double get _height => widget.height.isFinite ? math.max(0, widget.height) : 0;
 
   late final Duration? _creationTimeout;
 
   EmbeddedBlockAppearance _appearance = EmbeddedBlockAppearance.placeholder;
 
   EmbeddedBlockOutcome? _deliveredOutcome;
-
-  bool _hasWarnedAboutHeight = false;
 
   bool _hasWarnedAboutTimeout = false;
 
@@ -216,7 +210,7 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock> {
   @override
   void didUpdateWidget(covariant _EmbeddedBlock oldWidget) {
     super.didUpdateWidget(oldWidget);
-    _warnIfCreationValuesAreIgnored();
+    _warnIfTimeoutIsIgnored();
     _pushStandIns();
   }
 
@@ -387,7 +381,7 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock> {
   }
 
   void _warnIfHeightReservesNoSpace() {
-    if (widget.height > 0) {
+    if (widget.height.isFinite && widget.height > 0) {
       return;
     }
 
@@ -397,16 +391,7 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock> {
     );
   }
 
-  void _warnIfCreationValuesAreIgnored() {
-    if (!_hasWarnedAboutHeight && widget.height != _creationHeight) {
-      _hasWarnedAboutHeight = true;
-      debugPrint(
-        '[MindboxEmbeddedBlock] Block "${widget.placeSystemName}" was given height ${widget.height} '
-        'after creation and keeps $_creationHeight: the height is fixed when the block is created. '
-        'Give the widget a new Key to build a block of a different height.',
-      );
-    }
-
+  void _warnIfTimeoutIsIgnored() {
     if (!_hasWarnedAboutTimeout && widget.timeout != _creationTimeout) {
       _hasWarnedAboutTimeout = true;
       debugPrint(

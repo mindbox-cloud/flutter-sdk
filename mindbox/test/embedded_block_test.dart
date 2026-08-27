@@ -302,6 +302,76 @@ void main() {
     });
   });
 
+  group('The block height', () {
+    late List<Map<Object?, Object?>> created;
+
+    setUp(() {
+      created = <Map<Object?, Object?>>[];
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(SystemChannels.platform_views, (MethodCall call) async {
+        final Map<Object?, Object?> arguments = call.arguments as Map<Object?, Object?>;
+
+        // The engine answers a resize with the size it actually gave the platform view, and the
+        // controller reads it back — a bare null there fails inside the framework, not in the SDK.
+        if (call.method == 'resize') {
+          return <Object?, Object?>{
+            'width': arguments['width'],
+            'height': arguments['height'],
+          };
+        }
+
+        if (call.method != 'create') {
+          return null;
+        }
+
+        final Uint8List params = arguments['params'] as Uint8List;
+        created.add(const StandardMessageCodec().decodeMessage(
+          params.buffer.asByteData(params.offsetInBytes, params.lengthInBytes),
+        ) as Map<Object?, Object?>);
+        return 0;
+      });
+    });
+
+    tearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(SystemChannels.platform_views, null);
+    });
+
+    Future<void> buildWith(WidgetTester tester, double height) => tester.pumpWidget(Directionality(
+          textDirection: TextDirection.ltr,
+          child: Align(
+            alignment: Alignment.topLeft,
+            child: MindboxEmbeddedBlock(
+              placeSystemName: 'stories',
+              height: height,
+            ),
+          ),
+        ));
+
+    testWidgets('A new height resizes the live block without rebuilding it',
+        (WidgetTester tester) async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      final List<String> log = <String>[];
+      final DebugPrintCallback printed = debugPrint;
+      debugPrint = (String? message, {int? wrapWidth}) => log.add(message ?? '');
+      try {
+        await buildWith(tester, 104);
+        await tester.pumpAndSettle();
+        expect(tester.getSize(find.byType(MindboxEmbeddedBlock)).height, 104);
+
+        await buildWith(tester, 200);
+        await tester.pumpAndSettle();
+
+        expect(tester.getSize(find.byType(MindboxEmbeddedBlock)).height, 200);
+        expect(created, hasLength(1));
+        expect(log, isEmpty);
+      } finally {
+        debugPrint = printed;
+        debugDefaultTargetPlatformOverride = null;
+      }
+    });
+  });
+
   group('Leaving the screen', () {
     late List<String> methods;
 

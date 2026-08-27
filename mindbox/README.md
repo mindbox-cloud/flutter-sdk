@@ -74,9 +74,9 @@ MindboxEmbeddedBlock(
 )
 ```
 
-Both `height` and `timeout` are fixed when the block is created — a new value given to a block
-already on screen is ignored and reported to the log. Give the widget a new `Key` to build a block
-on new terms.
+`height` is live: a new value resizes a block already on screen in place — the same content, no
+reload. `timeout` is fixed when the block is created — a new value is ignored and reported to the
+log; give the widget a new `Key` to load a block on a new budget.
 
 Available on iOS and Android. On any other platform the block collapses right away and reports
 `onFail`, so a layout that hides its section on failure behaves the same everywhere.
