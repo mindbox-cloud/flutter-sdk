@@ -74,12 +74,16 @@ class EmbeddedBlockMethods {
 
   /// Dart → native: the widget is gone — stop the block now, not when the last reference to it is.
   ///
-  /// Android has a dispose hook for the platform view and iOS has none, so there the block would be
-  /// released by `deinit` — whenever the engine happens to let go of the view. Dart knows the moment
-  /// exactly, and a page loading for a screen that no longer exists is what the wait costs.
+  /// Sent on iOS and nowhere else. Android has a dispose hook for the platform view and iOS has
+  /// none, so there the block would be released by `deinit` — whenever the engine happens to let go
+  /// of the view. Dart knows the moment exactly, and a page loading for a screen that no longer
+  /// exists is what the wait costs.
   ///
-  /// Both native sides release idempotently, so the one that also releases on its own is told
-  /// something it has already done, and nothing happens twice.
+  /// Android is not told, and not merely because its hook already does it: the platform view is a
+  /// child of the widget that owns this channel, and children are unmounted first, so by the time
+  /// the widget could speak the hook has run — releasing the block and taking the channel's handler
+  /// down with it. The message would reach a channel nobody is on and come back as a missing plugin.
+  /// The Android side still answers it, for a host that says it by another road.
   static const String release = 'release';
 }
 

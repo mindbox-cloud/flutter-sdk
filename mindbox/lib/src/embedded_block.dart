@@ -223,7 +223,9 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock> {
   void dispose() {
     final MethodChannel? channel = _channel;
     if (channel != null) {
-      _invoke(channel, EmbeddedBlockMethods.release, null);
+      if (defaultTargetPlatform == TargetPlatform.iOS) {
+        _invoke(channel, EmbeddedBlockMethods.release, null);
+      }
       channel.setMethodCallHandler(null);
     }
     super.dispose();

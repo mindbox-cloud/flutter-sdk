@@ -283,39 +283,42 @@ void main() {
           .setMockMethodCallHandler(SystemChannels.platform_views, null);
     });
 
-    for (final TargetPlatform platform in <TargetPlatform>[
-      TargetPlatform.iOS,
-      TargetPlatform.android,
-    ]) {
-      final String name = platform == TargetPlatform.iOS ? 'iOS' : 'Android';
-
-      testWidgets('A disposed widget tells the $name block to stop',
-          (WidgetTester tester) async {
-        debugDefaultTargetPlatformOverride = platform;
-        try {
-          await tester.pumpWidget(const Directionality(
-            textDirection: TextDirection.ltr,
-            child: Align(
-              alignment: Alignment.topLeft,
-              child: MindboxEmbeddedBlock(
-                placeSystemName: 'stories',
-                height: 104,
-              ),
+    Future<void> showAndDrop(WidgetTester tester, TargetPlatform platform) async {
+      debugDefaultTargetPlatformOverride = platform;
+      try {
+        await tester.pumpWidget(const Directionality(
+          textDirection: TextDirection.ltr,
+          child: Align(
+            alignment: Alignment.topLeft,
+            child: MindboxEmbeddedBlock(
+              placeSystemName: 'stories',
+              height: 104,
             ),
-          ));
-          await tester.pumpAndSettle();
+          ),
+        ));
+        await tester.pumpAndSettle();
 
-          expect(methods, contains(EmbeddedBlockMethods.sync));
-          expect(methods, isNot(contains(EmbeddedBlockMethods.release)));
+        expect(methods, contains(EmbeddedBlockMethods.sync));
+        expect(methods, isNot(contains(EmbeddedBlockMethods.release)));
 
-          await tester.pumpWidget(const SizedBox.shrink());
-          await tester.pumpAndSettle();
-
-          expect(methods.last, EmbeddedBlockMethods.release);
-        } finally {
-          debugDefaultTargetPlatformOverride = null;
-        }
-      });
+        await tester.pumpWidget(const SizedBox.shrink());
+        await tester.pumpAndSettle();
+      } finally {
+        debugDefaultTargetPlatformOverride = null;
+      }
     }
+
+    testWidgets('A disposed widget tells the iOS block to stop', (WidgetTester tester) async {
+      await showAndDrop(tester, TargetPlatform.iOS);
+
+      expect(methods.last, EmbeddedBlockMethods.release);
+    });
+
+    testWidgets('A disposed widget leaves the Android block to its own dispose hook',
+        (WidgetTester tester) async {
+      await showAndDrop(tester, TargetPlatform.android);
+
+      expect(methods, isNot(contains(EmbeddedBlockMethods.release)));
+    });
   });
 }
