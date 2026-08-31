@@ -302,6 +302,49 @@ void main() {
     });
   });
 
+  group('A place name with spaces around it', () {
+    Future<void> buildWith(WidgetTester tester, String placeSystemName) =>
+        tester.pumpWidget(Directionality(
+          textDirection: TextDirection.ltr,
+          child: Align(
+            alignment: Alignment.topLeft,
+            child: MindboxEmbeddedBlock(
+              placeSystemName: placeSystemName,
+              height: 104,
+            ),
+          ),
+        ));
+
+    testWithoutNativeBlock('A padded place name says so in the log', (WidgetTester tester) async {
+      final List<String> log = <String>[];
+      final DebugPrintCallback printed = debugPrint;
+      debugPrint = (String? message, {int? wrapWidth}) => log.add(message ?? '');
+
+      try {
+        await buildWith(tester, ' stories');
+        await buildWith(tester, 'promo ');
+      } finally {
+        debugPrint = printed;
+      }
+
+      expect(log.where((String line) => line.contains('with spaces around it')), hasLength(2));
+    });
+
+    testWithoutNativeBlock('A place name without them says nothing', (WidgetTester tester) async {
+      final List<String> log = <String>[];
+      final DebugPrintCallback printed = debugPrint;
+      debugPrint = (String? message, {int? wrapWidth}) => log.add(message ?? '');
+
+      try {
+        await buildWith(tester, 'stories');
+      } finally {
+        debugPrint = printed;
+      }
+
+      expect(log, isEmpty);
+    });
+  });
+
   group('The block height', () {
     late List<Map<Object?, Object?>> created;
 
