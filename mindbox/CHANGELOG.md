@@ -1,3 +1,7 @@
+## Unreleased
+
+* Add `MindboxEmbeddedBlock` — an embedded block for a place from the admin panel.
+
 ## 2.15.2
 
 * Upgrade native Android SDK dependency to v2.15.2.

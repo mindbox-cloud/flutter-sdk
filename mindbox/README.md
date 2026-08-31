@@ -32,6 +32,55 @@ Learn how to send events to Mindbox. Create a new Operation class object and set
 
 Mindbox SDK helps handle push notifications. Configuration and usage instructions can be found in the SDK documentation [here](https://developers.mindbox.ru/docs/firebase-send-push-notifications-flutter),  [here](https://developers.mindbox.ru/docs/huawei-send-push-notifications-flutter) and [here](https://developers.mindbox.ru/docs/ios-send-push-notifications-flutter).
 
+### Embedded Blocks
+
+Mark a place in your layout with `MindboxEmbeddedBlock` and the SDK decides what goes into it from
+the admin panel — the app never learns what the content is, and it can change without a release.
+The host owns the size: pass the `height` the block should occupy. A place that ends up without
+content collapses to zero height and hands the space back.
+
+```dart
+MindboxEmbeddedBlock(
+  placeSystemName: 'main-screen-top',
+  height: 104,
+)
+```
+
+Both outcomes can be customized, the same way as in SwiftUI and Compose: `placeholder` replaces the
+stock loading shimmer, and `errorBuilder` opts into showing a failure instead of collapsing. An
+empty place always collapses — a host cannot fill the space of a block that was never meant to be
+there. `onLoad` and `onFail` report how the load ended.
+
+```dart
+MindboxEmbeddedBlock(
+  placeSystemName: 'stories',
+  height: 104,
+  placeholder: (_) => const StoriesSkeleton(),
+  errorBuilder: (_) => const StoriesUnavailable(),
+  onFail: () => setState(() => _showStoriesSection = false),
+)
+```
+
+How long a block may wait for its content before it gives the place back is `timeout`. Left out, it
+is the SDK's own budget of 30 seconds. The wait is the user's: it is counted only while the screen
+the block stands on is the one being looked at, so a block behind a pushed route keeps the remainder
+of its budget for the return.
+
+```dart
+MindboxEmbeddedBlock(
+  placeSystemName: 'stories',
+  height: 104,
+  timeout: const Duration(seconds: 5),
+)
+```
+
+`height` is live: a new value resizes a block already on screen in place — the same content, no
+reload. `timeout` is fixed when the block is created — a new value is ignored and reported to the
+log; give the widget a new `Key` to load a block on a new budget.
+
+Available on iOS and Android. On any other platform the block collapses right away and reports
+`onFail`, so a layout that hides its section on failure behaves the same everywhere.
+
 ## Troubleshooting
 
 Refer to the [Example of integration(IOS)](https://github.com/mindbox-cloud/flutter-sdk/tree/develop/mindbox_ios/example) or [Example of integration(Android)](https://github.com/mindbox-cloud/flutter-sdk/tree/develop/mindbox_android/example) in case of any issues.

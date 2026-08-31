@@ -19,6 +19,7 @@ export 'package:mindbox_platform_interface/mindbox_platform_interface.dart'
         CustomInAppCallback,
         InAppClickHandler,
         InAppDismissedHandler;
+export 'src/embedded_block.dart' show MindboxEmbeddedBlock;
 
 /// Basic Mindbox API.
 class Mindbox {

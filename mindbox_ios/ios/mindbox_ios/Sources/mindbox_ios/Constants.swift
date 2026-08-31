@@ -9,4 +9,6 @@ import Foundation
 
 enum Constants {
     static let pluginChannelName = "mindbox.cloud/flutter-sdk";
+
+    static let embeddedBlockViewType = "mindbox.cloud/flutter-sdk/embedded_block";
 }

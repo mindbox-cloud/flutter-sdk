@@ -56,6 +56,10 @@ class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, Ne
     override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         channel = MethodChannel(flutterPluginBinding.binaryMessenger, "mindbox.cloud/flutter-sdk")
         channel.setMethodCallHandler(this)
+        flutterPluginBinding.platformViewRegistry.registerViewFactory(
+            EMBEDDED_BLOCK_VIEW_TYPE,
+            EmbeddedBlockPlatformViewFactory(flutterPluginBinding.binaryMessenger),
+        )
     }
 
     override fun onMethodCall(call: MethodCall, result: Result) {
