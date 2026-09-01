@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -480,6 +481,166 @@ void main() {
       await showAndDrop(tester, TargetPlatform.android);
 
       expect(methods, isNot(contains(EmbeddedBlockMethods.release)));
+    });
+  });
+
+  group('A drag that two scrollables want', () {
+    // The device slop an Android scrollable plays with. The block used to fall back to kTouchSlop —
+    // 18 — and lose every horizontal drag to a parent that crosses 8 first.
+    const DeviceGestureSettings settings = DeviceGestureSettings(touchSlop: 8);
+
+    late int viewId;
+
+    setUp(() {
+      viewId = -1;
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(SystemChannels.platform_views, (MethodCall call) async {
+        // 'touch' carries a list, not a map: the block wins the arena and forwards the drag, so
+        // this handler is asked about more than the two methods it answers.
+        if (call.method != 'create' && call.method != 'resize') {
+          return null;
+        }
+
+        final Map<Object?, Object?> arguments = call.arguments as Map<Object?, Object?>;
+
+        if (call.method == 'resize') {
+          return <Object?, Object?>{
+            'width': arguments['width'],
+            'height': arguments['height'],
+          };
+        }
+
+        viewId = arguments['id']! as int;
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+          MethodChannel(embeddedBlockChannelName(viewId)),
+          (MethodCall call) async => null,
+        );
+        return 0;
+      });
+    });
+
+    tearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(SystemChannels.platform_views, null);
+    });
+
+    /// The native block saying it has content on screen — the only state in which the block asks
+    /// for horizontal drags at all.
+    Future<void> showContent(WidgetTester tester) async {
+      await TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.handlePlatformMessage(
+        embeddedBlockChannelName(viewId),
+        const StandardMethodCodec().encodeMethodCall(
+          const MethodCall(
+            EmbeddedBlockMethods.report,
+            <String, Object>{'appearance': 'content'},
+          ),
+        ),
+        (ByteData? _) {},
+      );
+      await tester.pumpAndSettle();
+    }
+
+    Future<PageController> showBlockInPageView(WidgetTester tester) async {
+      final PageController pages = PageController();
+      addTearDown(pages.dispose);
+
+      await tester.pumpWidget(MediaQuery(
+        data: const MediaQueryData(gestureSettings: settings),
+        child: Directionality(
+          textDirection: TextDirection.ltr,
+          child: PageView(
+            controller: pages,
+            children: const <Widget>[
+              Column(
+                children: <Widget>[
+                  SizedBox(height: 200),
+                  MindboxEmbeddedBlock(placeSystemName: 'stories', height: 104),
+                ],
+              ),
+              SizedBox.expand(),
+            ],
+          ),
+        ),
+      ));
+      await tester.pumpAndSettle();
+      await showContent(tester);
+
+      return pages;
+    }
+
+    /// A finger crossing the screen the way a finger does — in small steps, not in one jump. The
+    /// step matters: whoever reaches its own slop on an earlier step closes the arena, and a block
+    /// that waits for 18 never gets to answer a parent that is done at 8.
+    Future<void> dragBy(WidgetTester tester, Offset start, double distance) async {
+      final TestGesture gesture = await tester.startGesture(start);
+      for (double moved = 0; moved < distance.abs(); moved += 4) {
+        await gesture.moveBy(Offset(4 * distance.sign, 0));
+        await tester.pump();
+      }
+      await gesture.up();
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('A drag on the block is the block\'s, and the page stays where it is',
+        (WidgetTester tester) async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      try {
+        final PageController pages = await showBlockInPageView(tester);
+
+        await dragBy(tester, tester.getCenter(find.byType(AndroidView)), -600);
+
+        expect(pages.page, 0);
+      } finally {
+        debugDefaultTargetPlatformOverride = null;
+      }
+    });
+
+    testWidgets('A drag beside the block still turns the page', (WidgetTester tester) async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      try {
+        final PageController pages = await showBlockInPageView(tester);
+
+        final Offset besideTheBlock = tester.getCenter(find.byType(AndroidView)) - const Offset(0, 150);
+        await dragBy(tester, besideTheBlock, -600);
+
+        expect(pages.page, 1);
+      } finally {
+        debugDefaultTargetPlatformOverride = null;
+      }
+    });
+
+    testWidgets('A block still loading leaves the drag to the page', (WidgetTester tester) async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      try {
+        final PageController pages = PageController();
+        addTearDown(pages.dispose);
+
+        await tester.pumpWidget(MediaQuery(
+          data: const MediaQueryData(gestureSettings: settings),
+          child: Directionality(
+            textDirection: TextDirection.ltr,
+            child: PageView(
+              controller: pages,
+              children: const <Widget>[
+                Column(
+                  children: <Widget>[
+                    SizedBox(height: 200),
+                    MindboxEmbeddedBlock(placeSystemName: 'stories', height: 104),
+                  ],
+                ),
+                SizedBox.expand(),
+              ],
+            ),
+          ),
+        ));
+        await tester.pumpAndSettle();
+
+        await dragBy(tester, tester.getCenter(find.byType(AndroidView)), -600);
+
+        expect(pages.page, 1);
+      } finally {
+        debugDefaultTargetPlatformOverride = null;
+      }
     });
   });
 }

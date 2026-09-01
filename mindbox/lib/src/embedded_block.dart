@@ -275,11 +275,20 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock> {
       creationParams[EmbeddedBlockParams.timeoutMs] = timeout.inMilliseconds;
     }
 
+    // The recognizer is built by hand rather than by a RawGestureDetector, so nothing hands it the
+    // touch slop of the device the way the framework hands it to every scrollable. Left to itself it
+    // falls back to kTouchSlop — 18 logical pixels against the 8 an Android scrollable plays with —
+    // and a scrollable that wants the same direction takes the drag while the block is still short
+    // of its own threshold: the arena closes, and the carousel is never told a finger was on it. On
+    // equal slop the drag goes to whoever is closest to the finger, and inside the block that is the
+    // block.
+    final DeviceGestureSettings? gestureSettings = MediaQuery.maybeGestureSettingsOf(context);
+
     final Set<Factory<OneSequenceGestureRecognizer>> gestureRecognizers =
         _appearance == EmbeddedBlockAppearance.content
             ? <Factory<OneSequenceGestureRecognizer>>{
                 Factory<OneSequenceGestureRecognizer>(
-                  () => HorizontalDragGestureRecognizer(),
+                  () => HorizontalDragGestureRecognizer()..gestureSettings = gestureSettings,
                 ),
               }
             : const <Factory<OneSequenceGestureRecognizer>>{};
