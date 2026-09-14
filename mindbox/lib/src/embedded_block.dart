@@ -282,7 +282,11 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock> {
     // of its own threshold: the arena closes, and the carousel is never told a finger was on it. On
     // equal slop the drag goes to whoever is closest to the finger, and inside the block that is the
     // block.
-    final DeviceGestureSettings? gestureSettings = MediaQuery.maybeGestureSettingsOf(context);
+    //
+    // Read whole rather than by aspect: the aspect accessors arrived in Flutter 3.10, and the plugin
+    // still speaks to 3.0. Watching all of MediaQuery costs nothing here — a platform view keeps the
+    // recognizer it was first given, so the settings are read once however they are asked for.
+    final DeviceGestureSettings? gestureSettings = MediaQuery.maybeOf(context)?.gestureSettings;
 
     final Set<Factory<OneSequenceGestureRecognizer>> gestureRecognizers =
         _appearance == EmbeddedBlockAppearance.content
