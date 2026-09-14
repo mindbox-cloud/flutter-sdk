@@ -68,16 +68,27 @@ if ! [[ $ios_sdk_version =~ ^[0-9]+\.[0-9]+\.[0-9]+(-rc)?$ ]]; then
   exit 1
 fi
 
-android_gradle="mindbox_android/android/build.gradle"
-sed -i '' "s/    api 'cloud.mindbox:mobile-sdk:.*/    api 'cloud.mindbox:mobile-sdk:$android_sdk_version\'/" $android_gradle
-
-echo "Bump $android_gradle to $android_sdk_version"
-
 # Fail loudly if a version substitution didn't land (e.g. the line format
 # changed and sed silently matched nothing, leaving a stale pin).
 assert_pin() { # <file> <grep-ERE>
   grep -qE "$2" "$1" || { echo "ERROR: pattern /$2/ not found in $1 — version substitution failed"; exit 1; }
 }
+
+android_gradle="mindbox_android/android/build.gradle"
+# Every cloud.mindbox artifact in this file ships from the same native release, so they all
+# take the same version — the ones named today and any added after this was written.
+sed -i '' -E "s/(cloud\.mindbox:[a-z0-9-]+:)[^']*'/\1$android_sdk_version'/" $android_gradle
+
+echo "Bump $android_gradle to $android_sdk_version"
+
+assert_pin $android_gradle "cloud\.mindbox:mobile-sdk:$android_sdk_version'"
+assert_pin $android_gradle "cloud\.mindbox:mindbox-common:$android_sdk_version'"
+stale_pins=$(grep -nE "cloud\.mindbox:[a-z0-9-]+:" $android_gradle | grep -v ":$android_sdk_version'" || true)
+if [ -n "$stale_pins" ]; then
+  echo "ERROR: $android_gradle still pins Mindbox artifacts to another version:"
+  echo "$stale_pins"
+  exit 1
+fi
 
 ios_podspec="mindbox_ios/ios/mindbox_ios.podspec"
 
