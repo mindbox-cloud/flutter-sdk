@@ -51,6 +51,7 @@ class MindboxEmbeddedBlock extends StatelessWidget {
     required this.placeSystemName,
     required this.height,
     this.timeout,
+    this.keepAlive = true,
     this.placeholder,
     this.errorBuilder,
     this.onLoad,
@@ -87,6 +88,24 @@ class MindboxEmbeddedBlock extends StatelessWidget {
   /// Fixed when the block is created: a new value given to a live block is ignored and reported
   /// to the log. Give the widget a new [Key] to load a block on a new budget.
   final Duration? timeout;
+
+  /// Whether the block survives being scrolled out of a lazy list.
+  ///
+  /// A `ListView`, a `GridView` or any other lazy sliver builds only what is near the viewport and
+  /// throws the rest away — a block scrolled far enough would be disposed with its row, and on the
+  /// way back a *new* block would load its content from scratch: a full cycle with the shimmer on
+  /// every pass across the screen. The native iOS and Android blocks do not behave that way: a view
+  /// in a scroll is paused off screen, not destroyed, and its page is shown again as it was.
+  ///
+  /// `true` — the default — asks the list to keep the block alive, so it matches the native blocks:
+  /// off screen its content is paused, and on the way back the same page is shown at once, with no
+  /// reload, no shimmer and no second [onLoad]. Outside a lazy list the flag changes nothing.
+  ///
+  /// The price is memory: every kept block holds its web page for as long as the list lives. A
+  /// screen with many blocks that is better off paying a reload than holding them all can turn this
+  /// off, and then the block is disposed with its row exactly as any other widget is. Live: a new
+  /// value takes effect on the block in place.
+  final bool keepAlive;
 
   /// Built instead of the SDK shimmer while the block is loading.
   ///
@@ -126,6 +145,7 @@ class MindboxEmbeddedBlock extends StatelessWidget {
       placeSystemName: placeSystemName,
       height: height,
       timeout: timeout,
+      keepAlive: keepAlive,
       placeholder: placeholder,
       errorBuilder: errorBuilder,
       onLoad: onLoad,
@@ -140,6 +160,7 @@ class _EmbeddedBlock extends StatefulWidget {
     required this.placeSystemName,
     required this.height,
     required this.timeout,
+    required this.keepAlive,
     required this.placeholder,
     required this.errorBuilder,
     required this.onLoad,
@@ -149,6 +170,7 @@ class _EmbeddedBlock extends StatefulWidget {
   final String placeSystemName;
   final double height;
   final Duration? timeout;
+  final bool keepAlive;
   final WidgetBuilder? placeholder;
   final WidgetBuilder? errorBuilder;
   final VoidCallback? onLoad;
@@ -158,7 +180,14 @@ class _EmbeddedBlock extends StatefulWidget {
   State<_EmbeddedBlock> createState() => _EmbeddedBlockState();
 }
 
-class _EmbeddedBlockState extends State<_EmbeddedBlock> {
+/// Kept alive in a lazy list by default: the platform view — and the SDK container with its page
+/// behind it — is what a reload costs, and a row of a `ListView` is rebuilt on every pass across the
+/// screen. Off screen the native block pauses itself (it leaves the window), so keeping it costs
+/// memory, not work; see [MindboxEmbeddedBlock.keepAlive].
+class _EmbeddedBlockState extends State<_EmbeddedBlock> with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => widget.keepAlive;
+
   double get _height => widget.height.isFinite ? math.max(0, widget.height) : 0;
 
   late final Duration? _creationTimeout;
@@ -214,6 +243,9 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock> {
   @override
   void didUpdateWidget(covariant _EmbeddedBlock oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.keepAlive != widget.keepAlive) {
+      updateKeepAlive();
+    }
     _warnIfTimeoutIsIgnored();
     _pushStandIns();
   }
@@ -232,6 +264,8 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock> {
 
   @override
   Widget build(BuildContext context) {
+    // The mixin's build is what hands the list the keep-alive handle; its widget is not used.
+    super.build(context);
     final Widget? hostLayer = _hostLayer(context);
 
     return SizedBox(

@@ -643,4 +643,138 @@ void main() {
       }
     });
   });
+  group('A lazy list', () {
+    late List<String> methods;
+
+    setUp(() {
+      methods = <String>[];
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(SystemChannels.platform_views, (MethodCall call) async {
+        if (call.method != 'create') {
+          return null;
+        }
+
+        final Map<Object?, Object?> arguments = call.arguments as Map<Object?, Object?>;
+        final int viewId = arguments['id']! as int;
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+          MethodChannel(embeddedBlockChannelName(viewId)),
+          (MethodCall call) async {
+            methods.add(call.method);
+            return null;
+          },
+        );
+        return 0;
+      });
+    });
+
+    tearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(SystemChannels.platform_views, null);
+    });
+
+    // On iOS, where the widget tells the block to stop itself: a `release` in the log is the
+    // proof that the row took the block down with it.
+    void testOnIOS(String description, Future<void> Function(WidgetTester) body) {
+      testWidgets(description, (WidgetTester tester) async {
+        debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+        try {
+          await body(tester);
+        } finally {
+          debugDefaultTargetPlatformOverride = null;
+        }
+      });
+    }
+
+    // A list ten screens tall with the block in its first row. The test viewport is 600 logical
+    // pixels high and the list caches 250 more, so a scroll of a few thousand takes the row far
+    // past anything the list keeps around on its own.
+    Future<void> pumpList(WidgetTester tester, {required bool keepAlive}) {
+      return tester.pumpWidget(Directionality(
+        textDirection: TextDirection.ltr,
+        child: ListView.builder(
+          itemCount: 100,
+          itemBuilder: (BuildContext context, int index) => index == 0
+              ? MindboxEmbeddedBlock(
+                  placeSystemName: 'stories',
+                  height: 104,
+                  keepAlive: keepAlive,
+                )
+              : const SizedBox(height: 104),
+        ),
+      ));
+    }
+
+    Future<void> scrollBy(WidgetTester tester, double offset) async {
+      await tester.drag(find.byType(ListView), Offset(0, -offset));
+      await tester.pumpAndSettle();
+    }
+
+    int nativeBlocksCreated() =>
+        methods.where((String method) => method == EmbeddedBlockMethods.sync).length;
+
+    testOnIOS('A block scrolled away survives the row and comes back without a reload',
+        (WidgetTester tester) async {
+      await pumpList(tester, keepAlive: true);
+      await tester.pumpAndSettle();
+      expect(nativeBlocksCreated(), 1);
+
+      await scrollBy(tester, 5000);
+
+      expect(find.byType(MindboxEmbeddedBlock), findsNothing);
+      expect(find.byType(MindboxEmbeddedBlock, skipOffstage: false), findsOneWidget);
+      expect(methods, isNot(contains(EmbeddedBlockMethods.release)));
+
+      await scrollBy(tester, -5000);
+
+      expect(find.byType(MindboxEmbeddedBlock), findsOneWidget);
+      expect(nativeBlocksCreated(), 1);
+      expect(methods, isNot(contains(EmbeddedBlockMethods.release)));
+    });
+
+    testOnIOS('A host that opts out gets the block disposed with its row and rebuilt on the way back',
+        (WidgetTester tester) async {
+      await pumpList(tester, keepAlive: false);
+      await tester.pumpAndSettle();
+      expect(nativeBlocksCreated(), 1);
+
+      await scrollBy(tester, 5000);
+
+      expect(find.byType(MindboxEmbeddedBlock, skipOffstage: false), findsNothing);
+      expect(methods, contains(EmbeddedBlockMethods.release));
+
+      await scrollBy(tester, -5000);
+
+      expect(find.byType(MindboxEmbeddedBlock), findsOneWidget);
+      expect(nativeBlocksCreated(), 2);
+    });
+
+    testOnIOS('Opting out of keep-alive takes effect on the live block',
+        (WidgetTester tester) async {
+      await pumpList(tester, keepAlive: true);
+      await tester.pumpAndSettle();
+
+      await pumpList(tester, keepAlive: false);
+      await tester.pumpAndSettle();
+
+      await scrollBy(tester, 5000);
+
+      expect(find.byType(MindboxEmbeddedBlock, skipOffstage: false), findsNothing);
+      expect(methods, contains(EmbeddedBlockMethods.release));
+    });
+
+    testOnIOS('Opting back into keep-alive takes effect on the live block',
+        (WidgetTester tester) async {
+      await pumpList(tester, keepAlive: false);
+      await tester.pumpAndSettle();
+
+      await pumpList(tester, keepAlive: true);
+      await tester.pumpAndSettle();
+
+      await scrollBy(tester, 5000);
+
+      expect(find.byType(MindboxEmbeddedBlock, skipOffstage: false), findsOneWidget);
+      expect(methods, isNot(contains(EmbeddedBlockMethods.release)));
+    });
+  });
+
 }

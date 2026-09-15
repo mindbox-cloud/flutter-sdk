@@ -78,6 +78,20 @@ MindboxEmbeddedBlock(
 reload. `timeout` is fixed when the block is created — a new value is ignored and reported to the
 log; give the widget a new `Key` to load a block on a new budget.
 
+In a lazy list — a `ListView`, a `GridView` — the block asks to be kept alive off screen by default,
+the way the native blocks behave in a scroll: a block scrolled far away keeps its page, and on the
+way back it shows the same content at once, with no reload and no shimmer. The price is memory —
+every kept block holds its web page for as long as the list lives. A screen with many blocks can opt
+out with `keepAlive: false`, and then the block is disposed with its row like any other widget.
+
+```dart
+ListView.builder(
+  itemBuilder: (_, index) => index == 0
+      ? const MindboxEmbeddedBlock(placeSystemName: 'stories', height: 104)
+      : ProductRow(index),
+)
+```
+
 Available on iOS and Android. On any other platform the block collapses right away and reports
 `onFail`, so a layout that hides its section on failure behaves the same everywhere.
 
