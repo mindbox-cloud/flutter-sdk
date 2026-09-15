@@ -2,6 +2,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:mindbox_platform_interface/mindbox_platform_interface.dart';
@@ -100,6 +102,12 @@ class MindboxEmbeddedBlock extends StatelessWidget {
   /// `true` — the default — asks the list to keep the block alive, so it matches the native blocks:
   /// off screen its content is paused, and on the way back the same page is shown at once, with no
   /// reload, no shimmer and no second [onLoad]. Outside a lazy list the flag changes nothing.
+  ///
+  /// The pause is the widget's doing, not only the platform's: a kept block that the list has
+  /// scrolled out of view is reported to the native block as hidden, the same way a block behind a
+  /// pushed route is. On iOS the platform view also leaves the window, on Android it stays attached
+  /// and would otherwise count as visible — running its page, spending its waiting budget and
+  /// accounting a show nobody sees.
   ///
   /// The price is memory: every kept block holds its web page for as long as the list lives. A
   /// screen with many blocks that is better off paying a reload than holding them all can turn this
@@ -204,7 +212,15 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock> with AutomaticKeepAliveC
   bool? _syncedHasErrorView;
   bool? _syncedHostVisible;
 
-  bool _isHostVisible = true;
+  bool _isTickerEnabled = true;
+
+  /// The list keeps the block alive, and it is out of view. Read from the sliver's parent data
+  /// after every frame while [MindboxEmbeddedBlock.keepAlive] is on.
+  bool _isKeptAliveOffscreen = false;
+
+  bool _isKeptAliveCheckArmed = false;
+
+  bool get _isHostVisible => _isTickerEnabled && !_isKeptAliveOffscreen;
 
   bool get _hasPlaceholder => widget.placeholder != null;
 
@@ -221,6 +237,7 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock> with AutomaticKeepAliveC
     _creationTimeout = widget.timeout;
     _warnIfPlaceIsPadded();
     _warnIfHeightReservesNoSpace();
+    _armKeptAliveCheck();
     if (!_isSupported) {
       WidgetsFlutterBinding.ensureInitialized().addPostFrameCallback((_) {
         if (!mounted) {
@@ -236,7 +253,7 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock> with AutomaticKeepAliveC
   void didChangeDependencies() {
     super.didChangeDependencies();
     // ignore: deprecated_member_use
-    _isHostVisible = TickerMode.of(context);
+    _isTickerEnabled = TickerMode.of(context);
     _pushHostVisible();
   }
 
@@ -245,6 +262,14 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock> with AutomaticKeepAliveC
     super.didUpdateWidget(oldWidget);
     if (oldWidget.keepAlive != widget.keepAlive) {
       updateKeepAlive();
+      if (widget.keepAlive) {
+        _armKeptAliveCheck();
+      } else {
+        // A block that is not kept is disposed when it leaves the list, so off screen it is
+        // never in a state to hide.
+        _isKeptAliveOffscreen = false;
+        _pushHostVisible();
+      }
     }
     _warnIfTimeoutIsIgnored();
     _pushStandIns();
@@ -422,6 +447,51 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock> with AutomaticKeepAliveC
 
     _syncedHostVisible = _isHostVisible;
     _invoke(channel, EmbeddedBlockMethods.setHostVisible, _isHostVisible);
+  }
+
+  /// Whether the list has parked the block off screen. A lazy sliver flips `keptAlive` on the
+  /// child's parent data while it lays out, so the answer is read once the frame is done.
+  ///
+  /// The walk stops at the first ancestor that is a sliver's child; a block outside any lazy list
+  /// never finds one and is never off screen by this measure.
+  bool _readKeptAliveOffscreen() {
+    RenderObject? node = context.findRenderObject();
+    while (node != null) {
+      final ParentData? parentData = node.parentData;
+      if (parentData is KeepAliveParentDataMixin) {
+        return parentData.keptAlive;
+      }
+
+      // `parent` is typed as the abstract node on the oldest Flutter the plugin speaks to, and as
+      // a render object on the newest — the check reads on both without a cast to warn about.
+      final Object? parent = node.parent;
+      node = parent is RenderObject ? parent : null;
+    }
+    return false;
+  }
+
+  /// Re-armed after every frame while the block is kept alive. A post-frame callback runs only
+  /// when a frame is produced, so a list that stands still costs nothing; a list that scrolls
+  /// pays a short walk up the render tree per block per frame.
+  void _armKeptAliveCheck() {
+    if (_isKeptAliveCheckArmed || !widget.keepAlive || !_isSupported) {
+      return;
+    }
+
+    _isKeptAliveCheckArmed = true;
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      _isKeptAliveCheckArmed = false;
+      if (!mounted) {
+        return;
+      }
+
+      final bool keptAliveOffscreen = _readKeptAliveOffscreen();
+      if (keptAliveOffscreen != _isKeptAliveOffscreen) {
+        _isKeptAliveOffscreen = keptAliveOffscreen;
+        _pushHostVisible();
+      }
+      _armKeptAliveCheck();
+    });
   }
 
   void _invoke(MethodChannel channel, String method, Object? arguments) {

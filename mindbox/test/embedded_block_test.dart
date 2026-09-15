@@ -645,9 +645,11 @@ void main() {
   });
   group('A lazy list', () {
     late List<String> methods;
+    late List<bool> hostVisible;
 
     setUp(() {
       methods = <String>[];
+      hostVisible = <bool>[];
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(SystemChannels.platform_views, (MethodCall call) async {
         if (call.method != 'create') {
@@ -660,6 +662,9 @@ void main() {
           MethodChannel(embeddedBlockChannelName(viewId)),
           (MethodCall call) async {
             methods.add(call.method);
+            if (call.method == EmbeddedBlockMethods.setHostVisible) {
+              hostVisible.add(call.arguments as bool);
+            }
             return null;
           },
         );
@@ -760,6 +765,51 @@ void main() {
 
       expect(find.byType(MindboxEmbeddedBlock, skipOffstage: false), findsNothing);
       expect(methods, contains(EmbeddedBlockMethods.release));
+    });
+
+    testOnIOS('A kept block scrolled out of view is reported hidden, and shown again on the way back',
+        (WidgetTester tester) async {
+      await pumpList(tester, keepAlive: true);
+      await tester.pumpAndSettle();
+      expect(hostVisible, <bool>[true]);
+
+      await scrollBy(tester, 5000);
+
+      expect(hostVisible, <bool>[true, false]);
+
+      await scrollBy(tester, -5000);
+
+      expect(hostVisible, <bool>[true, false, true]);
+    });
+
+    testOnIOS('A kept block still in view is not reported hidden by the check',
+        (WidgetTester tester) async {
+      await pumpList(tester, keepAlive: true);
+      await tester.pumpAndSettle();
+
+      // Short of the cache extent: the row is out of the viewport but still live, and a live row
+      // is the platform's to pause, not the widget's.
+      await scrollBy(tester, 150);
+      await tester.pump();
+      await tester.pump();
+
+      expect(hostVisible, <bool>[true]);
+    });
+
+    testOnIOS('Outside a lazy list the check never hides the block', (WidgetTester tester) async {
+      await tester.pumpWidget(const Directionality(
+        textDirection: TextDirection.ltr,
+        child: Column(
+          children: <Widget>[
+            MindboxEmbeddedBlock(placeSystemName: 'stories', height: 104),
+          ],
+        ),
+      ));
+      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump();
+
+      expect(hostVisible, <bool>[true]);
     });
 
     testOnIOS('Opting back into keep-alive takes effect on the live block',
