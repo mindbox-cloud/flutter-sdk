@@ -109,10 +109,12 @@ class MindboxEmbeddedBlock extends StatelessWidget {
   /// and would otherwise count as visible — running its page, spending its waiting budget and
   /// accounting a show nobody sees.
   ///
-  /// The price is memory: every kept block holds its web page for as long as the list lives. A
-  /// screen with many blocks that is better off paying a reload than holding them all can turn this
-  /// off, and then the block is disposed with its row exactly as any other widget is. Live: a new
-  /// value takes effect on the block in place.
+  /// The price is memory: every kept block holds its web page for as long as the list lives, and
+  /// the request keeps the whole row alive — the row's own widgets with it — in every lazy list
+  /// the block stands in, a carousel inside a feed included. A screen with many blocks that is
+  /// better off paying a reload than holding them all can turn this off, and then the block is
+  /// disposed with its row exactly as any other widget is. Live: a new value takes effect on the
+  /// block in place.
   final bool keepAlive;
 
   /// Built instead of the SDK shimmer while the block is loading.
@@ -190,11 +192,12 @@ class _EmbeddedBlock extends StatefulWidget {
 
 /// Kept alive in a lazy list by default: the platform view — and the SDK container with its page
 /// behind it — is what a reload costs, and a row of a `ListView` is rebuilt on every pass across the
-/// screen. Off screen the native block pauses itself (it leaves the window), so keeping it costs
-/// memory, not work; see [MindboxEmbeddedBlock.keepAlive].
+/// screen. Off screen the block is paused rather than destroyed — by the window on iOS, and by the
+/// hidden signal this widget sends on Android — so keeping it costs memory, not work; see
+/// [MindboxEmbeddedBlock.keepAlive]. A platform without a native block has nothing worth keeping.
 class _EmbeddedBlockState extends State<_EmbeddedBlock> with AutomaticKeepAliveClientMixin {
   @override
-  bool get wantKeepAlive => widget.keepAlive;
+  bool get wantKeepAlive => widget.keepAlive && _isSupported;
 
   double get _height => widget.height.isFinite ? math.max(0, widget.height) : 0;
 
@@ -264,12 +267,12 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock> with AutomaticKeepAliveC
       updateKeepAlive();
       if (widget.keepAlive) {
         _armKeptAliveCheck();
-      } else {
-        // A block that is not kept is disposed when it leaves the list, so off screen it is
-        // never in a state to hide.
-        _isKeptAliveOffscreen = false;
-        _pushHostVisible();
       }
+      // Turning it off needs nothing more. A block on screen was never hidden by the check. A
+      // parked one — the list rebuilds those too — is collected in this very frame's layout
+      // now that nothing keeps it, and the check already armed for this frame fires once more
+      // and stops: it finds the block gone, or, if the row came back in the same frame, finds
+      // it in place and lifts the flag.
     }
     _warnIfTimeoutIsIgnored();
     _pushStandIns();
@@ -449,17 +452,20 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock> with AutomaticKeepAliveC
     _invoke(channel, EmbeddedBlockMethods.setHostVisible, _isHostVisible);
   }
 
-  /// Whether the list has parked the block off screen. A lazy sliver flips `keptAlive` on the
+  /// Whether a list has parked the block off screen. A lazy sliver flips `keptAlive` on the
   /// child's parent data while it lays out, so the answer is read once the frame is done.
   ///
-  /// The walk stops at the first ancestor that is a sliver's child; a block outside any lazy list
-  /// never finds one and is never off screen by this measure.
+  /// The walk goes all the way up and answers for *every* enclosing lazy list, not the nearest
+  /// one: the keep-alive request travels past the first list to all the others, so a carousel
+  /// inside a feed is parked by the feed while the carousel's own parent data still says the
+  /// block is in place. A block outside any lazy list finds nothing and is never off screen by
+  /// this measure.
   bool _readKeptAliveOffscreen() {
     RenderObject? node = context.findRenderObject();
     while (node != null) {
       final ParentData? parentData = node.parentData;
-      if (parentData is KeepAliveParentDataMixin) {
-        return parentData.keptAlive;
+      if (parentData is KeepAliveParentDataMixin && parentData.keptAlive) {
+        return true;
       }
 
       // `parent` is typed as the abstract node on the oldest Flutter the plugin speaks to, and as

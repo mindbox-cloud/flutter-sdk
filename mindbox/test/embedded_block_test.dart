@@ -812,6 +812,85 @@ void main() {
       expect(hostVisible, <bool>[true]);
     });
 
+    testOnIOS('A block in a carousel inside a feed is reported hidden when the feed parks the row',
+        (WidgetTester tester) async {
+      const Key feed = Key('feed');
+      await tester.pumpWidget(Directionality(
+        textDirection: TextDirection.ltr,
+        child: ListView.builder(
+          key: feed,
+          itemCount: 100,
+          itemBuilder: (BuildContext context, int index) => index == 0
+              ? SizedBox(
+                  height: 104,
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    children: const <Widget>[
+                      SizedBox(
+                        width: 300,
+                        child: MindboxEmbeddedBlock(placeSystemName: 'stories', height: 104),
+                      ),
+                      SizedBox(width: 300),
+                    ],
+                  ),
+                )
+              : const SizedBox(height: 104),
+        ),
+      ));
+      await tester.pumpAndSettle();
+      expect(hostVisible, <bool>[true]);
+
+      // The carousel's own parent data never parks the block — the feed does, one level up.
+      await tester.drag(find.byKey(feed), const Offset(0, -5000));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(MindboxEmbeddedBlock, skipOffstage: false), findsOneWidget);
+      expect(hostVisible, <bool>[true, false]);
+
+      await tester.drag(find.byKey(feed), const Offset(0, 5000));
+      await tester.pumpAndSettle();
+
+      expect(hostVisible, <bool>[true, false, true]);
+    });
+
+    testOnIOS('Opting out while parked lets the list drop the block without showing it first',
+        (WidgetTester tester) async {
+      await pumpList(tester, keepAlive: true);
+      await tester.pumpAndSettle();
+      await scrollBy(tester, 5000);
+      expect(hostVisible, <bool>[true, false]);
+
+      await pumpList(tester, keepAlive: false);
+      await tester.pumpAndSettle();
+
+      expect(hostVisible, <bool>[true, false]);
+      expect(methods, contains(EmbeddedBlockMethods.release));
+      expect(find.byType(MindboxEmbeddedBlock, skipOffstage: false), findsNothing);
+    });
+
+    testOnIOS('A block behind a disabled TickerMode stays hidden through parking and return',
+        (WidgetTester tester) async {
+      await tester.pumpWidget(Directionality(
+        textDirection: TextDirection.ltr,
+        child: TickerMode(
+          enabled: false,
+          child: ListView.builder(
+            itemCount: 100,
+            itemBuilder: (BuildContext context, int index) => index == 0
+                ? const MindboxEmbeddedBlock(placeSystemName: 'stories', height: 104)
+                : const SizedBox(height: 104),
+          ),
+        ),
+      ));
+      await tester.pumpAndSettle();
+      expect(hostVisible, <bool>[false]);
+
+      await scrollBy(tester, 5000);
+      await scrollBy(tester, -5000);
+
+      expect(hostVisible, <bool>[false]);
+    });
+
     testOnIOS('Opting back into keep-alive takes effect on the live block',
         (WidgetTester tester) async {
       await pumpList(tester, keepAlive: false);

@@ -81,8 +81,9 @@ log; give the widget a new `Key` to load a block on a new budget.
 In a lazy list — a `ListView`, a `GridView` — the block asks to be kept alive off screen by default,
 the way the native blocks behave in a scroll: a block scrolled far away keeps its page, and on the
 way back it shows the same content at once, with no reload and no shimmer. The price is memory —
-every kept block holds its web page for as long as the list lives. A screen with many blocks can opt
-out with `keepAlive: false`, and then the block is disposed with its row like any other widget.
+every kept block holds its web page for as long as the list lives, and the whole row it stands in is
+kept with it. A screen with many blocks can opt out with `keepAlive: false`, and then the block is
+disposed with its row like any other widget.
 
 ```dart
 ListView.builder(

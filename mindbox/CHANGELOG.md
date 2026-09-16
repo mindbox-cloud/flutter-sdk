@@ -1,6 +1,6 @@
 ## Unreleased
 
-* Add `MindboxEmbeddedBlock` — an embedded block for a place from the admin panel.
+* Add `MindboxEmbeddedBlock` — an embedded block for a place from the admin panel. In a lazy list the block is kept alive off screen by default (`keepAlive`), so scrolling back shows the same page without a reload.
 
 ## 2.15.2
 
