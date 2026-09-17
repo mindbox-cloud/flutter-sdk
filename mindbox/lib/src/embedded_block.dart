@@ -217,8 +217,8 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock> with AutomaticKeepAliveC
 
   bool _isTickerEnabled = true;
 
-  /// The list keeps the block alive, and it is out of view. Read from the sliver's parent data
-  /// after every frame while [MindboxEmbeddedBlock.keepAlive] is on.
+  /// A list keeps the block's row alive, and it is out of view. Read from the slivers' parent
+  /// data after every frame for as long as the block is mounted.
   bool _isKeptAliveOffscreen = false;
 
   bool _isKeptAliveCheckArmed = false;
@@ -265,14 +265,6 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock> with AutomaticKeepAliveC
     super.didUpdateWidget(oldWidget);
     if (oldWidget.keepAlive != widget.keepAlive) {
       updateKeepAlive();
-      if (widget.keepAlive) {
-        _armKeptAliveCheck();
-      }
-      // Turning it off needs nothing more. A block on screen was never hidden by the check. A
-      // parked one — the list rebuilds those too — is collected in this very frame's layout
-      // now that nothing keeps it, and the check already armed for this frame fires once more
-      // and stops: it finds the block gone, or, if the row came back in the same frame, finds
-      // it in place and lifts the flag.
     }
     _warnIfTimeoutIsIgnored();
     _pushStandIns();
@@ -476,11 +468,17 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock> with AutomaticKeepAliveC
     return false;
   }
 
-  /// Re-armed after every frame while the block is kept alive. A post-frame callback runs only
-  /// when a frame is produced, so a list that stands still costs nothing; a list that scrolls
-  /// pays a short walk up the render tree per block per frame.
+  /// Re-armed after every frame for as long as the block is mounted, whatever its own
+  /// [MindboxEmbeddedBlock.keepAlive] says: the block's request is not the only thing that can
+  /// park its row — any keep-alive client in the row does, another block among them — and a
+  /// block parked by someone else has to be hidden and shown all the same. Tying the check to
+  /// the block's own flag would also leave a block that turned the flag off while parked hidden
+  /// for good once its row came back.
+  ///
+  /// A post-frame callback runs only when a frame is produced, so a list that stands still costs
+  /// nothing; a list that scrolls pays a short walk up the render tree per block per frame.
   void _armKeptAliveCheck() {
-    if (_isKeptAliveCheckArmed || !widget.keepAlive || !_isSupported) {
+    if (_isKeptAliveCheckArmed || !_isSupported) {
       return;
     }
 

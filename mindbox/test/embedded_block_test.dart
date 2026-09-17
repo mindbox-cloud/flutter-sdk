@@ -677,11 +677,10 @@ void main() {
           .setMockMethodCallHandler(SystemChannels.platform_views, null);
     });
 
-    // On iOS, where the widget tells the block to stop itself: a `release` in the log is the
-    // proof that the row took the block down with it.
-    void testOnIOS(String description, Future<void> Function(WidgetTester) body) {
+    void testOn(TargetPlatform platform, String description,
+        Future<void> Function(WidgetTester) body) {
       testWidgets(description, (WidgetTester tester) async {
-        debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+        debugDefaultTargetPlatformOverride = platform;
         try {
           await body(tester);
         } finally {
@@ -689,6 +688,22 @@ void main() {
         }
       });
     }
+
+    // Both platforms host a native block, and the widget's keep-alive and hidden/shown paths
+    // are the same Dart on both — only the teardown differs: on iOS the widget sends `release`
+    // itself, on Android the platform view's own dispose hook does, so `release` is asserted
+    // on iOS only.
+    void testOnBoth(String description, Future<void> Function(WidgetTester) body) {
+      for (final TargetPlatform platform in <TargetPlatform>[
+        TargetPlatform.iOS,
+        TargetPlatform.android,
+      ]) {
+        testOn(platform, '$description (${platform.name})', body);
+      }
+    }
+
+    // A row that asks to be kept alive on its own, the way a host's stateful row widget might.
+    Widget keptRow({required Widget child}) => _KeptAliveRow(child: child);
 
     // A list ten screens tall with the block in its first row. The test viewport is 600 logical
     // pixels high and the list caches 250 more, so a scroll of a few thousand takes the row far
@@ -717,7 +732,7 @@ void main() {
     int nativeBlocksCreated() =>
         methods.where((String method) => method == EmbeddedBlockMethods.sync).length;
 
-    testOnIOS('A block scrolled away survives the row and comes back without a reload',
+    testOnBoth('A block scrolled away survives the row and comes back without a reload',
         (WidgetTester tester) async {
       await pumpList(tester, keepAlive: true);
       await tester.pumpAndSettle();
@@ -736,7 +751,7 @@ void main() {
       expect(methods, isNot(contains(EmbeddedBlockMethods.release)));
     });
 
-    testOnIOS('A host that opts out gets the block disposed with its row and rebuilt on the way back',
+    testOnBoth('A host that opts out gets the block disposed with its row and rebuilt on the way back',
         (WidgetTester tester) async {
       await pumpList(tester, keepAlive: false);
       await tester.pumpAndSettle();
@@ -745,7 +760,9 @@ void main() {
       await scrollBy(tester, 5000);
 
       expect(find.byType(MindboxEmbeddedBlock, skipOffstage: false), findsNothing);
-      expect(methods, contains(EmbeddedBlockMethods.release));
+      if (defaultTargetPlatform == TargetPlatform.iOS) {
+        expect(methods, contains(EmbeddedBlockMethods.release));
+      }
 
       await scrollBy(tester, -5000);
 
@@ -753,7 +770,7 @@ void main() {
       expect(nativeBlocksCreated(), 2);
     });
 
-    testOnIOS('Opting out of keep-alive takes effect on the live block',
+    testOnBoth('Opting out of keep-alive takes effect on the live block',
         (WidgetTester tester) async {
       await pumpList(tester, keepAlive: true);
       await tester.pumpAndSettle();
@@ -764,10 +781,12 @@ void main() {
       await scrollBy(tester, 5000);
 
       expect(find.byType(MindboxEmbeddedBlock, skipOffstage: false), findsNothing);
-      expect(methods, contains(EmbeddedBlockMethods.release));
+      if (defaultTargetPlatform == TargetPlatform.iOS) {
+        expect(methods, contains(EmbeddedBlockMethods.release));
+      }
     });
 
-    testOnIOS('A kept block scrolled out of view is reported hidden, and shown again on the way back',
+    testOnBoth('A kept block scrolled out of view is reported hidden, and shown again on the way back',
         (WidgetTester tester) async {
       await pumpList(tester, keepAlive: true);
       await tester.pumpAndSettle();
@@ -782,13 +801,13 @@ void main() {
       expect(hostVisible, <bool>[true, false, true]);
     });
 
-    testOnIOS('A kept block still in view is not reported hidden by the check',
+    testOnBoth('A kept block still in view is not reported hidden by the check',
         (WidgetTester tester) async {
       await pumpList(tester, keepAlive: true);
       await tester.pumpAndSettle();
 
       // Short of the cache extent: the row is out of the viewport but still live, and a live row
-      // is the platform's to pause, not the widget's.
+      // is for the platform to pause, not the widget.
       await scrollBy(tester, 150);
       await tester.pump();
       await tester.pump();
@@ -796,7 +815,7 @@ void main() {
       expect(hostVisible, <bool>[true]);
     });
 
-    testOnIOS('Outside a lazy list the check never hides the block', (WidgetTester tester) async {
+    testOnBoth('Outside a lazy list the check never hides the block', (WidgetTester tester) async {
       await tester.pumpWidget(const Directionality(
         textDirection: TextDirection.ltr,
         child: Column(
@@ -812,7 +831,7 @@ void main() {
       expect(hostVisible, <bool>[true]);
     });
 
-    testOnIOS('A block in a carousel inside a feed is reported hidden when the feed parks the row',
+    testOnBoth('A block in a carousel inside a feed is reported hidden when the feed parks the row',
         (WidgetTester tester) async {
       const Key feed = Key('feed');
       await tester.pumpWidget(Directionality(
@@ -853,7 +872,7 @@ void main() {
       expect(hostVisible, <bool>[true, false, true]);
     });
 
-    testOnIOS('Opting out while parked lets the list drop the block without showing it first',
+    testOnBoth('Opting out while parked lets the list drop the block without showing it first',
         (WidgetTester tester) async {
       await pumpList(tester, keepAlive: true);
       await tester.pumpAndSettle();
@@ -864,11 +883,13 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(hostVisible, <bool>[true, false]);
-      expect(methods, contains(EmbeddedBlockMethods.release));
+      if (defaultTargetPlatform == TargetPlatform.iOS) {
+        expect(methods, contains(EmbeddedBlockMethods.release));
+      }
       expect(find.byType(MindboxEmbeddedBlock, skipOffstage: false), findsNothing);
     });
 
-    testOnIOS('A block behind a disabled TickerMode stays hidden through parking and return',
+    testOnBoth('A block behind a disabled TickerMode stays hidden through parking and return',
         (WidgetTester tester) async {
       await tester.pumpWidget(Directionality(
         textDirection: TextDirection.ltr,
@@ -891,7 +912,61 @@ void main() {
       expect(hostVisible, <bool>[false]);
     });
 
-    testOnIOS('Opting back into keep-alive takes effect on the live block',
+    Future<void> pumpKeptRowList(WidgetTester tester, {required bool keepAlive}) {
+      return tester.pumpWidget(Directionality(
+        textDirection: TextDirection.ltr,
+        child: ListView.builder(
+          itemCount: 100,
+          itemBuilder: (BuildContext context, int index) => index == 0
+              ? keptRow(
+                  child: MindboxEmbeddedBlock(
+                    placeSystemName: 'stories',
+                    height: 104,
+                    keepAlive: keepAlive,
+                  ),
+                )
+              : const SizedBox(height: 104),
+        ),
+      ));
+    }
+
+    testOnBoth('A block that opted out but sits in a row someone else keeps is still hidden and shown',
+        (WidgetTester tester) async {
+      await pumpKeptRowList(tester, keepAlive: false);
+      await tester.pumpAndSettle();
+      expect(hostVisible, <bool>[true]);
+
+      await scrollBy(tester, 5000);
+
+      // The row's own client keeps it, so the block survives without asking — and must not run.
+      expect(find.byType(MindboxEmbeddedBlock, skipOffstage: false), findsOneWidget);
+      expect(methods, isNot(contains(EmbeddedBlockMethods.release)));
+      expect(hostVisible, <bool>[true, false]);
+
+      await scrollBy(tester, -5000);
+
+      expect(hostVisible, <bool>[true, false, true]);
+      expect(nativeBlocksCreated(), 1);
+    });
+
+    testOnBoth('Opting out while parked in a row someone else keeps does not leave the block hidden',
+        (WidgetTester tester) async {
+      await pumpKeptRowList(tester, keepAlive: true);
+      await tester.pumpAndSettle();
+      await scrollBy(tester, 5000);
+      expect(hostVisible, <bool>[true, false]);
+
+      await pumpKeptRowList(tester, keepAlive: false);
+      await tester.pumpAndSettle();
+      expect(find.byType(MindboxEmbeddedBlock, skipOffstage: false), findsOneWidget);
+
+      await scrollBy(tester, -5000);
+
+      expect(hostVisible, <bool>[true, false, true]);
+      expect(nativeBlocksCreated(), 1);
+    });
+
+    testOnBoth('Opting back into keep-alive takes effect on the live block',
         (WidgetTester tester) async {
       await pumpList(tester, keepAlive: false);
       await tester.pumpAndSettle();
@@ -906,4 +981,25 @@ void main() {
     });
   });
 
+}
+
+/// A list row with a keep-alive client of its own, as a host's stateful row widget might have.
+class _KeptAliveRow extends StatefulWidget {
+  const _KeptAliveRow({required this.child});
+
+  final Widget child;
+
+  @override
+  State<_KeptAliveRow> createState() => _KeptAliveRowState();
+}
+
+class _KeptAliveRowState extends State<_KeptAliveRow> with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    return widget.child;
+  }
 }
