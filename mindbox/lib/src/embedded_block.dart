@@ -2,6 +2,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:mindbox_platform_interface/mindbox_platform_interface.dart';
@@ -51,6 +53,7 @@ class MindboxEmbeddedBlock extends StatelessWidget {
     required this.placeSystemName,
     required this.height,
     this.timeout,
+    this.keepAlive = true,
     this.placeholder,
     this.errorBuilder,
     this.onLoad,
@@ -87,6 +90,32 @@ class MindboxEmbeddedBlock extends StatelessWidget {
   /// Fixed when the block is created: a new value given to a live block is ignored and reported
   /// to the log. Give the widget a new [Key] to load a block on a new budget.
   final Duration? timeout;
+
+  /// Whether the block survives being scrolled out of a lazy list.
+  ///
+  /// A `ListView`, a `GridView` or any other lazy sliver builds only what is near the viewport and
+  /// throws the rest away — a block scrolled far enough would be disposed with its row, and on the
+  /// way back a *new* block would load its content from scratch: a full cycle with the shimmer on
+  /// every pass across the screen. The native iOS and Android blocks do not behave that way: a view
+  /// in a scroll is paused off screen, not destroyed, and its page is shown again as it was.
+  ///
+  /// `true` — the default — asks the list to keep the block alive, so it matches the native blocks:
+  /// off screen its content is paused, and on the way back the same page is shown at once, with no
+  /// reload, no shimmer and no second [onLoad]. Outside a lazy list the flag changes nothing.
+  ///
+  /// The pause is the widget's doing, not only the platform's: a kept block that the list has
+  /// scrolled out of view is reported to the native block as hidden, the same way a block behind a
+  /// pushed route is. On iOS the platform view also leaves the window, on Android it stays attached
+  /// and would otherwise count as visible — running its page, spending its waiting budget and
+  /// accounting a show nobody sees.
+  ///
+  /// The price is memory: every kept block holds its web page for as long as the list lives, and
+  /// the request keeps the whole row alive — the row's own widgets with it — in every lazy list
+  /// the block stands in, a carousel inside a feed included. A screen with many blocks that is
+  /// better off paying a reload than holding them all can turn this off, and then the block is
+  /// disposed with its row exactly as any other widget is. Live: a new value takes effect on the
+  /// block in place.
+  final bool keepAlive;
 
   /// Built instead of the SDK shimmer while the block is loading.
   ///
@@ -126,6 +155,7 @@ class MindboxEmbeddedBlock extends StatelessWidget {
       placeSystemName: placeSystemName,
       height: height,
       timeout: timeout,
+      keepAlive: keepAlive,
       placeholder: placeholder,
       errorBuilder: errorBuilder,
       onLoad: onLoad,
@@ -140,6 +170,7 @@ class _EmbeddedBlock extends StatefulWidget {
     required this.placeSystemName,
     required this.height,
     required this.timeout,
+    required this.keepAlive,
     required this.placeholder,
     required this.errorBuilder,
     required this.onLoad,
@@ -149,6 +180,7 @@ class _EmbeddedBlock extends StatefulWidget {
   final String placeSystemName;
   final double height;
   final Duration? timeout;
+  final bool keepAlive;
   final WidgetBuilder? placeholder;
   final WidgetBuilder? errorBuilder;
   final VoidCallback? onLoad;
@@ -158,7 +190,15 @@ class _EmbeddedBlock extends StatefulWidget {
   State<_EmbeddedBlock> createState() => _EmbeddedBlockState();
 }
 
-class _EmbeddedBlockState extends State<_EmbeddedBlock> {
+/// Kept alive in a lazy list by default: the platform view — and the SDK container with its page
+/// behind it — is what a reload costs, and a row of a `ListView` is rebuilt on every pass across the
+/// screen. Off screen the block is paused rather than destroyed — by the window on iOS, and by the
+/// hidden signal this widget sends on Android — so keeping it costs memory, not work; see
+/// [MindboxEmbeddedBlock.keepAlive]. A platform without a native block has nothing worth keeping.
+class _EmbeddedBlockState extends State<_EmbeddedBlock> with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => widget.keepAlive && _isSupported;
+
   double get _height => widget.height.isFinite ? math.max(0, widget.height) : 0;
 
   late final Duration? _creationTimeout;
@@ -175,7 +215,15 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock> {
   bool? _syncedHasErrorView;
   bool? _syncedHostVisible;
 
-  bool _isHostVisible = true;
+  bool _isTickerEnabled = true;
+
+  /// A list keeps the block's row alive, and it is out of view. Read from the slivers' parent
+  /// data after every frame for as long as the block is mounted.
+  bool _isKeptAliveOffscreen = false;
+
+  bool _isKeptAliveCheckArmed = false;
+
+  bool get _isHostVisible => _isTickerEnabled && !_isKeptAliveOffscreen;
 
   bool get _hasPlaceholder => widget.placeholder != null;
 
@@ -192,6 +240,7 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock> {
     _creationTimeout = widget.timeout;
     _warnIfPlaceIsPadded();
     _warnIfHeightReservesNoSpace();
+    _armKeptAliveCheck();
     if (!_isSupported) {
       WidgetsFlutterBinding.ensureInitialized().addPostFrameCallback((_) {
         if (!mounted) {
@@ -207,13 +256,16 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     // ignore: deprecated_member_use
-    _isHostVisible = TickerMode.of(context);
+    _isTickerEnabled = TickerMode.of(context);
     _pushHostVisible();
   }
 
   @override
   void didUpdateWidget(covariant _EmbeddedBlock oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.keepAlive != widget.keepAlive) {
+      updateKeepAlive();
+    }
     _warnIfTimeoutIsIgnored();
     _pushStandIns();
   }
@@ -232,6 +284,8 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock> {
 
   @override
   Widget build(BuildContext context) {
+    // The mixin's build is what hands the list the keep-alive handle; its widget is not used.
+    super.build(context);
     final Widget? hostLayer = _hostLayer(context);
 
     return SizedBox(
@@ -388,6 +442,60 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock> {
 
     _syncedHostVisible = _isHostVisible;
     _invoke(channel, EmbeddedBlockMethods.setHostVisible, _isHostVisible);
+  }
+
+  /// Whether a list has parked the block off screen. A lazy sliver flips `keptAlive` on the
+  /// child's parent data while it lays out, so the answer is read once the frame is done.
+  ///
+  /// The walk goes all the way up and answers for *every* enclosing lazy list, not the nearest
+  /// one: the keep-alive request travels past the first list to all the others, so a carousel
+  /// inside a feed is parked by the feed while the carousel's own parent data still says the
+  /// block is in place. A block outside any lazy list finds nothing and is never off screen by
+  /// this measure.
+  bool _readKeptAliveOffscreen() {
+    RenderObject? node = context.findRenderObject();
+    while (node != null) {
+      final ParentData? parentData = node.parentData;
+      if (parentData is KeepAliveParentDataMixin && parentData.keptAlive) {
+        return true;
+      }
+
+      // `parent` is typed as the abstract node on the oldest Flutter the plugin speaks to, and as
+      // a render object on the newest — the check reads on both without a cast to warn about.
+      final Object? parent = node.parent;
+      node = parent is RenderObject ? parent : null;
+    }
+    return false;
+  }
+
+  /// Re-armed after every frame for as long as the block is mounted, whatever its own
+  /// [MindboxEmbeddedBlock.keepAlive] says: the block's request is not the only thing that can
+  /// park its row — any keep-alive client in the row does, another block among them — and a
+  /// block parked by someone else has to be hidden and shown all the same. Tying the check to
+  /// the block's own flag would also leave a block that turned the flag off while parked hidden
+  /// for good once its row came back.
+  ///
+  /// A post-frame callback runs only when a frame is produced, so a list that stands still costs
+  /// nothing; a list that scrolls pays a short walk up the render tree per block per frame.
+  void _armKeptAliveCheck() {
+    if (_isKeptAliveCheckArmed || !_isSupported) {
+      return;
+    }
+
+    _isKeptAliveCheckArmed = true;
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      _isKeptAliveCheckArmed = false;
+      if (!mounted) {
+        return;
+      }
+
+      final bool keptAliveOffscreen = _readKeptAliveOffscreen();
+      if (keptAliveOffscreen != _isKeptAliveOffscreen) {
+        _isKeptAliveOffscreen = keptAliveOffscreen;
+        _pushHostVisible();
+      }
+      _armKeptAliveCheck();
+    });
   }
 
   void _invoke(MethodChannel channel, String method, Object? arguments) {
