@@ -46,10 +46,18 @@ MindboxEmbeddedBlock(
 )
 ```
 
-Both outcomes can be customized, the same way as in SwiftUI and Compose: `placeholder` replaces the
+The outcome arrives through three callbacks, the same three as in SwiftUI and Compose: `onLoad`
+when the content is shown, `onEmpty` when there is nothing to show at the place, and `onFail` with a
+`MindboxEmbeddedBlockFailReason` when the block could not be shown. An empty place is a normal
+outcome, not a breakage, and comes with no reason. A failure's reason — `networkError` or
+`internalError` — is for logs and analytics, not for branching: by the time it arrives the block has
+already collapsed or switched to `errorBuilder`. A later SDK may add reasons, so keep a fallback
+when matching.
+
+Both looks can be customized, the same way as in SwiftUI and Compose: `placeholder` replaces the
 stock loading shimmer, and `errorBuilder` opts into showing a failure instead of collapsing. An
 empty place always collapses — a host cannot fill the space of a block that was never meant to be
-there. `onLoad` and `onFail` report how the load ended.
+there.
 
 ```dart
 MindboxEmbeddedBlock(
@@ -57,7 +65,8 @@ MindboxEmbeddedBlock(
   height: 104,
   placeholder: (_) => const StoriesSkeleton(),
   errorBuilder: (_) => const StoriesUnavailable(),
-  onFail: () => setState(() => _showStoriesSection = false),
+  onEmpty: () => setState(() => _showStoriesSection = false),
+  onFail: (reason) => log('stories failed: $reason'),
 )
 ```
 
@@ -94,7 +103,8 @@ ListView.builder(
 ```
 
 Available on iOS and Android. On any other platform the block collapses right away and reports
-`onFail`, so a layout that hides its section on failure behaves the same everywhere.
+`onFail` with `internalError`, so a layout that hides its section on failure behaves the same
+everywhere.
 
 ## Troubleshooting
 

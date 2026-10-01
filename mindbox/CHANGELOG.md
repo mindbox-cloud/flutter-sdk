@@ -1,6 +1,7 @@
 ## Unreleased
 
 * Add `MindboxEmbeddedBlock` — an embedded block for a place from the admin panel. In a lazy list the block is kept alive off screen by default (`keepAlive`), so scrolling back shows the same page without a reload.
+* `MindboxEmbeddedBlock` reports three outcomes, as the native SwiftUI and Compose blocks do: `onLoad`, `onEmpty` and `onFail` with a `MindboxEmbeddedBlockFailReason` (`networkError` or `internalError`).
 
 ## 2.15.2
 

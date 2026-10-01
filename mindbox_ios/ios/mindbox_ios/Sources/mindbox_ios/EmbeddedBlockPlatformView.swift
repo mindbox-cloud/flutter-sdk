@@ -30,6 +30,7 @@ final class EmbeddedBlockPlatformView: NSObject, FlutterPlatformView {
 
     private var appearance = Keys.placeholder
     private var outcome: String?
+    private var failReason: String?
 
     init(viewId: Int64, arguments: Any?, messenger: FlutterBinaryMessenger) {
         let params = arguments as? [String: Any]
@@ -136,8 +137,9 @@ final class EmbeddedBlockPlatformView: NSObject, FlutterPlatformView {
         send()
     }
 
-    private func report(outcome: String) {
+    private func report(outcome: String, reason: String? = nil) {
         self.outcome = outcome
+        self.failReason = reason
         send()
     }
 
@@ -145,6 +147,9 @@ final class EmbeddedBlockPlatformView: NSObject, FlutterPlatformView {
         var arguments: [String: Any] = [Keys.appearance: appearance]
         if let outcome = outcome {
             arguments[Keys.outcome] = outcome
+        }
+        if let failReason = failReason {
+            arguments[Keys.reason] = failReason
         }
 
         channel.invokeMethod(Keys.report, arguments: arguments)
@@ -163,7 +168,9 @@ final class EmbeddedBlockPlatformView: NSObject, FlutterPlatformView {
         static let release = "release"
         static let appearance = "appearance"
         static let outcome = "outcome"
+        static let reason = "reason"
         static let load = "load"
+        static let empty = "empty"
         static let fail = "fail"
         static let placeholder = "placeholder"
         static let content = "content"
@@ -189,7 +196,12 @@ extension EmbeddedBlockPlatformView: MindboxEmbeddedBlockViewDelegate {
         report(outcome: Keys.load)
     }
 
-    func mindboxEmbeddedBlockViewDidFail(_ blockView: MindboxEmbeddedBlockView) {
-        report(outcome: Keys.fail)
+    func mindboxEmbeddedBlockViewDidBecomeEmpty(_ blockView: MindboxEmbeddedBlockView) {
+        report(outcome: Keys.empty)
+    }
+
+    func mindboxEmbeddedBlockViewDidFail(_ blockView: MindboxEmbeddedBlockView,
+                                         reason: MindboxEmbeddedBlockFailReason) {
+        report(outcome: Keys.fail, reason: reason.rawValue)
     }
 }

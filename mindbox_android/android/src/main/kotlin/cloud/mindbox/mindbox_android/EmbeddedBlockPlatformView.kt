@@ -6,6 +6,7 @@ import android.view.View
 import cloud.mindbox.mobile_sdk.Mindbox
 import cloud.mindbox.mobile_sdk.annotations.InternalMindboxApi
 import cloud.mindbox.mobile_sdk.embedded.MindboxEmbeddedBlockAppearance
+import cloud.mindbox.mobile_sdk.embedded.MindboxEmbeddedBlockFailReason
 import cloud.mindbox.mobile_sdk.embedded.MindboxEmbeddedBlockListener
 import cloud.mindbox.mobile_sdk.embedded.MindboxEmbeddedBlockView
 import cloud.mindbox.mobile_sdk.logger.Level
@@ -38,6 +39,7 @@ internal class EmbeddedBlockPlatformView(
 
     private var appearance = PLACEHOLDER
     private var outcome: String? = null
+    private var failReason: String? = null
 
     private var placeholderStandIn: View? = null
     private var errorStandIn: View? = null
@@ -69,7 +71,10 @@ internal class EmbeddedBlockPlatformView(
             object : MindboxEmbeddedBlockListener {
                 override fun onLoad(view: MindboxEmbeddedBlockView) = report(outcome = LOAD)
 
-                override fun onFail(view: MindboxEmbeddedBlockView) = report(outcome = FAIL)
+                override fun onEmpty(view: MindboxEmbeddedBlockView) = report(outcome = EMPTY)
+
+                override fun onFail(view: MindboxEmbeddedBlockView, reason: MindboxEmbeddedBlockFailReason) =
+                    report(outcome = FAIL, reason = reason.value)
             },
         )
         blockView.setAppearanceObserver { appearance -> report(appearance) }
@@ -155,14 +160,16 @@ internal class EmbeddedBlockPlatformView(
         send()
     }
 
-    private fun report(outcome: String) {
+    private fun report(outcome: String, reason: String? = null) {
         this.outcome = outcome
+        this.failReason = reason
         send()
     }
 
     private fun send() {
         val arguments = mutableMapOf<String, Any>(KEY_APPEARANCE to appearance)
         outcome?.let { arguments[KEY_OUTCOME] = it }
+        failReason?.let { arguments[KEY_REASON] = it }
         channel.invokeMethod(METHOD_REPORT, arguments)
     }
 
@@ -175,6 +182,7 @@ internal class EmbeddedBlockPlatformView(
         const val KEY_HAS_ERROR_VIEW = "hasErrorView"
         const val KEY_APPEARANCE = "appearance"
         const val KEY_OUTCOME = "outcome"
+        const val KEY_REASON = "reason"
         const val METHOD_REPORT = "report"
         const val METHOD_SYNC = "sync"
         const val METHOD_SET_HOST_VISIBLE = "setHostVisible"
@@ -182,6 +190,7 @@ internal class EmbeddedBlockPlatformView(
         const val METHOD_RELEASE = "release"
         const val ERROR_BAD_ARGUMENTS = "bad_arguments"
         const val LOAD = "load"
+        const val EMPTY = "empty"
         const val FAIL = "fail"
         const val PLACEHOLDER = "placeholder"
         const val CONTENT = "content"

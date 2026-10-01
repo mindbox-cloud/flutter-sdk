@@ -8,6 +8,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:mindbox_platform_interface/mindbox_platform_interface.dart';
 
+import 'embedded_block_fail_reason.dart';
+
 /// An embedded Mindbox block.
 ///
 /// The app marks a *place* by its [placeSystemName] and never learns what goes into it — that is the
@@ -44,8 +46,13 @@ import 'package:mindbox_platform_interface/mindbox_platform_interface.dart';
 /// — with its waiting budget and its web page — and this widget only mirrors the container's
 /// decisions in the Flutter layout, and draws the host's own screens over it when it asks for them.
 ///
-/// **iOS and Android.** On any other platform the block collapses right away and reports [onFail], so
-/// a layout that hides its section on failure behaves the same everywhere.
+/// The outcome arrives through three callbacks, the same three as in SwiftUI and Compose: [onLoad]
+/// when the content is shown, [onEmpty] when there is nothing to show at the place, and [onFail] with
+/// a reason when the block could not be shown.
+///
+/// **iOS and Android.** On any other platform the block collapses right away and reports [onFail]
+/// with [MindboxEmbeddedBlockFailReason.internalError], so a layout that hides its section on
+/// failure behaves the same everywhere.
 class MindboxEmbeddedBlock extends StatelessWidget {
   /// Creates a block for the place named [placeSystemName], occupying [height].
   const MindboxEmbeddedBlock({
@@ -57,6 +64,7 @@ class MindboxEmbeddedBlock extends StatelessWidget {
     this.placeholder,
     this.errorBuilder,
     this.onLoad,
+    this.onEmpty,
     this.onFail,
   }) : super(key: key);
 
@@ -135,18 +143,33 @@ class MindboxEmbeddedBlock extends StatelessWidget {
   /// from the start is what a host that wants a failure screen should do.
   final WidgetBuilder? errorBuilder;
 
-  /// The content is shown.
+  /// The content is shown: the block has taken its height and is visible.
   ///
   /// Delivered once per outcome, not once per lifetime: the same outcome is never repeated, and an
   /// outcome that actually changed — a place that filled up after a failure — is delivered again.
   /// The native block reports the same way, so every wrapper of the SDK calls back alike.
   final VoidCallback? onLoad;
 
-  /// The place ended up without content: the load failed or timed out, or there is nothing behind
-  /// the name. An empty place is a normal outcome, not a breakage.
+  /// There is nothing to show at the place: no campaign behind its name, the targeting or the A/B
+  /// group did not match, the show budget is spent, or the page rendered nothing. A normal outcome,
+  /// not a breakage: the block collapses, [errorBuilder] does not apply, and no reason is given —
+  /// which of these it was is the SDK's business.
   ///
   /// Delivered on the same rule as [onLoad]: once per outcome, again if the outcome changes.
-  final VoidCallback? onFail;
+  final VoidCallback? onEmpty;
+
+  /// The block could not be shown: the SDK had no config or never answered, the page could not be
+  /// loaded, the content is malformed or the SDK hit an internal error. The block collapses, or
+  /// keeps its height and builds [errorBuilder] when one is given. An empty place is not a failure
+  /// and arrives in [onEmpty] instead.
+  ///
+  /// The reason is for logs and analytics, not for branching: whatever it is, the block has already
+  /// collapsed or switched to [errorBuilder]. Compare it with the constants of
+  /// [MindboxEmbeddedBlockFailReason] and keep a fallback — a later SDK may add reasons.
+  ///
+  /// Delivered on the same rule as [onLoad]: once per outcome, again if the outcome changes. A
+  /// failure that repeats with a different reason is the same outcome and is not delivered again.
+  final void Function(MindboxEmbeddedBlockFailReason reason)? onFail;
 
   @override
   Widget build(BuildContext context) {
@@ -159,6 +182,7 @@ class MindboxEmbeddedBlock extends StatelessWidget {
       placeholder: placeholder,
       errorBuilder: errorBuilder,
       onLoad: onLoad,
+      onEmpty: onEmpty,
       onFail: onFail,
     );
   }
@@ -174,6 +198,7 @@ class _EmbeddedBlock extends StatefulWidget {
     required this.placeholder,
     required this.errorBuilder,
     required this.onLoad,
+    required this.onEmpty,
     required this.onFail,
   }) : super(key: key);
 
@@ -184,7 +209,8 @@ class _EmbeddedBlock extends StatefulWidget {
   final WidgetBuilder? placeholder;
   final WidgetBuilder? errorBuilder;
   final VoidCallback? onLoad;
-  final VoidCallback? onFail;
+  final VoidCallback? onEmpty;
+  final void Function(MindboxEmbeddedBlockFailReason reason)? onFail;
 
   @override
   State<_EmbeddedBlock> createState() => _EmbeddedBlockState();
@@ -247,7 +273,7 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock> with AutomaticKeepAliveC
           return;
         }
         setState(() => _appearance = EmbeddedBlockAppearance.collapsed);
-        _deliver(EmbeddedBlockOutcome.fail);
+        _deliver(EmbeddedBlockOutcome.fail, MindboxEmbeddedBlockFailReason.internalError);
       });
     }
   }
@@ -399,21 +425,34 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock> with AutomaticKeepAliveC
       setState(() => _appearance = appearance);
     }
 
-    _deliver(report.outcome);
+    _deliver(report.outcome, _reasonOf(report.failReason));
   }
 
-  void _deliver(EmbeddedBlockOutcome? outcome) {
+  /// Deduplicated by the kind of outcome, not by the whole report: a silent retry that fails for
+  /// a different reason is still the same outcome, as it is for the native blocks.
+  void _deliver(EmbeddedBlockOutcome? outcome, MindboxEmbeddedBlockFailReason? reason) {
     if (outcome == null || outcome == _deliveredOutcome) {
       return;
     }
 
     _deliveredOutcome = outcome;
-    if (outcome == EmbeddedBlockOutcome.load) {
-      widget.onLoad?.call();
-    } else {
-      widget.onFail?.call();
+    switch (outcome) {
+      case EmbeddedBlockOutcome.load:
+        widget.onLoad?.call();
+        break;
+      case EmbeddedBlockOutcome.empty:
+        widget.onEmpty?.call();
+        break;
+      case EmbeddedBlockOutcome.fail:
+        // A failure always comes with a reason; a report without one is a native side this version
+        // does not expect, and the SDK's own error is the closest word for it.
+        widget.onFail?.call(reason ?? MindboxEmbeddedBlockFailReason.internalError);
+        break;
     }
   }
+
+  static MindboxEmbeddedBlockFailReason? _reasonOf(String? rawValue) =>
+      rawValue == null ? null : MindboxEmbeddedBlockFailReason(rawValue);
 
   void _pushStandIns() {
     final MethodChannel? channel = _channel;

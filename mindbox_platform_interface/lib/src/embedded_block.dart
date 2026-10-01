@@ -2,7 +2,7 @@
 ///
 /// The block is a view, not a call, so nothing here lands on `MindboxPlatform`: what crosses the
 /// boundary is a platform view type, one channel per created view, and the two signals the native
-/// block sends up — how it occupies its place and how its load ended.
+/// block sends up — how it occupies its place and how its load ended, with the reason of a failure.
 
 /// The type both native factories register the block under.
 const String embeddedBlockViewType = 'mindbox.cloud/flutter-sdk/embedded_block';
@@ -109,21 +109,28 @@ enum EmbeddedBlockAppearance {
   collapsed,
 }
 
-/// How the block's load ended. There are two outcomes and no more: the block is either shown or it
-/// is not — an empty place reaches the host as [EmbeddedBlockOutcome.fail], the same as a failure.
+/// How the block's load ended. Three outcomes and no more: the content is shown, the place has
+/// nothing to show, or the block could not be shown. The native block tells them apart, and the host
+/// hears each one through its own callback.
 enum EmbeddedBlockOutcome {
   /// The content is shown.
   load,
 
-  /// The place ended up without content — the load failed or timed out, or there was nothing
-  /// behind the name.
+  /// The place has nothing to show: no campaign behind the name, the targeting or the A/B group
+  /// did not match, the show budget is spent, or the page rendered nothing. A normal outcome, not a
+  /// breakage, and no reason comes with it.
+  empty,
+
+  /// The block could not be shown: the SDK had no config or never answered, the page could not be
+  /// loaded, the content is malformed or the SDK hit an internal error. Comes with a reason, see
+  /// [EmbeddedBlockReport.failReason].
   fail,
 }
 
 /// What the native block says about itself.
 class EmbeddedBlockReport {
-  /// Both parts are optional: a message carries whichever of them it has to say.
-  const EmbeddedBlockReport({this.appearance, this.outcome});
+  /// Every part is optional: a message carries whichever of them it has to say.
+  const EmbeddedBlockReport({this.appearance, this.outcome, this.failReason});
 
   /// What to draw, or `null` when the message carries no answer this version understands.
   ///
@@ -138,6 +145,13 @@ class EmbeddedBlockReport {
   /// queue. Deriving one from the other would move the host's callback to the wrong moment.
   final EmbeddedBlockOutcome? outcome;
 
+  /// Why the block failed, as the native side spells it — `networkError`, `internalError`, or a
+  /// word a later SDK added — or `null` when the outcome is not a failure.
+  ///
+  /// Carried raw on purpose: the raw values are the same on every platform and the SDK may add
+  /// reasons, so the boundary passes the word through and leaves the typing to the widget.
+  final String? failReason;
+
   /// Reads a report off the channel, or `null` if the message is not one.
   ///
   /// Tolerant on purpose: a native side newer than the Dart one may send fields — or appearances —
@@ -147,24 +161,18 @@ class EmbeddedBlockReport {
       return null;
     }
 
+    final Object? reason = arguments[_reasonKey];
     return EmbeddedBlockReport(
       appearance: _appearanceOf(arguments[_appearanceKey]),
       outcome: _outcomeOf(arguments[_outcomeKey]),
+      failReason: reason is String ? reason : null,
     );
   }
 
   static EmbeddedBlockAppearance? _appearanceOf(Object? raw) =>
       _appearances[raw];
 
-  static EmbeddedBlockOutcome? _outcomeOf(Object? raw) {
-    if (raw == _loadOutcome) {
-      return EmbeddedBlockOutcome.load;
-    }
-    if (raw == _failOutcome) {
-      return EmbeddedBlockOutcome.fail;
-    }
-    return null;
-  }
+  static EmbeddedBlockOutcome? _outcomeOf(Object? raw) => _outcomes[raw];
 
   static const Map<Object?, EmbeddedBlockAppearance> _appearances =
       <Object?, EmbeddedBlockAppearance>{
@@ -174,8 +182,13 @@ class EmbeddedBlockReport {
     'collapsed': EmbeddedBlockAppearance.collapsed,
   };
 
+  static const Map<Object?, EmbeddedBlockOutcome> _outcomes = <Object?, EmbeddedBlockOutcome>{
+    'load': EmbeddedBlockOutcome.load,
+    'empty': EmbeddedBlockOutcome.empty,
+    'fail': EmbeddedBlockOutcome.fail,
+  };
+
   static const String _appearanceKey = 'appearance';
   static const String _outcomeKey = 'outcome';
-  static const String _loadOutcome = 'load';
-  static const String _failOutcome = 'fail';
+  static const String _reasonKey = 'reason';
 }

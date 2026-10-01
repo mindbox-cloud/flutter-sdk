@@ -19,10 +19,11 @@ void testWithoutNativeBlock(String description, Future<void> Function(WidgetTest
 
 void main() {
   group('On a platform without a native block', () {
-    testWithoutNativeBlock('The block collapses and reports a failure',
+    testWithoutNativeBlock('The block collapses and reports a failure of the SDK\'s own',
         (WidgetTester tester) async {
-      int fails = 0;
+      final List<MindboxEmbeddedBlockFailReason> fails = <MindboxEmbeddedBlockFailReason>[];
       int loads = 0;
+      int empties = 0;
 
       await tester.pumpWidget(Directionality(
         textDirection: TextDirection.ltr,
@@ -32,7 +33,8 @@ void main() {
             placeSystemName: 'stories',
             height: 104,
             onLoad: () => loads++,
-            onFail: () => fails++,
+            onEmpty: () => empties++,
+            onFail: fails.add,
           ),
         ),
       ));
@@ -42,8 +44,9 @@ void main() {
       await tester.pump();
 
       expect(tester.getSize(find.byType(MindboxEmbeddedBlock)).height, 0);
-      expect(fails, 1);
+      expect(fails, <MindboxEmbeddedBlockFailReason>[MindboxEmbeddedBlockFailReason.internalError]);
       expect(loads, 0);
+      expect(empties, 0);
     });
 
     testWithoutNativeBlock('The failure is reported once, not on every rebuild',
@@ -57,7 +60,7 @@ void main() {
               child: MindboxEmbeddedBlock(
                 placeSystemName: 'stories',
                 height: 104,
-                onFail: () => fails++,
+                onFail: (_) => fails++,
               ),
             ),
           ));
@@ -117,7 +120,7 @@ void main() {
               child: MindboxEmbeddedBlock(
                 placeSystemName: place,
                 height: 104,
-                onFail: () => fails++,
+                onFail: (_) => fails++,
               ),
             ),
           ));
@@ -481,6 +484,146 @@ void main() {
       await showAndDrop(tester, TargetPlatform.android);
 
       expect(methods, isNot(contains(EmbeddedBlockMethods.release)));
+    });
+  });
+
+  group('The outcome', () {
+    late int viewId;
+    late List<String> heard;
+
+    setUp(() {
+      viewId = -1;
+      heard = <String>[];
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(SystemChannels.platform_views, (MethodCall call) async {
+        if (call.method != 'create') {
+          return null;
+        }
+
+        final Map<Object?, Object?> arguments = call.arguments as Map<Object?, Object?>;
+        viewId = arguments['id']! as int;
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+          MethodChannel(embeddedBlockChannelName(viewId)),
+          (MethodCall call) async => null,
+        );
+        return 0;
+      });
+    });
+
+    tearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(SystemChannels.platform_views, null);
+    });
+
+    /// A native block with every callback listening; what each one hears goes to [heard].
+    Future<void> show(WidgetTester tester) async {
+      await tester.pumpWidget(Directionality(
+        textDirection: TextDirection.ltr,
+        child: Align(
+          alignment: Alignment.topLeft,
+          child: MindboxEmbeddedBlock(
+            placeSystemName: 'stories',
+            height: 104,
+            onLoad: () => heard.add('load'),
+            onEmpty: () => heard.add('empty'),
+            onFail: (MindboxEmbeddedBlockFailReason reason) => heard.add('fail:$reason'),
+          ),
+        ),
+      ));
+      await tester.pumpAndSettle();
+    }
+
+    /// The native block reporting on its channel, the way the platform view does.
+    Future<void> report(WidgetTester tester, Map<String, Object> arguments) async {
+      await TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.handlePlatformMessage(
+        embeddedBlockChannelName(viewId),
+        const StandardMethodCodec().encodeMethodCall(
+          MethodCall(EmbeddedBlockMethods.report, arguments),
+        ),
+        (ByteData? _) {},
+      );
+      await tester.pump();
+    }
+
+    // The delivery is the same Dart on both platforms; iOS is picked for the plainer mock — a
+    // UiKitView is created without the resize round trip an AndroidView needs answered.
+    void testOnIOS(String description, Future<void> Function(WidgetTester) body) {
+      testWidgets(description, (WidgetTester tester) async {
+        debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+        try {
+          await body(tester);
+        } finally {
+          debugDefaultTargetPlatformOverride = null;
+        }
+      });
+    }
+
+    testOnIOS('An empty place is reported as empty, not as a failure', (WidgetTester tester) async {
+      await show(tester);
+      await report(tester, <String, Object>{'appearance': 'collapsed', 'outcome': 'empty'});
+
+      expect(heard, <String>['empty']);
+      expect(tester.getSize(find.byType(MindboxEmbeddedBlock)).height, 0);
+    });
+
+    testOnIOS('A failure carries its reason', (WidgetTester tester) async {
+      await show(tester);
+      await report(tester, <String, Object>{
+        'appearance': 'collapsed',
+        'outcome': 'fail',
+        'reason': 'networkError',
+      });
+
+      expect(heard, <String>['fail:networkError']);
+    });
+
+    testOnIOS('A reason this version does not know is passed through as it is',
+        (WidgetTester tester) async {
+      MindboxEmbeddedBlockFailReason? reason;
+      await tester.pumpWidget(Directionality(
+        textDirection: TextDirection.ltr,
+        child: Align(
+          alignment: Alignment.topLeft,
+          child: MindboxEmbeddedBlock(
+            placeSystemName: 'stories',
+            height: 104,
+            onFail: (MindboxEmbeddedBlockFailReason heardReason) => reason = heardReason,
+          ),
+        ),
+      ));
+      await tester.pumpAndSettle();
+
+      await report(tester, <String, Object>{'outcome': 'fail', 'reason': 'sideways'});
+
+      expect(reason, const MindboxEmbeddedBlockFailReason('sideways'));
+      expect(reason, isNot(MindboxEmbeddedBlockFailReason.internalError));
+    });
+
+    testOnIOS('A failure without a reason is the SDK\'s own error', (WidgetTester tester) async {
+      await show(tester);
+      await report(tester, <String, Object>{'appearance': 'collapsed', 'outcome': 'fail'});
+
+      expect(heard, <String>['fail:internalError']);
+    });
+
+    testOnIOS('A failure that repeats with another reason is the same outcome',
+        (WidgetTester tester) async {
+      await show(tester);
+      await report(tester, <String, Object>{'outcome': 'fail', 'reason': 'networkError'});
+      await report(tester, <String, Object>{'outcome': 'fail', 'reason': 'internalError'});
+
+      expect(heard, <String>['fail:networkError']);
+    });
+
+    testOnIOS('An outcome that changed is delivered again, a repeated one is not',
+        (WidgetTester tester) async {
+      await show(tester);
+      await report(tester, <String, Object>{'outcome': 'empty'});
+      await report(tester, <String, Object>{'outcome': 'empty'});
+      await report(tester, <String, Object>{'outcome': 'load'});
+      await report(tester, <String, Object>{'outcome': 'fail', 'reason': 'networkError'});
+
+      expect(heard, <String>['empty', 'load', 'fail:networkError']);
     });
   });
 

@@ -51,12 +51,39 @@ void main() {
       expect(report?.outcome, isNull);
     });
 
-    test('A failure reads as fail', () {
+    test('Every outcome the native side can send is understood', () {
+      const Map<String, EmbeddedBlockOutcome> wire = <String, EmbeddedBlockOutcome>{
+        'load': EmbeddedBlockOutcome.load,
+        'empty': EmbeddedBlockOutcome.empty,
+        'fail': EmbeddedBlockOutcome.fail,
+      };
+
+      wire.forEach((String word, EmbeddedBlockOutcome expected) {
+        final EmbeddedBlockReport? report =
+            EmbeddedBlockReport.tryParse(<String, Object>{'outcome': word});
+        expect(report?.outcome, expected, reason: word);
+      });
+      expect(wire.length, EmbeddedBlockOutcome.values.length);
+    });
+
+    test('A failure carries its reason as the native side spelled it', () {
       final EmbeddedBlockReport? report = EmbeddedBlockReport.tryParse(
-        <String, Object>{'appearance': 'collapsed', 'outcome': 'fail'},
+        <String, Object>{'appearance': 'collapsed', 'outcome': 'fail', 'reason': 'networkError'},
       );
 
       expect(report?.outcome, EmbeddedBlockOutcome.fail);
+      expect(report?.failReason, 'networkError');
+    });
+
+    test('A reason is a word or nothing', () {
+      expect(
+        EmbeddedBlockReport.tryParse(<String, Object>{'outcome': 'fail'})?.failReason,
+        isNull,
+      );
+      expect(
+        EmbeddedBlockReport.tryParse(<String, Object>{'outcome': 'fail', 'reason': 7})?.failReason,
+        isNull,
+      );
     });
 
     test('A newer native side may send words this version does not know', () {
