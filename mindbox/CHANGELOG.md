@@ -2,6 +2,7 @@
 
 * Add `MindboxEmbeddedBlock` — an embedded block for a place from the admin panel. In a lazy list the block is kept alive off screen by default (`keepAlive`), so scrolling back shows the same page without a reload.
 * `MindboxEmbeddedBlock` reports three outcomes, as the native SwiftUI and Compose blocks do: `onLoad`, `onEmpty` and `onFail` with a `MindboxEmbeddedBlockFailReason` (`networkError` or `internalError`).
+* `MindboxEmbeddedBlock` takes a `loadingStrategy` — `automatic` (the default: hidden until the place has shown content once on this device, a placeholder from then on), `placeholder` or `hidden` — and `animatesReveal`, as the native SwiftUI and Compose blocks do. A block that waited hidden grows to its height with the SDK's reveal when its content arrives.
 
 ## 2.15.2
 

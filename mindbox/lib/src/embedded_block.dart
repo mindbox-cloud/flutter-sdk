@@ -9,6 +9,7 @@ import 'package:flutter/widgets.dart';
 import 'package:mindbox_platform_interface/mindbox_platform_interface.dart';
 
 import 'embedded_block_fail_reason.dart';
+import 'embedded_block_loading_strategy.dart';
 
 /// An embedded Mindbox block.
 ///
@@ -42,6 +43,11 @@ import 'embedded_block_fail_reason.dart';
 /// How long the block may wait before it gives its place back is the [timeout], and a host that
 /// leaves it out gets the SDK's own budget of 30 seconds.
 ///
+/// What the block shows until the SDK has decided what goes into it is the [loadingStrategy]: a
+/// placeholder, nothing, or — by default — nothing until the place has shown content once on this
+/// device and a placeholder from then on. The content is revealed with the SDK's own animation — it
+/// fades in, and a block that started hidden grows to its height — unless [animatesReveal] is off.
+///
 /// The widget is a thin layer over the native block: the platform view holds the SDK's own container
 /// — with its waiting budget and its web page — and this widget only mirrors the container's
 /// decisions in the Flutter layout, and draws the host's own screens over it when it asks for them.
@@ -60,6 +66,8 @@ class MindboxEmbeddedBlock extends StatelessWidget {
     required this.placeSystemName,
     required this.height,
     this.timeout,
+    this.loadingStrategy = MindboxEmbeddedBlockLoadingStrategy.automatic,
+    this.animatesReveal = true,
     this.keepAlive = true,
     this.placeholder,
     this.errorBuilder,
@@ -98,6 +106,26 @@ class MindboxEmbeddedBlock extends StatelessWidget {
   /// Fixed when the block is created: a new value given to a live block is ignored and reported
   /// to the log. Give the widget a new [Key] to load a block on a new budget.
   final Duration? timeout;
+
+  /// What the block shows until the SDK answers — see [MindboxEmbeddedBlockLoadingStrategy].
+  ///
+  /// [MindboxEmbeddedBlockLoadingStrategy.automatic] — the default — keeps the block hidden until
+  /// the place has shown content once on this device and puts a placeholder there from then on. A
+  /// block that takes its space up front keeps the layout still at the price of flashing where
+  /// there is nothing to show; a block that waits hidden never flashes at the price of the layout
+  /// growing when content arrives. A place that always has a campaign behind it is worth an
+  /// explicit [MindboxEmbeddedBlockLoadingStrategy.placeholder].
+  ///
+  /// Fixed when the block is created, as [timeout] is: a new value given to a live block is
+  /// ignored and reported to the log. Give the widget a new [Key] to build a block anew.
+  final MindboxEmbeddedBlockLoadingStrategy loadingStrategy;
+
+  /// Whether the SDK animates the reveal of the content — a fade, and the growth of a block that
+  /// waited hidden. `true` by default; the system's reduced-motion setting turns the animation off
+  /// as well. Turn it off to animate the block's container yourself in [onLoad].
+  ///
+  /// Fixed when the block is created, as [timeout] is.
+  final bool animatesReveal;
 
   /// Whether the block survives being scrolled out of a lazy list.
   ///
@@ -178,6 +206,8 @@ class MindboxEmbeddedBlock extends StatelessWidget {
       placeSystemName: placeSystemName,
       height: height,
       timeout: timeout,
+      loadingStrategy: loadingStrategy,
+      animatesReveal: animatesReveal,
       keepAlive: keepAlive,
       placeholder: placeholder,
       errorBuilder: errorBuilder,
@@ -194,6 +224,8 @@ class _EmbeddedBlock extends StatefulWidget {
     required this.placeSystemName,
     required this.height,
     required this.timeout,
+    required this.loadingStrategy,
+    required this.animatesReveal,
     required this.keepAlive,
     required this.placeholder,
     required this.errorBuilder,
@@ -205,6 +237,8 @@ class _EmbeddedBlock extends StatefulWidget {
   final String placeSystemName;
   final double height;
   final Duration? timeout;
+  final MindboxEmbeddedBlockLoadingStrategy loadingStrategy;
+  final bool animatesReveal;
   final bool keepAlive;
   final WidgetBuilder? placeholder;
   final WidgetBuilder? errorBuilder;
@@ -221,19 +255,29 @@ class _EmbeddedBlock extends StatefulWidget {
 /// screen. Off screen the block is paused rather than destroyed — by the window on iOS, and by the
 /// hidden signal this widget sends on Android — so keeping it costs memory, not work; see
 /// [MindboxEmbeddedBlock.keepAlive]. A platform without a native block has nothing worth keeping.
-class _EmbeddedBlockState extends State<_EmbeddedBlock> with AutomaticKeepAliveClientMixin {
+class _EmbeddedBlockState extends State<_EmbeddedBlock>
+    with AutomaticKeepAliveClientMixin, SingleTickerProviderStateMixin {
   @override
   bool get wantKeepAlive => widget.keepAlive && _isSupported;
 
   double get _height => widget.height.isFinite ? math.max(0, widget.height) : 0;
 
   late final Duration? _creationTimeout;
+  late final MindboxEmbeddedBlockLoadingStrategy _creationLoadingStrategy;
+  late final bool _creationAnimatesReveal;
 
-  EmbeddedBlockAppearance _appearance = EmbeddedBlockAppearance.placeholder;
+  late EmbeddedBlockAppearance _appearance;
+
+  /// The native block has reported on its own channel at least once. From then on the first look
+  /// asked of the plugin channel is stale, whenever it arrives.
+  bool _hasHeardFromNative = false;
+
+  /// The growth of a block that waited hidden: 0 to 1 over the SDK's reveal, 1 at rest.
+  late final AnimationController _reveal;
 
   EmbeddedBlockOutcome? _deliveredOutcome;
 
-  bool _hasWarnedAboutTimeout = false;
+  final Set<String> _warnedCreationValues = <String>{};
 
   MethodChannel? _channel;
 
@@ -264,9 +308,14 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock> with AutomaticKeepAliveC
   void initState() {
     super.initState();
     _creationTimeout = widget.timeout;
+    _creationLoadingStrategy = widget.loadingStrategy;
+    _creationAnimatesReveal = widget.animatesReveal;
+    _appearance = _firstLook(_creationLoadingStrategy);
+    _reveal = AnimationController(vsync: this, value: 1);
     _warnIfPlaceIsPadded();
     _warnIfHeightReservesNoSpace();
     _armKeptAliveCheck();
+    _askForTheFirstLook();
     if (!_isSupported) {
       WidgetsFlutterBinding.ensureInitialized().addPostFrameCallback((_) {
         if (!mounted) {
@@ -292,7 +341,7 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock> with AutomaticKeepAliveC
     if (oldWidget.keepAlive != widget.keepAlive) {
       updateKeepAlive();
     }
-    _warnIfTimeoutIsIgnored();
+    _warnIfCreationValuesAreIgnored();
     _pushStandIns();
   }
 
@@ -305,6 +354,7 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock> with AutomaticKeepAliveC
       }
       channel.setMethodCallHandler(null);
     }
+    _reveal.dispose();
     super.dispose();
   }
 
@@ -314,17 +364,110 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock> with AutomaticKeepAliveC
     super.build(context);
     final Widget? hostLayer = _hostLayer(context);
 
-    return SizedBox(
-      height: _appearance == EmbeddedBlockAppearance.collapsed ? 0 : _height,
-      child: Stack(
-        fit: StackFit.expand,
-        children: <Widget>[
-          _nativeBlock(),
-          if (hostLayer != null) hostLayer,
-        ],
+    // The slot is what the layout sees; the block inside keeps its full height whatever the slot
+    // is. A platform view sized to nothing is never created on Android — the engine skips the
+    // create for an empty size — so a block that waits hidden would never load and never grow.
+    // With its own height under a clipped slot of zero it runs its whole cycle unseen, as the
+    // native blocks do, and the slot opens when the content arrives.
+    final Widget block = ClipRect(
+      child: OverflowBox(
+        alignment: Alignment.topCenter,
+        minHeight: _height,
+        maxHeight: _height,
+        child: Stack(
+          fit: StackFit.expand,
+          children: <Widget>[
+            _nativeBlock(),
+            if (hostLayer != null) hostLayer,
+          ],
+        ),
+      ),
+    );
+
+    return AnimatedBuilder(
+      animation: _reveal,
+      child: block,
+      builder: (BuildContext context, Widget? child) => SizedBox(
+        height: _slotHeight,
+        child: child,
       ),
     );
   }
+
+  /// The height the layout is given: nothing for a collapsed block, the block's height otherwise —
+  /// and, while a block that waited hidden is revealed, the part of it the growth has reached.
+  double get _slotHeight {
+    if (_appearance == EmbeddedBlockAppearance.collapsed) {
+      return 0;
+    }
+    return _height * Curves.easeInOut.transform(_reveal.value);
+  }
+
+  /// The look a block starts with, before the native block exists to say.
+  ///
+  /// `placeholder` and `hidden` are decided by the strategy alone. `automatic` is decided by the
+  /// SDK's memory of the place, which only the native side has and Dart reaches asynchronously —
+  /// see [_askForTheFirstLook] — so until it answers an `automatic` block takes no space: a place
+  /// that has never shown content must not flash reserved space, and one that has shows its
+  /// placeholder a frame late rather than a frame early.
+  static EmbeddedBlockAppearance _firstLook(MindboxEmbeddedBlockLoadingStrategy strategy) {
+    switch (strategy) {
+      case MindboxEmbeddedBlockLoadingStrategy.placeholder:
+        return EmbeddedBlockAppearance.placeholder;
+      case MindboxEmbeddedBlockLoadingStrategy.hidden:
+      case MindboxEmbeddedBlockLoadingStrategy.automatic:
+        return EmbeddedBlockAppearance.collapsed;
+    }
+  }
+
+  /// Asks the plugin — not the block, which does not exist yet — what an `automatic` block of this
+  /// place starts with. The native block's own report, once the platform view is built, settles the
+  /// same question and wins: an answer that comes after it is dropped.
+  void _askForTheFirstLook() {
+    if (!_isSupported ||
+        _creationLoadingStrategy != MindboxEmbeddedBlockLoadingStrategy.automatic) {
+      return;
+    }
+
+    _pluginChannel.invokeMethod<String>(EmbeddedBlockMethods.initialAppearance, <String, Object>{
+      EmbeddedBlockParams.placeSystemName: widget.placeSystemName,
+      EmbeddedBlockParams.loadingStrategy: _strategyWords[_creationLoadingStrategy]!,
+    }).then((String? word) {
+      final EmbeddedBlockAppearance? appearance = EmbeddedBlockReport.appearanceOf(word);
+      if (!mounted || _hasHeardFromNative || appearance == null || appearance == _appearance) {
+        return;
+      }
+      _show(appearance);
+    }).catchError((Object error) {
+      debugPrint('[MindboxEmbeddedBlock] initialAppearance for block "${widget.placeSystemName}" '
+          'was not answered: $error');
+    });
+  }
+
+  /// Takes the block to [appearance]. The reveal of content into a slot that was closed is the one
+  /// change that is animated, and only when the native block says so — it owns that decision,
+  /// gates included — for as long as it says; everything else lands at once.
+  void _show(EmbeddedBlockAppearance appearance, {Duration? revealDuration}) {
+    final bool opens = _appearance == EmbeddedBlockAppearance.collapsed &&
+        appearance == EmbeddedBlockAppearance.content;
+    setState(() => _appearance = appearance);
+    if (opens && revealDuration != null && revealDuration > Duration.zero) {
+      _reveal.duration = revealDuration;
+      _reveal.forward(from: 0);
+    } else {
+      _reveal.value = 1;
+    }
+  }
+
+  static const MethodChannel _pluginChannel = MethodChannel(embeddedBlockPluginChannelName);
+
+  /// The words the strategies go by on the channel — the same three on every platform.
+  static const Map<MindboxEmbeddedBlockLoadingStrategy, String> _strategyWords =
+      <MindboxEmbeddedBlockLoadingStrategy, String>{
+    MindboxEmbeddedBlockLoadingStrategy.automatic: 'automatic',
+    MindboxEmbeddedBlockLoadingStrategy.placeholder: 'placeholder',
+    MindboxEmbeddedBlockLoadingStrategy.hidden: 'hidden',
+  };
 
   Widget? _hostLayer(BuildContext context) {
     switch (_appearance) {
@@ -346,6 +489,8 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock> with AutomaticKeepAliveC
     final Map<String, Object> creationParams = <String, Object>{
       EmbeddedBlockParams.placeSystemName: widget.placeSystemName,
       EmbeddedBlockParams.height: _height,
+      EmbeddedBlockParams.loadingStrategy: _strategyWords[_creationLoadingStrategy]!,
+      EmbeddedBlockParams.animatesReveal: _creationAnimatesReveal,
       EmbeddedBlockParams.hasPlaceholder: _hasPlaceholder,
       EmbeddedBlockParams.hasErrorView: _hasErrorView,
     };
@@ -420,9 +565,10 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock> with AutomaticKeepAliveC
       return;
     }
 
+    _hasHeardFromNative = true;
     final EmbeddedBlockAppearance? appearance = report.appearance;
     if (appearance != null && appearance != _appearance) {
-      setState(() => _appearance = appearance);
+      _show(appearance, revealDuration: report.isRevealAnimated ? report.revealDuration : null);
     }
 
     _deliver(report.outcome, _reasonOf(report.failReason));
@@ -567,14 +713,24 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock> with AutomaticKeepAliveC
     );
   }
 
-  void _warnIfTimeoutIsIgnored() {
-    if (!_hasWarnedAboutTimeout && widget.timeout != _creationTimeout) {
-      _hasWarnedAboutTimeout = true;
-      debugPrint(
-        '[MindboxEmbeddedBlock] Block "${widget.placeSystemName}" was given timeout '
-        '${widget.timeout} after creation and keeps $_creationTimeout: the timeout is fixed when '
-        'the block is created. Give the widget a new Key to load a block on a different budget.',
-      );
+  void _warnIfCreationValuesAreIgnored() {
+    _warnIfCreationValueIsIgnored('timeout', widget.timeout, _creationTimeout);
+    _warnIfCreationValueIsIgnored(
+        'loadingStrategy', widget.loadingStrategy, _creationLoadingStrategy);
+    _warnIfCreationValueIsIgnored('animatesReveal', widget.animatesReveal, _creationAnimatesReveal);
+  }
+
+  /// Said once per value, as the Compose wrapper says it: the first rebuild that disagrees is the
+  /// one worth a line in the log, not every rebuild after it.
+  void _warnIfCreationValueIsIgnored(String name, Object? given, Object? kept) {
+    if (given == kept || !_warnedCreationValues.add(name)) {
+      return;
     }
+
+    debugPrint(
+      '[MindboxEmbeddedBlock] Block "${widget.placeSystemName}" was given $name $given after '
+      'creation and keeps $kept: $name is fixed when the block is created. Give the widget a new '
+      'Key to build a block anew.',
+    );
   }
 }

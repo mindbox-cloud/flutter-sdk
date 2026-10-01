@@ -23,25 +23,66 @@ public final class EmbeddedBlockPlatformViewFactory: NSObject, FlutterPlatformVi
     }
 }
 
+/// The channel shared by every block, asked before any of them exists: the look a block of a place
+/// starts with. Dart decides `placeholder` and `hidden` on its own; `automatic` depends on the SDK's
+/// memory of the place, and only this side has it.
+enum EmbeddedBlockPluginChannel {
+
+    static func register(with registrar: FlutterPluginRegistrar) {
+        let channel = FlutterMethodChannel(name: EmbeddedBlockWire.pluginChannel,
+                                           binaryMessenger: registrar.messenger())
+        channel.setMethodCallHandler(handle)
+    }
+
+    static func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+        switch call.method {
+        case EmbeddedBlockWire.initialAppearance:
+            let arguments = call.arguments as? [String: Any]
+            guard let placeSystemName = arguments?[EmbeddedBlockWire.placeSystemName] as? String,
+                  let loadingStrategy = EmbeddedBlockWire.loadingStrategy(
+                    of: arguments?[EmbeddedBlockWire.loadingStrategy] as? String) else {
+                result(FlutterError(code: EmbeddedBlockWire.badArguments,
+                                    message: "initialAppearance expects placeSystemName and loadingStrategy words",
+                                    details: nil))
+                return
+            }
+
+            let appearance = MindboxEmbeddedBlockView.initialAppearance(placeSystemName: placeSystemName,
+                                                                         loadingStrategy: loadingStrategy)
+            result(EmbeddedBlockWire.name(of: appearance))
+        default:
+            result(FlutterMethodNotImplemented)
+        }
+    }
+}
+
 final class EmbeddedBlockPlatformView: NSObject, FlutterPlatformView {
 
     private let blockView: MindboxEmbeddedBlockView
     private let channel: FlutterMethodChannel
 
-    private var appearance = Keys.placeholder
+    private var appearance = EmbeddedBlockWire.placeholder
     private var outcome: String?
     private var failReason: String?
 
+    /// The report being sent is the animated reveal of the content — set for that one send only.
+    private var isRevealAnimated = false
+
     init(viewId: Int64, arguments: Any?, messenger: FlutterBinaryMessenger) {
         let params = arguments as? [String: Any]
-        let placeSystemName = params?[Keys.placeSystemName] as? String ?? ""
-        let height = (params?[Keys.height] as? NSNumber)?.doubleValue ?? 0
-        let timeout = (params?[Keys.timeoutMs] as? NSNumber).map { TimeInterval($0.doubleValue) / 1000 }
+        let placeSystemName = params?[EmbeddedBlockWire.placeSystemName] as? String ?? ""
+        let height = (params?[EmbeddedBlockWire.height] as? NSNumber)?.doubleValue ?? 0
+        let timeout = (params?[EmbeddedBlockWire.timeoutMs] as? NSNumber).map { TimeInterval($0.doubleValue) / 1000 }
+        let loadingStrategyWord = params?[EmbeddedBlockWire.loadingStrategy] as? String
+        let loadingStrategy = EmbeddedBlockWire.loadingStrategy(of: loadingStrategyWord)
+        let animatesReveal = params?[EmbeddedBlockWire.animatesReveal] as? Bool ?? true
 
         blockView = MindboxEmbeddedBlockView(placeSystemName: placeSystemName,
                                             height: CGFloat(height),
-                                            timeout: timeout)
-        channel = FlutterMethodChannel(name: "\(Constants.embeddedBlockViewType)/\(viewId)",
+                                            loadingStrategy: loadingStrategy ?? .automatic,
+                                            timeout: timeout,
+                                            animatesReveal: animatesReveal)
+        channel = FlutterMethodChannel(name: "\(EmbeddedBlockWire.viewType)/\(viewId)",
                                        binaryMessenger: messenger)
         super.init()
 
@@ -50,13 +91,21 @@ final class EmbeddedBlockPlatformView: NSObject, FlutterPlatformView {
                           level: .error,
                           category: .embeddedBlocks)
         }
+        if let loadingStrategyWord, loadingStrategy == nil {
+            Logger.common(message: "[EmbeddedBlock] A Flutter block '\(placeSystemName)' was created with a loading strategy this SDK does not know ('\(loadingStrategyWord)') and starts as automatic",
+                          level: .error,
+                          category: .embeddedBlocks)
+        }
 
-        syncStandIns(hasPlaceholder: params?[Keys.hasPlaceholder] as? Bool ?? false,
-                     hasErrorView: params?[Keys.hasErrorView] as? Bool ?? false)
+        syncStandIns(hasPlaceholder: params?[EmbeddedBlockWire.hasPlaceholder] as? Bool ?? false,
+                     hasErrorView: params?[EmbeddedBlockWire.hasErrorView] as? Bool ?? false)
 
         blockView.delegate = self
+        // Whether the change deserves the reveal animation is the view's decision, read while the
+        // observer runs; the wrapper's own frame is what it animates, so it is told rather than asked.
         blockView.setAppearanceObserver { [weak self] appearance in
-            self?.report(appearance: appearance)
+            guard let self else { return }
+            self.report(appearance: appearance, isRevealAnimated: self.blockView.isRevealAnimated)
         }
         channel.setMethodCallHandler { [weak self] call, result in
             self?.handle(call, result: result)
@@ -74,12 +123,12 @@ final class EmbeddedBlockPlatformView: NSObject, FlutterPlatformView {
 
     private func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         switch call.method {
-        case Keys.sync:
+        case EmbeddedBlockWire.sync:
             send()
             result(nil)
-        case Keys.setHostVisible:
+        case EmbeddedBlockWire.setHostVisible:
             guard let isHostVisible = call.arguments as? Bool else {
-                result(FlutterError(code: "bad_arguments",
+                result(FlutterError(code: EmbeddedBlockWire.badArguments,
                                     message: "setHostVisible expects a boolean",
                                     details: nil))
                 return
@@ -87,11 +136,11 @@ final class EmbeddedBlockPlatformView: NSObject, FlutterPlatformView {
 
             blockView.setHostVisible(isHostVisible)
             result(nil)
-        case Keys.setStandIns:
+        case EmbeddedBlockWire.setStandIns:
             guard let arguments = call.arguments as? [String: Any],
-                  let hasPlaceholder = arguments[Keys.hasPlaceholder] as? Bool,
-                  let hasErrorView = arguments[Keys.hasErrorView] as? Bool else {
-                result(FlutterError(code: "bad_arguments",
+                  let hasPlaceholder = arguments[EmbeddedBlockWire.hasPlaceholder] as? Bool,
+                  let hasErrorView = arguments[EmbeddedBlockWire.hasErrorView] as? Bool else {
+                result(FlutterError(code: EmbeddedBlockWire.badArguments,
                                     message: "setStandIns expects hasPlaceholder and hasErrorView booleans",
                                     details: nil))
                 return
@@ -99,7 +148,7 @@ final class EmbeddedBlockPlatformView: NSObject, FlutterPlatformView {
 
             syncStandIns(hasPlaceholder: hasPlaceholder, hasErrorView: hasErrorView)
             result(nil)
-        case Keys.release:
+        case EmbeddedBlockWire.release:
             blockView.release()
             result(nil)
         default:
@@ -132,9 +181,11 @@ final class EmbeddedBlockPlatformView: NSObject, FlutterPlatformView {
         return standIn
     }
 
-    private func report(appearance: MindboxEmbeddedBlockAppearance) {
-        self.appearance = Keys.name(of: appearance)
+    private func report(appearance: MindboxEmbeddedBlockAppearance, isRevealAnimated: Bool) {
+        self.appearance = EmbeddedBlockWire.name(of: appearance)
+        self.isRevealAnimated = isRevealAnimated
         send()
+        self.isRevealAnimated = false
     }
 
     private func report(outcome: String, reason: String? = nil) {
@@ -144,47 +195,20 @@ final class EmbeddedBlockPlatformView: NSObject, FlutterPlatformView {
     }
 
     private func send() {
-        var arguments: [String: Any] = [Keys.appearance: appearance]
+        var arguments: [String: Any] = [EmbeddedBlockWire.appearance: appearance]
         if let outcome = outcome {
-            arguments[Keys.outcome] = outcome
+            arguments[EmbeddedBlockWire.outcome] = outcome
         }
         if let failReason = failReason {
-            arguments[Keys.reason] = failReason
+            arguments[EmbeddedBlockWire.reason] = failReason
+        }
+        if isRevealAnimated {
+            arguments[EmbeddedBlockWire.animated] = true
+            arguments[EmbeddedBlockWire.revealDurationMs] =
+                Int((MindboxEmbeddedBlockView.revealAnimationDuration * 1000).rounded())
         }
 
-        channel.invokeMethod(Keys.report, arguments: arguments)
-    }
-
-    private enum Keys {
-        static let placeSystemName = "placeSystemName"
-        static let height = "height"
-        static let timeoutMs = "timeoutMs"
-        static let hasPlaceholder = "hasPlaceholder"
-        static let hasErrorView = "hasErrorView"
-        static let report = "report"
-        static let sync = "sync"
-        static let setHostVisible = "setHostVisible"
-        static let setStandIns = "setStandIns"
-        static let release = "release"
-        static let appearance = "appearance"
-        static let outcome = "outcome"
-        static let reason = "reason"
-        static let load = "load"
-        static let empty = "empty"
-        static let fail = "fail"
-        static let placeholder = "placeholder"
-        static let content = "content"
-        static let error = "error"
-        static let collapsed = "collapsed"
-
-        static func name(of appearance: MindboxEmbeddedBlockAppearance) -> String {
-            switch appearance {
-            case .placeholder: return placeholder
-            case .content: return content
-            case .error: return error
-            case .collapsed: return collapsed
-            }
-        }
+        channel.invokeMethod(EmbeddedBlockWire.report, arguments: arguments)
     }
 }
 
@@ -193,15 +217,72 @@ final class EmbeddedBlockPlatformView: NSObject, FlutterPlatformView {
 extension EmbeddedBlockPlatformView: MindboxEmbeddedBlockViewDelegate {
 
     func mindboxEmbeddedBlockViewDidLoad(_ blockView: MindboxEmbeddedBlockView) {
-        report(outcome: Keys.load)
+        report(outcome: EmbeddedBlockWire.load)
     }
 
     func mindboxEmbeddedBlockViewDidBecomeEmpty(_ blockView: MindboxEmbeddedBlockView) {
-        report(outcome: Keys.empty)
+        report(outcome: EmbeddedBlockWire.empty)
     }
 
     func mindboxEmbeddedBlockViewDidFail(_ blockView: MindboxEmbeddedBlockView,
                                          reason: MindboxEmbeddedBlockFailReason) {
-        report(outcome: Keys.fail, reason: reason.rawValue)
+        report(outcome: EmbeddedBlockWire.fail, reason: reason.rawValue)
+    }
+}
+
+// MARK: - The words both sides of the channels agree on
+
+enum EmbeddedBlockWire {
+    static let viewType = Constants.embeddedBlockViewType
+    static let pluginChannel = "\(Constants.embeddedBlockViewType)/plugin"
+
+    static let placeSystemName = "placeSystemName"
+    static let height = "height"
+    static let timeoutMs = "timeoutMs"
+    static let loadingStrategy = "loadingStrategy"
+    static let animatesReveal = "animatesReveal"
+    static let hasPlaceholder = "hasPlaceholder"
+    static let hasErrorView = "hasErrorView"
+    static let appearance = "appearance"
+    static let outcome = "outcome"
+    static let reason = "reason"
+    static let animated = "animated"
+    static let revealDurationMs = "revealDurationMs"
+
+    static let report = "report"
+    static let sync = "sync"
+    static let setHostVisible = "setHostVisible"
+    static let setStandIns = "setStandIns"
+    static let release = "release"
+    static let initialAppearance = "initialAppearance"
+    static let badArguments = "bad_arguments"
+
+    static let load = "load"
+    static let empty = "empty"
+    static let fail = "fail"
+
+    static let placeholder = "placeholder"
+    static let content = "content"
+    static let error = "error"
+    static let collapsed = "collapsed"
+
+    static func name(of appearance: MindboxEmbeddedBlockAppearance) -> String {
+        switch appearance {
+        case .placeholder: return placeholder
+        case .content: return content
+        case .error: return error
+        case .collapsed: return collapsed
+        }
+    }
+
+    /// The strategy behind its word — the same three words on every platform — or `nil` for a word
+    /// this version does not know.
+    static func loadingStrategy(of word: String?) -> MindboxEmbeddedBlockLoadingStrategy? {
+        switch word {
+        case "automatic": return .automatic
+        case "placeholder": return .placeholder
+        case "hidden": return .hidden
+        default: return nil
+        }
     }
 }

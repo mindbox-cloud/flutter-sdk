@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
@@ -17,6 +19,22 @@ void testWithoutNativeBlock(String description, Future<void> Function(WidgetTest
   });
 }
 
+/// The plugin channel answering the first look of an `automatic` block with [word] — the SDK's
+/// memory of the place, as the native side reads it. A placeholder is what every block used to
+/// start with, and what the groups about the block's life after it took its space still assume.
+void answerFirstLookWith(String word) {
+  TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+    const MethodChannel(embeddedBlockPluginChannelName),
+    (MethodCall call) async =>
+        call.method == EmbeddedBlockMethods.initialAppearance ? word : null,
+  );
+}
+
+void forgetFirstLook() {
+  TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+      .setMockMethodCallHandler(const MethodChannel(embeddedBlockPluginChannelName), null);
+}
+
 void main() {
   group('On a platform without a native block', () {
     testWithoutNativeBlock('The block collapses and reports a failure of the SDK\'s own',
@@ -32,6 +50,7 @@ void main() {
           child: MindboxEmbeddedBlock(
             placeSystemName: 'stories',
             height: 104,
+            loadingStrategy: MindboxEmbeddedBlockLoadingStrategy.placeholder,
             onLoad: () => loads++,
             onEmpty: () => empties++,
             onFail: fails.add,
@@ -47,6 +66,23 @@ void main() {
       expect(fails, <MindboxEmbeddedBlockFailReason>[MindboxEmbeddedBlockFailReason.internalError]);
       expect(loads, 0);
       expect(empties, 0);
+    });
+
+    testWithoutNativeBlock('A block that waits for the SDK\'s word never takes space there',
+        (WidgetTester tester) async {
+      await tester.pumpWidget(const Directionality(
+        textDirection: TextDirection.ltr,
+        child: Align(
+          alignment: Alignment.topLeft,
+          child: MindboxEmbeddedBlock(placeSystemName: 'stories', height: 104),
+        ),
+      ));
+
+      expect(tester.getSize(find.byType(MindboxEmbeddedBlock)).height, 0);
+
+      await tester.pump();
+
+      expect(tester.getSize(find.byType(MindboxEmbeddedBlock)).height, 0);
     });
 
     testWithoutNativeBlock('The failure is reported once, not on every rebuild',
@@ -82,6 +118,7 @@ void main() {
           child: MindboxEmbeddedBlock(
             placeSystemName: 'stories',
             height: 104,
+            loadingStrategy: MindboxEmbeddedBlockLoadingStrategy.placeholder,
             placeholder: (_) => const SizedBox.expand(key: Key('host-placeholder')),
           ),
         ),
@@ -165,6 +202,43 @@ void main() {
       expect(log.where((String line) => line.contains('timeout')), hasLength(1));
       expect(log.single, contains('"stories"'));
       expect(log.single, contains('0:00:05'));
+    });
+
+    testWithoutNativeBlock('A strategy or an animation flag changed after creation is ignored, and said out loud',
+        (WidgetTester tester) async {
+      final List<String> log = <String>[];
+      final DebugPrintCallback printed = debugPrint;
+      debugPrint = (String? message, {int? wrapWidth}) => log.add(message ?? '');
+
+      try {
+        Future<void> buildWith(MindboxEmbeddedBlockLoadingStrategy strategy, bool animates) =>
+            tester.pumpWidget(Directionality(
+              textDirection: TextDirection.ltr,
+              child: Align(
+                alignment: Alignment.topLeft,
+                child: MindboxEmbeddedBlock(
+                  placeSystemName: 'stories',
+                  height: 104,
+                  loadingStrategy: strategy,
+                  animatesReveal: animates,
+                ),
+              ),
+            ));
+
+        await buildWith(MindboxEmbeddedBlockLoadingStrategy.hidden, true);
+        expect(log, isEmpty);
+
+        await buildWith(MindboxEmbeddedBlockLoadingStrategy.placeholder, false);
+        await buildWith(MindboxEmbeddedBlockLoadingStrategy.automatic, false);
+      } finally {
+        debugPrint = printed;
+      }
+
+      expect(log, hasLength(2));
+      expect(log.first, contains('loadingStrategy'));
+      expect(log.first, contains('keeps MindboxEmbeddedBlockLoadingStrategy.hidden'));
+      expect(log.last, contains('animatesReveal'));
+      expect(log.last, contains('keeps true'));
     });
   });
 
@@ -255,6 +329,410 @@ void main() {
       );
 
       expect(params['timeoutMs'], 0);
+    });
+  });
+
+  group('The strategy and the animation flag', () {
+    late List<Map<Object?, Object?>> created;
+
+    setUp(() {
+      created = <Map<Object?, Object?>>[];
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(SystemChannels.platform_views, (MethodCall call) async {
+        if (call.method != 'create') {
+          return null;
+        }
+
+        final Map<Object?, Object?> arguments = call.arguments as Map<Object?, Object?>;
+        final Uint8List params = arguments['params'] as Uint8List;
+        created.add(const StandardMessageCodec().decodeMessage(
+          params.buffer.asByteData(params.offsetInBytes, params.lengthInBytes),
+        ) as Map<Object?, Object?>);
+        return 0;
+      });
+    });
+
+    tearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(SystemChannels.platform_views, null);
+    });
+
+    Future<Map<Object?, Object?>> paramsOf(
+      WidgetTester tester, {
+      MindboxEmbeddedBlockLoadingStrategy? strategy,
+      bool? animatesReveal,
+    }) async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      try {
+        await tester.pumpWidget(Directionality(
+          textDirection: TextDirection.ltr,
+          child: Align(
+            alignment: Alignment.topLeft,
+            child: MindboxEmbeddedBlock(
+              placeSystemName: 'stories',
+              height: 104,
+              loadingStrategy: strategy ?? MindboxEmbeddedBlockLoadingStrategy.automatic,
+              animatesReveal: animatesReveal ?? true,
+            ),
+          ),
+        ));
+        await tester.pumpAndSettle();
+      } finally {
+        debugDefaultTargetPlatformOverride = null;
+      }
+
+      expect(created, hasLength(1));
+      return created.single;
+    }
+
+    testWidgets('Reach the native block as the words every platform reads',
+        (WidgetTester tester) async {
+      final Map<Object?, Object?> params = await paramsOf(
+        tester,
+        strategy: MindboxEmbeddedBlockLoadingStrategy.hidden,
+        animatesReveal: false,
+      );
+
+      expect(params['loadingStrategy'], 'hidden');
+      expect(params['animatesReveal'], false);
+    });
+
+    testWidgets('Default to automatic and animated, said explicitly', (WidgetTester tester) async {
+      final Map<Object?, Object?> params = await paramsOf(tester);
+
+      expect(params['loadingStrategy'], 'automatic');
+      expect(params['animatesReveal'], true);
+    });
+
+    testWidgets('Every strategy has a word', (WidgetTester tester) async {
+      for (final MindboxEmbeddedBlockLoadingStrategy strategy
+          in MindboxEmbeddedBlockLoadingStrategy.values) {
+        // The strategy is fixed at creation, so every word needs a block of its own.
+        await tester.pumpWidget(const SizedBox.shrink());
+        created.clear();
+        final Map<Object?, Object?> params = await paramsOf(tester, strategy: strategy);
+        expect(params['loadingStrategy'], strategy.name, reason: '$strategy');
+      }
+    });
+  });
+
+  group('The first look', () {
+    late int viewId;
+    late List<Map<Object?, Object?>> created;
+    late List<Map<Object?, Object?>> asked;
+    Completer<String>? firstLook;
+
+    setUp(() {
+      viewId = -1;
+      created = <Map<Object?, Object?>>[];
+      asked = <Map<Object?, Object?>>[];
+      firstLook = null;
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(SystemChannels.platform_views, (MethodCall call) async {
+        // Only these two carry a map; `dispose` sends the bare view id.
+        if (call.method != 'create' && call.method != 'resize') {
+          return null;
+        }
+
+        final Map<Object?, Object?> arguments = call.arguments as Map<Object?, Object?>;
+        if (call.method == 'resize') {
+          return <Object?, Object?>{'width': arguments['width'], 'height': arguments['height']};
+        }
+
+        viewId = arguments['id']! as int;
+        final Uint8List params = arguments['params'] as Uint8List;
+        created.add(const StandardMessageCodec().decodeMessage(
+          params.buffer.asByteData(params.offsetInBytes, params.lengthInBytes),
+        ) as Map<Object?, Object?>);
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+          MethodChannel(embeddedBlockChannelName(viewId)),
+          (MethodCall call) async => null,
+        );
+        return 0;
+      });
+      // The plugin answers when the test says so: what the block does before the answer is the
+      // point of half of these tests. The completer is born here, inside the test's zone — one
+      // made in setUp lives in the runner's zone, and its answer would reach the block only once
+      // the test body is over.
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+        const MethodChannel(embeddedBlockPluginChannelName),
+        (MethodCall call) {
+          asked.add(call.arguments as Map<Object?, Object?>);
+          final Completer<String> answer = Completer<String>();
+          firstLook = answer;
+          return answer.future;
+        },
+      );
+    });
+
+    tearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(SystemChannels.platform_views, null);
+      forgetFirstLook();
+    });
+
+    Future<void> show(
+      WidgetTester tester, {
+      MindboxEmbeddedBlockLoadingStrategy strategy = MindboxEmbeddedBlockLoadingStrategy.automatic,
+    }) =>
+        tester.pumpWidget(Directionality(
+          textDirection: TextDirection.ltr,
+          child: Align(
+            alignment: Alignment.topLeft,
+            child: MindboxEmbeddedBlock(
+              placeSystemName: 'stories',
+              height: 104,
+              loadingStrategy: strategy,
+              placeholder: (_) => const SizedBox.expand(key: Key('host-placeholder')),
+            ),
+          ),
+        ));
+
+    Future<void> report(WidgetTester tester, Map<String, Object> arguments) async {
+      await TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.handlePlatformMessage(
+        embeddedBlockChannelName(viewId),
+        const StandardMethodCodec().encodeMethodCall(
+          MethodCall(EmbeddedBlockMethods.report, arguments),
+        ),
+        (ByteData? _) {},
+      );
+      await tester.pump();
+    }
+
+    double slotHeight(WidgetTester tester) => tester.getSize(find.byType(MindboxEmbeddedBlock)).height;
+
+    void testOn(TargetPlatform platform, String description,
+        Future<void> Function(WidgetTester) body) {
+      testWidgets(description, (WidgetTester tester) async {
+        debugDefaultTargetPlatformOverride = platform;
+        try {
+          await body(tester);
+        } finally {
+          debugDefaultTargetPlatformOverride = null;
+        }
+      });
+    }
+
+    testOn(TargetPlatform.iOS, 'A placeholder block takes its height from the first frame and asks nobody',
+        (WidgetTester tester) async {
+      await show(tester, strategy: MindboxEmbeddedBlockLoadingStrategy.placeholder);
+
+      expect(slotHeight(tester), 104);
+      expect(find.byKey(const Key('host-placeholder')), findsOneWidget);
+      expect(asked, isEmpty);
+    });
+
+    testOn(TargetPlatform.android,
+        'A hidden block takes no space from the first frame, while its native block is built with its full height',
+        (WidgetTester tester) async {
+      await show(tester, strategy: MindboxEmbeddedBlockLoadingStrategy.hidden);
+      expect(slotHeight(tester), 0);
+      expect(find.byKey(const Key('host-placeholder')), findsNothing);
+      await tester.pumpAndSettle();
+
+      // Sized to nothing, the platform view would never be created on Android; sized to its
+      // height under a clipped slot of zero, it is — and the block can load unseen and grow.
+      expect(created, hasLength(1));
+      expect(tester.getSize(find.byType(AndroidView)).height, 104);
+      expect(slotHeight(tester), 0);
+      expect(asked, isEmpty);
+    });
+
+    testOn(TargetPlatform.iOS, 'An automatic block asks the plugin for the place\'s first look, once',
+        (WidgetTester tester) async {
+      await show(tester);
+      await tester.pumpAndSettle();
+      await show(tester);
+      await tester.pumpAndSettle();
+
+      expect(asked, <Map<Object?, Object?>>[
+        <Object?, Object?>{'placeSystemName': 'stories', 'loadingStrategy': 'automatic'},
+      ]);
+    });
+
+    testOn(TargetPlatform.iOS,
+        'An automatic block takes no space until the plugin answers, and opens for a place that showed content before',
+        (WidgetTester tester) async {
+      await show(tester);
+      expect(slotHeight(tester), 0);
+      await tester.pumpAndSettle();
+      expect(slotHeight(tester), 0);
+
+      firstLook!.complete('placeholder');
+      await tester.pumpAndSettle();
+
+      expect(slotHeight(tester), 104);
+      expect(find.byKey(const Key('host-placeholder')), findsOneWidget);
+    });
+
+    testOn(TargetPlatform.iOS, 'An automatic block stays hidden for a place that never showed content',
+        (WidgetTester tester) async {
+      await show(tester);
+      firstLook!.complete('collapsed');
+      await tester.pumpAndSettle();
+
+      expect(slotHeight(tester), 0);
+      expect(find.byKey(const Key('host-placeholder')), findsNothing);
+    });
+
+    testOn(TargetPlatform.iOS, 'The native block\'s own report outranks an answer that comes later',
+        (WidgetTester tester) async {
+      await show(tester);
+      await tester.pumpAndSettle();
+      await report(tester, <String, Object>{'appearance': 'content'});
+      expect(slotHeight(tester), 104);
+
+      firstLook!.complete('collapsed');
+      await tester.pumpAndSettle();
+
+      expect(slotHeight(tester), 104);
+    });
+
+    testOn(TargetPlatform.iOS, 'A plugin that cannot answer leaves the block to its own report, and says so',
+        (WidgetTester tester) async {
+      final List<String> log = <String>[];
+      final DebugPrintCallback printed = debugPrint;
+      debugPrint = (String? message, {int? wrapWidth}) => log.add(message ?? '');
+      try {
+        await show(tester);
+        firstLook!.completeError(PlatformException(code: 'bad_arguments'));
+        await tester.pumpAndSettle();
+        expect(slotHeight(tester), 0);
+
+        await report(tester, <String, Object>{'appearance': 'placeholder'});
+      } finally {
+        debugPrint = printed;
+      }
+
+      expect(slotHeight(tester), 104);
+      expect(log.where((String line) => line.contains('initialAppearance')), hasLength(1));
+    });
+  });
+
+  group('The reveal', () {
+    late int viewId;
+
+    setUp(() {
+      viewId = -1;
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(SystemChannels.platform_views, (MethodCall call) async {
+        if (call.method != 'create') {
+          return null;
+        }
+
+        final Map<Object?, Object?> arguments = call.arguments as Map<Object?, Object?>;
+        viewId = arguments['id']! as int;
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+          MethodChannel(embeddedBlockChannelName(viewId)),
+          (MethodCall call) async => null,
+        );
+        return 0;
+      });
+    });
+
+    tearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(SystemChannels.platform_views, null);
+    });
+
+    Future<void> show(WidgetTester tester, MindboxEmbeddedBlockLoadingStrategy strategy) async {
+      await tester.pumpWidget(Directionality(
+        textDirection: TextDirection.ltr,
+        child: Align(
+          alignment: Alignment.topLeft,
+          child: MindboxEmbeddedBlock(
+            placeSystemName: 'stories',
+            height: 104,
+            loadingStrategy: strategy,
+          ),
+        ),
+      ));
+      await tester.pumpAndSettle();
+    }
+
+    Future<void> report(WidgetTester tester, Map<String, Object> arguments) async {
+      await TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.handlePlatformMessage(
+        embeddedBlockChannelName(viewId),
+        const StandardMethodCodec().encodeMethodCall(
+          MethodCall(EmbeddedBlockMethods.report, arguments),
+        ),
+        (ByteData? _) {},
+      );
+      await tester.pump();
+    }
+
+    double slotHeight(WidgetTester tester) => tester.getSize(find.byType(MindboxEmbeddedBlock)).height;
+
+    void testOnIOS(String description, Future<void> Function(WidgetTester) body) {
+      testWidgets(description, (WidgetTester tester) async {
+        debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+        try {
+          await body(tester);
+        } finally {
+          debugDefaultTargetPlatformOverride = null;
+        }
+      });
+    }
+
+    const Map<String, Object> animatedContent = <String, Object>{
+      'appearance': 'content',
+      'animated': true,
+      'revealDurationMs': 250,
+    };
+
+    testOnIOS('A hidden block grows to its height over the SDK\'s reveal when the native block says so',
+        (WidgetTester tester) async {
+      await show(tester, MindboxEmbeddedBlockLoadingStrategy.hidden);
+      expect(slotHeight(tester), 0);
+
+      await report(tester, animatedContent);
+      expect(slotHeight(tester), 0);
+
+      await tester.pump(const Duration(milliseconds: 125));
+      expect(slotHeight(tester), closeTo(52, 1));
+
+      await tester.pump(const Duration(milliseconds: 125));
+      expect(slotHeight(tester), 104);
+      expect(tester.getSize(find.byType(UiKitView)).height, 104);
+    });
+
+    testOnIOS('Without the native block\'s word the content lands at once', (WidgetTester tester) async {
+      await show(tester, MindboxEmbeddedBlockLoadingStrategy.hidden);
+
+      await report(tester, <String, Object>{'appearance': 'content'});
+
+      expect(slotHeight(tester), 104);
+    });
+
+    testOnIOS('A reveal that names no duration lands at once', (WidgetTester tester) async {
+      await show(tester, MindboxEmbeddedBlockLoadingStrategy.hidden);
+
+      await report(tester, <String, Object>{'appearance': 'content', 'animated': true});
+
+      expect(slotHeight(tester), 104);
+    });
+
+    testOnIOS('Content arriving into a placeholder has its height already: nothing grows',
+        (WidgetTester tester) async {
+      await show(tester, MindboxEmbeddedBlockLoadingStrategy.placeholder);
+      expect(slotHeight(tester), 104);
+
+      await report(tester, animatedContent);
+
+      expect(slotHeight(tester), 104);
+    });
+
+    testOnIOS('A collapse lands at once, even mid-reveal', (WidgetTester tester) async {
+      await show(tester, MindboxEmbeddedBlockLoadingStrategy.hidden);
+      await report(tester, animatedContent);
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(slotHeight(tester), greaterThan(0));
+
+      await report(tester, <String, Object>{'appearance': 'collapsed'});
+
+      expect(slotHeight(tester), 0);
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(slotHeight(tester), 0);
     });
   });
 
@@ -397,6 +875,8 @@ void main() {
 
     testWidgets('A new height resizes the live block without rebuilding it',
         (WidgetTester tester) async {
+      answerFirstLookWith('placeholder');
+      addTearDown(forgetFirstLook);
       debugDefaultTargetPlatformOverride = TargetPlatform.android;
       final List<String> log = <String>[];
       final DebugPrintCallback printed = debugPrint;
@@ -753,6 +1233,8 @@ void main() {
     });
 
     testWidgets('A block still loading leaves the drag to the page', (WidgetTester tester) async {
+      answerFirstLookWith('placeholder');
+      addTearDown(forgetFirstLook);
       debugDefaultTargetPlatformOverride = TargetPlatform.android;
       try {
         final PageController pages = PageController();
@@ -793,6 +1275,7 @@ void main() {
     setUp(() {
       methods = <String>[];
       hostVisible = <bool>[];
+      answerFirstLookWith('placeholder');
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(SystemChannels.platform_views, (MethodCall call) async {
         if (call.method != 'create') {
@@ -818,6 +1301,7 @@ void main() {
     tearDown(() {
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(SystemChannels.platform_views, null);
+      forgetFirstLook();
     });
 
     void testOn(TargetPlatform platform, String description,

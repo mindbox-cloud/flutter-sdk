@@ -13,6 +13,13 @@ const String embeddedBlockViewType = 'mindbox.cloud/flutter-sdk/embedded_block';
 /// own.
 String embeddedBlockChannelName(int viewId) => '$embeddedBlockViewType/$viewId';
 
+/// The channel shared by every block, asked before any of them exists.
+///
+/// One question goes there: the look a block of a place starts with. A block that waits hidden must
+/// not be preceded by a frame of reserved space, and for the `automatic` strategy the answer depends
+/// on the SDK's memory of the place — which only the native side has.
+const String embeddedBlockPluginChannelName = '$embeddedBlockViewType/plugin';
+
 /// Keys of the creation params the native factory reads.
 class EmbeddedBlockParams {
   EmbeddedBlockParams._();
@@ -31,6 +38,13 @@ class EmbeddedBlockParams {
   /// carries, and each native side spells the budget its own way — seconds on iOS, milliseconds on
   /// Android. The integer is the one spelling both can read.
   static const String timeoutMs = 'timeoutMs';
+
+  /// What the block shows until the SDK answers, as the word of a loading strategy: `automatic`,
+  /// `placeholder` or `hidden` — the same three words on every platform. Absent means `automatic`.
+  static const String loadingStrategy = 'loadingStrategy';
+
+  /// Whether the SDK animates the reveal of the content. Absent means it does.
+  static const String animatesReveal = 'animatesReveal';
 
   /// Whether the host draws a loading screen of its own.
   ///
@@ -71,6 +85,15 @@ class EmbeddedBlockMethods {
   /// The same answer as the creation params, for a block that is already live: the host may gain or
   /// lose either screen between builds.
   static const String setStandIns = 'setStandIns';
+
+  /// Dart → native, on [embeddedBlockPluginChannelName]: the look a block of
+  /// [EmbeddedBlockParams.placeSystemName] with [EmbeddedBlockParams.loadingStrategy] starts with,
+  /// answered as the word of an [EmbeddedBlockAppearance].
+  ///
+  /// Asked for `automatic` only: the other two strategies are decided by the strategy alone, on
+  /// either side. The native block's own report, once the platform view exists, answers the same
+  /// question, so a late answer here is outranked by it.
+  static const String initialAppearance = 'initialAppearance';
 
   /// Dart → native: the widget is gone — stop the block now, not when the last reference to it is.
   ///
@@ -130,7 +153,13 @@ enum EmbeddedBlockOutcome {
 /// What the native block says about itself.
 class EmbeddedBlockReport {
   /// Every part is optional: a message carries whichever of them it has to say.
-  const EmbeddedBlockReport({this.appearance, this.outcome, this.failReason});
+  const EmbeddedBlockReport({
+    this.appearance,
+    this.outcome,
+    this.failReason,
+    this.isRevealAnimated = false,
+    this.revealDuration,
+  });
 
   /// What to draw, or `null` when the message carries no answer this version understands.
   ///
@@ -152,6 +181,17 @@ class EmbeddedBlockReport {
   /// reasons, so the boundary passes the word through and leaves the typing to the widget.
   final String? failReason;
 
+  /// Whether the [appearance] of this report is the SDK's reveal of the content — the one change
+  /// that is animated. The native block owns that decision, gates included: `animatesReveal`, the
+  /// system's reduced motion, and the rule that only the arrival of content is a reveal. The
+  /// container fades the content in on its own; the wrapper that lays the block out animates the
+  /// growth of a block that waited hidden, and this is what tells it to.
+  final bool isRevealAnimated;
+
+  /// How long the SDK's reveal takes, sent with [isRevealAnimated]; `null` otherwise. The
+  /// wrapper's growth runs for as long as the container's fade, so the two end together.
+  final Duration? revealDuration;
+
   /// Reads a report off the channel, or `null` if the message is not one.
   ///
   /// Tolerant on purpose: a native side newer than the Dart one may send fields — or appearances —
@@ -162,15 +202,18 @@ class EmbeddedBlockReport {
     }
 
     final Object? reason = arguments[_reasonKey];
+    final Object? revealDurationMs = arguments[_revealDurationMsKey];
     return EmbeddedBlockReport(
-      appearance: _appearanceOf(arguments[_appearanceKey]),
+      appearance: appearanceOf(arguments[_appearanceKey]),
       outcome: _outcomeOf(arguments[_outcomeKey]),
       failReason: reason is String ? reason : null,
+      isRevealAnimated: arguments[_animatedKey] == true,
+      revealDuration: revealDurationMs is int ? Duration(milliseconds: revealDurationMs) : null,
     );
   }
 
-  static EmbeddedBlockAppearance? _appearanceOf(Object? raw) =>
-      _appearances[raw];
+  /// The appearance behind its word on the channel, or `null` for a word this version does not know.
+  static EmbeddedBlockAppearance? appearanceOf(Object? word) => _appearances[word];
 
   static EmbeddedBlockOutcome? _outcomeOf(Object? raw) => _outcomes[raw];
 
@@ -191,4 +234,6 @@ class EmbeddedBlockReport {
   static const String _appearanceKey = 'appearance';
   static const String _outcomeKey = 'outcome';
   static const String _reasonKey = 'reason';
+  static const String _animatedKey = 'animated';
+  static const String _revealDurationMsKey = 'revealDurationMs';
 }

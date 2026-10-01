@@ -83,9 +83,28 @@ MindboxEmbeddedBlock(
 )
 ```
 
+What the block shows until the SDK has decided what goes into it is `loadingStrategy`, the same
+three choices as in SwiftUI and Compose. `automatic` — the default — keeps the block hidden until
+the place has shown content once on this device and puts a placeholder there from then on, so the
+layout does not jump where content is expected and does not flash where it is not. `placeholder`
+takes the space up front, worth naming for a place that always has a campaign behind it. `hidden`
+never takes it until the content is shown: no placeholder, and no `errorBuilder` on a failure. The
+content is revealed with the SDK's own animation — it fades in, and a block that started hidden
+grows to its height — unless `animatesReveal` is off; the system's reduced-motion setting turns it
+off as well. Turn it off to animate the block's container yourself in `onLoad`.
+
+```dart
+MindboxEmbeddedBlock(
+  placeSystemName: 'stories',
+  height: 104,
+  loadingStrategy: MindboxEmbeddedBlockLoadingStrategy.placeholder,
+  animatesReveal: false,
+)
+```
+
 `height` is live: a new value resizes a block already on screen in place — the same content, no
-reload. `timeout` is fixed when the block is created — a new value is ignored and reported to the
-log; give the widget a new `Key` to load a block on a new budget.
+reload. `timeout`, `loadingStrategy` and `animatesReveal` are fixed when the block is created — a
+new value is ignored and reported to the log; give the widget a new `Key` to build a block anew.
 
 In a lazy list — a `ListView`, a `GridView` — the block asks to be kept alive off screen by default,
 the way the native blocks behave in a scroll: a block scrolled far away keeps its page, and on the
