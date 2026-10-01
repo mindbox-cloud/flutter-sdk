@@ -785,44 +785,58 @@ void main() {
   });
 
   group('A place name with spaces around it', () {
-    Future<void> buildWith(WidgetTester tester, String placeSystemName) =>
-        tester.pumpWidget(Directionality(
+    late List<Map<Object?, Object?>> created;
+
+    setUp(() {
+      created = <Map<Object?, Object?>>[];
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(SystemChannels.platform_views, (MethodCall call) async {
+        if (call.method != 'create') {
+          return null;
+        }
+
+        final Map<Object?, Object?> arguments = call.arguments as Map<Object?, Object?>;
+        final Uint8List params = arguments['params'] as Uint8List;
+        created.add(const StandardMessageCodec().decodeMessage(
+          params.buffer.asByteData(params.offsetInBytes, params.lengthInBytes),
+        ) as Map<Object?, Object?>);
+        return 0;
+      });
+    });
+
+    tearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(SystemChannels.platform_views, null);
+    });
+
+    // The native blocks ignore the padding themselves, so the widget neither trims the name nor
+    // warns about it: a name pasted with a stray space finds its place, and the log stays quiet.
+    testWidgets('Reaches the native block as given, and says nothing about it',
+        (WidgetTester tester) async {
+      final List<String> log = <String>[];
+      final DebugPrintCallback printed = debugPrint;
+      debugPrint = (String? message, {int? wrapWidth}) => log.add(message ?? '');
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+
+      try {
+        await tester.pumpWidget(const Directionality(
           textDirection: TextDirection.ltr,
           child: Align(
             alignment: Alignment.topLeft,
             child: MindboxEmbeddedBlock(
-              placeSystemName: placeSystemName,
+              placeSystemName: ' stories ',
               height: 104,
+              loadingStrategy: MindboxEmbeddedBlockLoadingStrategy.placeholder,
             ),
           ),
         ));
-
-    testWithoutNativeBlock('A padded place name says so in the log', (WidgetTester tester) async {
-      final List<String> log = <String>[];
-      final DebugPrintCallback printed = debugPrint;
-      debugPrint = (String? message, {int? wrapWidth}) => log.add(message ?? '');
-
-      try {
-        await buildWith(tester, ' stories');
-        await buildWith(tester, 'promo ');
+        await tester.pumpAndSettle();
       } finally {
         debugPrint = printed;
+        debugDefaultTargetPlatformOverride = null;
       }
 
-      expect(log.where((String line) => line.contains('with spaces around it')), hasLength(2));
-    });
-
-    testWithoutNativeBlock('A place name without them says nothing', (WidgetTester tester) async {
-      final List<String> log = <String>[];
-      final DebugPrintCallback printed = debugPrint;
-      debugPrint = (String? message, {int? wrapWidth}) => log.add(message ?? '');
-
-      try {
-        await buildWith(tester, 'stories');
-      } finally {
-        debugPrint = printed;
-      }
-
+      expect(created.single['placeSystemName'], ' stories ');
       expect(log, isEmpty);
     });
   });

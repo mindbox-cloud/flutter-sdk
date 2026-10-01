@@ -79,8 +79,9 @@ class MindboxEmbeddedBlock extends StatelessWidget {
   /// The name of the place from the admin panel. A different name is a different block, built from
   /// scratch in place of the old one.
   ///
-  /// Taken exactly as given: nothing is trimmed, so spaces around the name are part of it and keep
-  /// the block from matching the place. The widget writes such a name to the log.
+  /// Passed down as given. Whitespace around the name is not part of it: the native blocks ignore
+  /// it, so a name pasted from the admin panel with a stray space still finds its place. The name
+  /// itself is matched the way the native SDK matches it.
   final String placeSystemName;
 
   /// The height the block occupies while it loads and while it is shown. Live: a new value given
@@ -312,7 +313,6 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock>
     _creationAnimatesReveal = widget.animatesReveal;
     _appearance = _firstLook(_creationLoadingStrategy);
     _reveal = AnimationController(vsync: this, value: 1);
-    _warnIfPlaceIsPadded();
     _warnIfHeightReservesNoSpace();
     _armKeptAliveCheck();
     _askForTheFirstLook();
@@ -688,18 +688,6 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock>
       debugPrint('[MindboxEmbeddedBlock] $method for block "${widget.placeSystemName}" '
           'was not delivered: $error');
     });
-  }
-
-  void _warnIfPlaceIsPadded() {
-    final String placeSystemName = widget.placeSystemName;
-    if (placeSystemName.trim() == placeSystemName) {
-      return;
-    }
-
-    debugPrint(
-      '[MindboxEmbeddedBlock] Block "$placeSystemName" was given a place system name with spaces '
-      'around it. The name is used as it is, so it will not match the place from the admin panel.',
-    );
   }
 
   void _warnIfHeightReservesNoSpace() {
