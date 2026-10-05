@@ -57,12 +57,16 @@ when matching.
 Both looks can be customized, the same way as in SwiftUI and Compose: `placeholder` replaces the
 stock loading shimmer, and `errorBuilder` opts into showing a failure instead of collapsing. An
 empty place always collapses — a host cannot fill the space of a block that was never meant to be
-there.
+there. Neither is built while the block waits hidden — `hidden`, or `automatic` at a place that has
+not shown content yet, which is what a fresh install gets by default — so a failure on that first
+wait collapses the block without the error screen and only `onFail` tells. A host that wants the
+screens from the very first load names `loadingStrategy: placeholder`, as the example does.
 
 ```dart
 MindboxEmbeddedBlock(
   placeSystemName: 'stories',
   height: 104,
+  loadingStrategy: MindboxEmbeddedBlockLoadingStrategy.placeholder,
   placeholder: (_) => const StoriesSkeleton(),
   errorBuilder: (_) => const StoriesUnavailable(),
   onEmpty: () => setState(() => _showStoriesSection = false),
@@ -85,13 +89,16 @@ MindboxEmbeddedBlock(
 
 What the block shows until the SDK has decided what goes into it is `loadingStrategy`, the same
 three choices as in SwiftUI and Compose. `automatic` — the default — keeps the block hidden until
-the place has shown content once on this device and puts a placeholder there from then on, so the
-layout does not jump where content is expected and does not flash where it is not. `placeholder`
-takes the space up front, worth naming for a place that always has a campaign behind it. `hidden`
-never takes it until the content is shown: no placeholder, and no `errorBuilder` on a failure. The
-content is revealed with the SDK's own animation — it fades in, and a block that started hidden
-grows to its height — unless `animatesReveal` is off; the system's reduced-motion setting turns it
-off as well. Turn it off to animate the block's container yourself in `onLoad`.
+the place has shown content once on this device and puts a placeholder there from then on, so a
+place with nothing to show never flashes reserved space. The memory lives on the native side and
+reaches the widget a moment after it is built, so a place that has shown content before takes its
+space a frame late — once the plugin answers — rather than a place that has not getting a frame of
+space it gives back. `placeholder` takes the space up front from the first frame, worth naming for
+a place that always has a campaign behind it. `hidden` never takes it until the content is shown:
+no placeholder, and no `errorBuilder` on a failure. The content is revealed with the SDK's own
+animation — it fades in, and a block that started hidden grows to its height — unless
+`animatesReveal` is off; the system's reduced-motion setting turns it off as well. Turn it off to
+animate the block's container yourself in `onLoad`.
 
 ```dart
 MindboxEmbeddedBlock(

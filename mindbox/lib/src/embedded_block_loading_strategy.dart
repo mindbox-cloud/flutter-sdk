@@ -3,8 +3,8 @@
 /// Every place marked up in the app waits for the SDK on every launch, and a place with no campaign
 /// behind it would flash a placeholder and collapse each time. The strategy decides whether the
 /// block takes its space before the answer, and the SDK remembers per place whether content was
-/// ever shown there, so the layout does not jump where content is expected and does not flash where
-/// it is not.
+/// ever shown there, so a place with nothing to show never flashes reserved space, and a place that
+/// has shown content takes its space before the answer — in Flutter a frame late, see [automatic].
 ///
 /// The same three values exist on every platform; [automatic] is the default everywhere.
 enum MindboxEmbeddedBlockLoadingStrategy {

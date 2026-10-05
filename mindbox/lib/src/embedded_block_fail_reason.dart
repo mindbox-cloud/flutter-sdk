@@ -12,8 +12,9 @@ class MindboxEmbeddedBlockFailReason {
 
   /// The content is unavailable because of the environment: the config could not be downloaded and
   /// nothing is cached, the SDK gave no answer within the block's waiting budget, the block's page
-  /// could not be loaded, or the data the targeting needs could not be fetched — typically a
-  /// network problem.
+  /// could not be loaded, or — on iOS — the data the targeting needs could not be fetched;
+  /// typically a network problem. Android answers a targeting fetch that fails with `onEmpty`
+  /// instead: a difference between the native SDKs, not the widget's.
   static const MindboxEmbeddedBlockFailReason networkError =
       MindboxEmbeddedBlockFailReason('networkError');
 
