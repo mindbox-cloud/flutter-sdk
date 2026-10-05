@@ -171,7 +171,7 @@ void main() {
       expect(fails, 2);
     });
 
-    testWithoutNativeBlock('A budget changed after creation is ignored, and said out loud',
+    testWithoutNativeBlock('A budget changed after creation is ignored, and said out loud once per new value',
         (WidgetTester tester) async {
       final List<String> log = <String>[];
       final DebugPrintCallback printed = debugPrint;
@@ -195,16 +195,20 @@ void main() {
 
         await buildWith(const Duration(seconds: 9));
         await buildWith(const Duration(seconds: 12));
+        await buildWith(const Duration(seconds: 12));
       } finally {
         debugPrint = printed;
       }
 
-      expect(log.where((String line) => line.contains('timeout')), hasLength(1));
-      expect(log.single, contains('"stories"'));
-      expect(log.single, contains('0:00:05'));
+      // One line per value given, as the Compose wrapper says it: the repeat of 12 adds nothing.
+      expect(log.where((String line) => line.contains('timeout')), hasLength(2));
+      expect(log.first, contains('"stories"'));
+      expect(log.first, contains('given timeout 0:00:09'));
+      expect(log.first, contains('keeps 0:00:05'));
+      expect(log.last, contains('given timeout 0:00:12'));
     });
 
-    testWithoutNativeBlock('A strategy or an animation flag changed after creation is ignored, and said out loud',
+    testWithoutNativeBlock('A strategy or an animation flag changed after creation is ignored, and said out loud once per new value',
         (WidgetTester tester) async {
       final List<String> log = <String>[];
       final DebugPrintCallback printed = debugPrint;
@@ -230,15 +234,18 @@ void main() {
 
         await buildWith(MindboxEmbeddedBlockLoadingStrategy.placeholder, false);
         await buildWith(MindboxEmbeddedBlockLoadingStrategy.automatic, false);
+        await buildWith(MindboxEmbeddedBlockLoadingStrategy.automatic, false);
       } finally {
         debugPrint = printed;
       }
 
-      expect(log, hasLength(2));
-      expect(log.first, contains('loadingStrategy'));
-      expect(log.first, contains('keeps MindboxEmbeddedBlockLoadingStrategy.hidden'));
-      expect(log.last, contains('animatesReveal'));
-      expect(log.last, contains('keeps true'));
+      // Two strategies given, one flag given: three lines, and the repeated rebuild adds nothing.
+      expect(log, hasLength(3));
+      expect(log[0], contains('given loadingStrategy MindboxEmbeddedBlockLoadingStrategy.placeholder'));
+      expect(log[0], contains('keeps MindboxEmbeddedBlockLoadingStrategy.hidden'));
+      expect(log[1], contains('animatesReveal'));
+      expect(log[1], contains('keeps true'));
+      expect(log[2], contains('given loadingStrategy MindboxEmbeddedBlockLoadingStrategy.automatic'));
     });
   });
 
@@ -635,7 +642,12 @@ void main() {
           .setMockMethodCallHandler(SystemChannels.platform_views, null);
     });
 
-    Future<void> show(WidgetTester tester, MindboxEmbeddedBlockLoadingStrategy strategy) async {
+    Future<void> show(
+      WidgetTester tester,
+      MindboxEmbeddedBlockLoadingStrategy strategy, {
+      WidgetBuilder? placeholder,
+      WidgetBuilder? errorBuilder,
+    }) async {
       await tester.pumpWidget(Directionality(
         textDirection: TextDirection.ltr,
         child: Align(
@@ -644,6 +656,8 @@ void main() {
             placeSystemName: 'stories',
             height: 104,
             loadingStrategy: strategy,
+            placeholder: placeholder,
+            errorBuilder: errorBuilder,
           ),
         ),
       ));
@@ -674,11 +688,18 @@ void main() {
       });
     }
 
+    // Not the SDK's own 250: a wrapper that ignored the duration it was sent would still pass
+    // against the default.
     const Map<String, Object> animatedContent = <String, Object>{
       'appearance': 'content',
       'animated': true,
-      'revealDurationMs': 250,
+      'revealDurationMs': 400,
     };
+
+    const Key hostPlaceholder = Key('host-placeholder');
+    const Key hostError = Key('host-error');
+    Widget hostPlaceholderScreen(BuildContext _) => const SizedBox.expand(key: hostPlaceholder);
+    Widget hostErrorScreen(BuildContext _) => const SizedBox.expand(key: hostError);
 
     testOnIOS('A hidden block grows to its height over the SDK\'s reveal when the native block says so',
         (WidgetTester tester) async {
@@ -688,10 +709,10 @@ void main() {
       await report(tester, animatedContent);
       expect(slotHeight(tester), 0);
 
-      await tester.pump(const Duration(milliseconds: 125));
+      await tester.pump(const Duration(milliseconds: 200));
       expect(slotHeight(tester), closeTo(52, 1));
 
-      await tester.pump(const Duration(milliseconds: 125));
+      await tester.pump(const Duration(milliseconds: 200));
       expect(slotHeight(tester), 104);
       expect(tester.getSize(find.byType(UiKitView)).height, 104);
     });
@@ -732,6 +753,88 @@ void main() {
 
       expect(slotHeight(tester), 0);
       await tester.pump(const Duration(milliseconds: 300));
+      expect(slotHeight(tester), 0);
+    });
+
+    for (final String look in <String>['error', 'placeholder']) {
+      testOnIOS('A $look arriving mid-growth takes the full height at once', (WidgetTester tester) async {
+        await show(tester, MindboxEmbeddedBlockLoadingStrategy.hidden, errorBuilder: hostErrorScreen);
+        await report(tester, animatedContent);
+        await tester.pump(const Duration(milliseconds: 100));
+        final double midway = slotHeight(tester);
+        expect(midway, greaterThan(0));
+        expect(midway, lessThan(104));
+
+        await report(tester, <String, Object>{'appearance': look});
+
+        expect(slotHeight(tester), 104);
+        await tester.pump(const Duration(milliseconds: 150));
+        expect(slotHeight(tester), 104);
+      });
+    }
+
+    testOnIOS('Content arriving animated fades the host\'s placeholder out over the reveal, untouchable',
+        (WidgetTester tester) async {
+      await show(tester, MindboxEmbeddedBlockLoadingStrategy.placeholder,
+          placeholder: hostPlaceholderScreen);
+      expect(find.byKey(hostPlaceholder), findsOneWidget);
+
+      await report(tester, animatedContent);
+
+      expect(find.byKey(hostPlaceholder), findsOneWidget);
+      expect(find.ancestor(of: find.byKey(hostPlaceholder), matching: find.byType(IgnorePointer)),
+          findsOneWidget);
+      final FadeTransition fade = tester.widget(
+          find.ancestor(of: find.byKey(hostPlaceholder), matching: find.byType(FadeTransition)));
+      expect(fade.opacity.value, 1);
+
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(find.byKey(hostPlaceholder), findsOneWidget);
+      expect(fade.opacity.value, lessThan(1));
+      expect(fade.opacity.value, greaterThan(0));
+
+      // The fade is over once the clock is past its 400 ms, and the layer leaves on the next build.
+      await tester.pump(const Duration(milliseconds: 250));
+      await tester.pump();
+      expect(find.byKey(hostPlaceholder), findsNothing);
+      expect(find.byType(FadeTransition), findsNothing);
+    });
+
+    testOnIOS('The host\'s error screen replaced by content fades out the same way',
+        (WidgetTester tester) async {
+      await show(tester, MindboxEmbeddedBlockLoadingStrategy.placeholder, errorBuilder: hostErrorScreen);
+      await report(tester, <String, Object>{'appearance': 'error'});
+      expect(find.byKey(hostError), findsOneWidget);
+
+      await report(tester, animatedContent);
+      expect(find.byKey(hostError), findsOneWidget);
+
+      await tester.pump(const Duration(milliseconds: 450));
+      await tester.pump();
+      expect(find.byKey(hostError), findsNothing);
+    });
+
+    testOnIOS('Without the native block\'s word the host\'s placeholder goes at once',
+        (WidgetTester tester) async {
+      await show(tester, MindboxEmbeddedBlockLoadingStrategy.placeholder,
+          placeholder: hostPlaceholderScreen);
+
+      await report(tester, <String, Object>{'appearance': 'content'});
+
+      expect(find.byKey(hostPlaceholder), findsNothing);
+    });
+
+    testOnIOS('A look arriving mid-fade takes the fading layer down at once',
+        (WidgetTester tester) async {
+      await show(tester, MindboxEmbeddedBlockLoadingStrategy.placeholder,
+          placeholder: hostPlaceholderScreen);
+      await report(tester, animatedContent);
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.byKey(hostPlaceholder), findsOneWidget);
+
+      await report(tester, <String, Object>{'appearance': 'collapsed'});
+
+      expect(find.byKey(hostPlaceholder), findsNothing);
       expect(slotHeight(tester), 0);
     });
   });
