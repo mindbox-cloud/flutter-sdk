@@ -2,6 +2,7 @@ package cloud.mindbox.mindbox_android
 
 import android.content.Context
 import android.graphics.Color
+import android.provider.Settings
 import android.view.View
 import cloud.mindbox.mobile_sdk.Mindbox
 import cloud.mindbox.mobile_sdk.annotations.InternalMindboxApi
@@ -17,6 +18,7 @@ import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.StandardMessageCodec
 import io.flutter.plugin.platform.PlatformView
 import io.flutter.plugin.platform.PlatformViewFactory
+import kotlin.math.roundToLong
 
 @OptIn(InternalMindboxApi::class)
 internal class EmbeddedBlockPlatformViewFactory(
@@ -247,10 +249,24 @@ internal class EmbeddedBlockPlatformView(
         failReason?.let { arguments[EmbeddedBlockWire.KEY_REASON] = it }
         if (isRevealAnimated) {
             arguments[EmbeddedBlockWire.KEY_ANIMATED] = true
-            arguments[EmbeddedBlockWire.KEY_REVEAL_DURATION_MS] =
-                MindboxEmbeddedBlockView.REVEAL_ANIMATION_DURATION_MS
+            arguments[EmbeddedBlockWire.KEY_REVEAL_DURATION_MS] = effectiveRevealDurationMs()
         }
         channel.invokeMethod(EmbeddedBlockWire.METHOD_REPORT, arguments)
+    }
+
+    /**
+     * The duration the native fade actually runs for: the SDK's nominal reveal scaled by the
+     * animator duration scale from the developer settings, which every [android.animation.ValueAnimator]
+     * honours and a Flutter animation knows nothing about. Sent as the effective value, so the
+     * slot and the layer the wrapper animates end together with the content at 0.5x and 2x alike.
+     */
+    private fun effectiveRevealDurationMs(): Long {
+        val scale = try {
+            Settings.Global.getFloat(context.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f)
+        } catch (_: Exception) {
+            1f
+        }
+        return (MindboxEmbeddedBlockView.REVEAL_ANIMATION_DURATION_MS * scale).roundToLong()
     }
 }
 
