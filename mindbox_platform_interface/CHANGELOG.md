@@ -1,6 +1,8 @@
 ## Unreleased
 
 * Add the embedded block's platform contract: the view type, the per-block channel and its reports.
+* The embedded block report tells three outcomes apart — `load`, `empty` and `fail` with a `reason` — and says when a look is the SDK's animated reveal, with `animated` and `revealDurationMs`. The creation params take `loadingStrategy` and `animatesReveal`.
+* Add the plugin-wide embedded block channel with `initialAppearance`: the look an `automatic` block of a place starts with, asked before the block exists.
 
 ## 2.15.2
 

@@ -20,6 +20,8 @@ export 'package:mindbox_platform_interface/mindbox_platform_interface.dart'
         InAppClickHandler,
         InAppDismissedHandler;
 export 'src/embedded_block.dart' show MindboxEmbeddedBlock;
+export 'src/embedded_block_fail_reason.dart' show MindboxEmbeddedBlockFailReason;
+export 'src/embedded_block_loading_strategy.dart' show MindboxEmbeddedBlockLoadingStrategy;
 
 /// Basic Mindbox API.
 class Mindbox {

@@ -46,18 +46,31 @@ MindboxEmbeddedBlock(
 )
 ```
 
-Both outcomes can be customized, the same way as in SwiftUI and Compose: `placeholder` replaces the
+The outcome arrives through three callbacks, the same three as in SwiftUI and Compose: `onLoad`
+when the content is shown, `onEmpty` when there is nothing to show at the place, and `onFail` with a
+`MindboxEmbeddedBlockFailReason` when the block could not be shown. An empty place is a normal
+outcome, not a breakage, and comes with no reason. A failure's reason — `networkError` or
+`internalError` — is for logs and analytics, not for branching: by the time it arrives the block has
+already collapsed or switched to `errorBuilder`. A later SDK may add reasons, so keep a fallback
+when matching.
+
+Both looks can be customized, the same way as in SwiftUI and Compose: `placeholder` replaces the
 stock loading shimmer, and `errorBuilder` opts into showing a failure instead of collapsing. An
 empty place always collapses — a host cannot fill the space of a block that was never meant to be
-there. `onLoad` and `onFail` report how the load ended.
+there. Neither is built while the block waits hidden — `hidden`, or `automatic` at a place that has
+not shown content yet, which is what a fresh install gets by default — so a failure on that first
+wait collapses the block without the error screen and only `onFail` tells. A host that wants the
+screens from the very first load names `loadingStrategy: placeholder`, as the example does.
 
 ```dart
 MindboxEmbeddedBlock(
   placeSystemName: 'stories',
   height: 104,
+  loadingStrategy: MindboxEmbeddedBlockLoadingStrategy.placeholder,
   placeholder: (_) => const StoriesSkeleton(),
   errorBuilder: (_) => const StoriesUnavailable(),
-  onFail: () => setState(() => _showStoriesSection = false),
+  onEmpty: () => setState(() => _showStoriesSection = false),
+  onFail: (reason) => log('stories failed: $reason'),
 )
 ```
 
@@ -74,9 +87,31 @@ MindboxEmbeddedBlock(
 )
 ```
 
+What the block shows until the SDK has decided what goes into it is `loadingStrategy`, the same
+three choices as in SwiftUI and Compose. `automatic` — the default — keeps the block hidden until
+the place has shown content once on this device and puts a placeholder there from then on, so a
+place with nothing to show never flashes reserved space. The memory lives on the native side and
+reaches the widget a moment after it is built, so a place that has shown content before takes its
+space a frame late — once the plugin answers — rather than a place that has not getting a frame of
+space it gives back. `placeholder` takes the space up front from the first frame, worth naming for
+a place that always has a campaign behind it. `hidden` never takes it until the content is shown:
+no placeholder, and no `errorBuilder` on a failure. The content is revealed with the SDK's own
+animation — it fades in, and a block that started hidden grows to its height — unless
+`animatesReveal` is off; the system's reduced-motion setting turns it off as well. Turn it off to
+animate the block's container yourself in `onLoad`.
+
+```dart
+MindboxEmbeddedBlock(
+  placeSystemName: 'stories',
+  height: 104,
+  loadingStrategy: MindboxEmbeddedBlockLoadingStrategy.placeholder,
+  animatesReveal: false,
+)
+```
+
 `height` is live: a new value resizes a block already on screen in place — the same content, no
-reload. `timeout` is fixed when the block is created — a new value is ignored and reported to the
-log; give the widget a new `Key` to load a block on a new budget.
+reload. `timeout`, `loadingStrategy` and `animatesReveal` are fixed when the block is created — a
+new value is ignored and reported to the log; give the widget a new `Key` to build a block anew.
 
 In a lazy list — a `ListView`, a `GridView` — the block asks to be kept alive off screen by default,
 the way the native blocks behave in a scroll: a block scrolled far away keeps its page, and on the
@@ -94,7 +129,8 @@ ListView.builder(
 ```
 
 Available on iOS and Android. On any other platform the block collapses right away and reports
-`onFail`, so a layout that hides its section on failure behaves the same everywhere.
+`onFail` with `internalError`, so a layout that hides its section on failure behaves the same
+everywhere.
 
 ## Troubleshooting
 

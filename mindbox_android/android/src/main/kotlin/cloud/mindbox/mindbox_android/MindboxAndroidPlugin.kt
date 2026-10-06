@@ -28,6 +28,7 @@ class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, Ne
     private val deviceUuidSubscriptions = mutableListOf<String>()
     private val tokenSubscriptions = mutableListOf<String>()
     private lateinit var channel: MethodChannel
+    private lateinit var embeddedBlocks: EmbeddedBlockPluginChannel
 
     inner class InAppCallbackImpl : InAppCallback {
         override fun onInAppClick(id: String, redirectUrl: String, payload: String) {
@@ -60,6 +61,11 @@ class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, Ne
             EMBEDDED_BLOCK_VIEW_TYPE,
             EmbeddedBlockPlatformViewFactory(flutterPluginBinding.binaryMessenger),
         )
+        embeddedBlocks = EmbeddedBlockPluginChannel(
+            flutterPluginBinding.applicationContext,
+            flutterPluginBinding.binaryMessenger,
+        )
+        embeddedBlocks.attach()
     }
 
     override fun onMethodCall(call: MethodCall, result: Result) {
@@ -253,6 +259,7 @@ class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, Ne
 
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         channel.setMethodCallHandler(null)
+        embeddedBlocks.detach()
     }
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {

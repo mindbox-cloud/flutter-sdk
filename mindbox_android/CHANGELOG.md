@@ -1,6 +1,7 @@
 ## Unreleased
 
 * Add the embedded block platform view over the native `MindboxEmbeddedBlockView`.
+* The embedded block platform view forwards `onEmpty` and `onFail` with its reason, takes `loadingStrategy` and `animatesReveal`, reports whether a look is the SDK's animated reveal with its effective duration (the animator duration scale of the developer settings applied), and answers `initialAppearance` on the plugin channel.
 
 ## 2.15.2
 

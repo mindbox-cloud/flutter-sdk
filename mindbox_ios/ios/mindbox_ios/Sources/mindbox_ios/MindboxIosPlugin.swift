@@ -17,6 +17,7 @@ public class MindboxIosPlugin: NSObject, FlutterPlugin {
 
         registrar.register(EmbeddedBlockPlatformViewFactory(messenger: registrar.messenger()),
                            withId: Constants.embeddedBlockViewType)
+        EmbeddedBlockPluginChannel.register(with: registrar)
     }
 
     init(channel: FlutterMethodChannel) {
