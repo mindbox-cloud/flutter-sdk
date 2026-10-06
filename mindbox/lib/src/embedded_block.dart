@@ -313,6 +313,11 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock>
 
   EmbeddedBlockOutcome? _deliveredOutcome;
 
+  /// The block has been given a height at least once. A block created with none builds no native
+  /// block, as the log says; a live block passing through none keeps the one it has — `height` is
+  /// live and promises no reload.
+  bool _hasHadSpace = false;
+
   final Set<String> _warnedCreationValues = <String>{};
 
   MethodChannel? _channel;
@@ -563,8 +568,11 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock>
   Widget _nativeBlock() {
     // A height that reserves no space builds no native block on either platform, as the log
     // says: iOS would create the view at any size and run the whole cycle unseen, and a block
-    // nobody can see has no business loading a page or reporting an outcome.
-    if (!_isSupported || _height <= 0) {
+    // nobody can see has no business loading a page or reporting an outcome. Only until the block
+    // has had a height once: taking the native block out of the tree on a live height of zero
+    // would build it anew on the way back, page and all.
+    _hasHadSpace = _hasHadSpace || _height > 0;
+    if (!_isSupported || !_hasHadSpace) {
       return const SizedBox.shrink();
     }
 

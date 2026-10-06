@@ -1014,6 +1014,51 @@ void main() {
         debugDefaultTargetPlatformOverride = null;
       }
     });
+
+    testWidgets('A block created with no height builds no native block', (WidgetTester tester) async {
+      answerFirstLookWith('placeholder');
+      addTearDown(forgetFirstLook);
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      final DebugPrintCallback printed = debugPrint;
+      debugPrint = (String? message, {int? wrapWidth}) {};
+      try {
+        await buildWith(tester, 0);
+        await tester.pumpAndSettle();
+
+        expect(created, isEmpty);
+        expect(find.byType(AndroidView), findsNothing);
+      } finally {
+        debugPrint = printed;
+        debugDefaultTargetPlatformOverride = null;
+      }
+    });
+
+    /// `height` is live and promises no reload: a block the host collapses to nothing and opens
+    /// again keeps its native block and the page behind it, rather than building both anew.
+    testWidgets('A live block passing through a height of nothing keeps its native block',
+        (WidgetTester tester) async {
+      answerFirstLookWith('placeholder');
+      addTearDown(forgetFirstLook);
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      try {
+        await buildWith(tester, 104);
+        await tester.pumpAndSettle();
+        expect(created, hasLength(1));
+
+        await buildWith(tester, 0);
+        await tester.pumpAndSettle();
+        expect(tester.getSize(find.byType(MindboxEmbeddedBlock)).height, 0);
+        expect(find.byType(AndroidView), findsOneWidget);
+
+        await buildWith(tester, 104);
+        await tester.pumpAndSettle();
+
+        expect(tester.getSize(find.byType(MindboxEmbeddedBlock)).height, 104);
+        expect(created, hasLength(1));
+      } finally {
+        debugDefaultTargetPlatformOverride = null;
+      }
+    });
   });
 
   group('Leaving the screen', () {
