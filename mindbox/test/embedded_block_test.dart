@@ -698,7 +698,9 @@ void main() {
 
     const Key hostPlaceholder = Key('host-placeholder');
     const Key hostError = Key('host-error');
-    Widget hostPlaceholderScreen(BuildContext _) => const SizedBox.expand(key: hostPlaceholder);
+    // Painted, so it takes touches the way a real placeholder does; a bare SizedBox is never hit.
+    Widget hostPlaceholderScreen(BuildContext _) =>
+        const ColoredBox(key: hostPlaceholder, color: Color(0xFF123456), child: SizedBox.expand());
     Widget hostErrorScreen(BuildContext _) => const SizedBox.expand(key: hostError);
 
     testOnIOS('A hidden block grows to its height over the SDK\'s reveal when the native block says so',
@@ -822,6 +824,40 @@ void main() {
       await report(tester, <String, Object>{'appearance': 'content'});
 
       expect(find.byKey(hostPlaceholder), findsNothing);
+    });
+
+    testOnIOS('A reveal that names no duration drops the host\'s placeholder at once too',
+        (WidgetTester tester) async {
+      await show(tester, MindboxEmbeddedBlockLoadingStrategy.placeholder,
+          placeholder: hostPlaceholderScreen);
+
+      await report(tester, <String, Object>{'appearance': 'content', 'animated': true});
+
+      expect(find.byKey(hostPlaceholder), findsNothing);
+      expect(find.byType(FadeTransition), findsNothing);
+    });
+
+    /// The fading layer is on its way out and must not take the touch the content under it is
+    /// entitled to: a tap in the block during the fade reaches past the placeholder.
+    testOnIOS('A tap during the fade goes past the host\'s placeholder', (WidgetTester tester) async {
+      await show(tester, MindboxEmbeddedBlockLoadingStrategy.placeholder,
+          placeholder: hostPlaceholderScreen);
+      final Offset inTheBlock = tester.getCenter(find.byType(MindboxEmbeddedBlock));
+      bool placeholderIsHit() {
+        final RenderObject placeholder = tester.renderObject(find.byKey(hostPlaceholder));
+        return tester
+            .hitTestOnBinding(inTheBlock)
+            .path
+            .any((HitTestEntry entry) => entry.target == placeholder);
+      }
+
+      expect(placeholderIsHit(), isTrue, reason: 'the placeholder takes touches while it stands');
+
+      await report(tester, animatedContent);
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(find.byKey(hostPlaceholder), findsOneWidget);
+      expect(placeholderIsHit(), isFalse, reason: 'a fading placeholder lets the touch through');
     });
 
     testOnIOS('A look arriving mid-fade takes the fading layer down at once',

@@ -787,7 +787,7 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock>
 
     debugPrint(
       '[MindboxEmbeddedBlock] Block "${widget.placeSystemName}" was created with height '
-      '${widget.height}: it reserves no space and nothing loads.',
+      '${widget.height}: it reserves no space and nothing loads until it is given a height.',
     );
   }
 
