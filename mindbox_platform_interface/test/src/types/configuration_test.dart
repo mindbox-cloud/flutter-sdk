@@ -13,6 +13,7 @@ void main() {
       subscribeCustomerIfCreated: true,
       shouldCreateCustomer: true,
       operationsDomain: 'operations.example.com',
+      disableTrackingIds: true,
     );
 
     // Assert
@@ -24,6 +25,7 @@ void main() {
     expect(configuration.subscribeCustomerIfCreated, true);
     expect(configuration.shouldCreateCustomer, true);
     expect(configuration.operationsDomain, 'operations.example.com');
+    expect(configuration.disableTrackingIds, true);
   });
 
   test('operationsDomain defaults to empty string when not provided', () {
@@ -99,5 +101,36 @@ void main() {
 
     expect(
         configuration.toMap().containsKey('shouldIncludeVersionCode'), false);
+  });
+
+  test('disableTrackingIds defaults to null when not provided', () {
+    final Configuration configuration = Configuration(
+      domain: 'domain',
+      endpointIos: 'iOSEndpoint',
+      endpointAndroid: 'androidEndpoint',
+    );
+
+    expect(configuration.disableTrackingIds, isNull);
+  });
+
+  test('toMap includes disableTrackingIds when set', () {
+    final Configuration configuration = Configuration(
+      domain: 'domain',
+      endpointIos: 'iOSEndpoint',
+      endpointAndroid: 'androidEndpoint',
+      disableTrackingIds: true,
+    );
+
+    expect(configuration.toMap()['disableTrackingIds'], true);
+  });
+
+  test('toMap omits disableTrackingIds when not provided', () {
+    final Configuration configuration = Configuration(
+      domain: 'domain',
+      endpointIos: 'iOSEndpoint',
+      endpointAndroid: 'androidEndpoint',
+    );
+
+    expect(configuration.toMap().containsKey('disableTrackingIds'), false);
   });
 }
