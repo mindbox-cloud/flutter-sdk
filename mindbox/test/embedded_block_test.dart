@@ -19,9 +19,6 @@ void testWithoutNativeBlock(String description, Future<void> Function(WidgetTest
   });
 }
 
-/// The plugin channel answering the first look of an `automatic` block with [word] — the SDK's
-/// memory of the place, as the native side reads it. A placeholder is what every block used to
-/// start with, and what the groups about the block's life after it took its space still assume.
 void answerFirstLookWith(String word) {
   TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
     const MethodChannel(embeddedBlockPluginChannelName),
@@ -200,7 +197,6 @@ void main() {
         debugPrint = printed;
       }
 
-      // One line per value given, as the Compose wrapper says it: the repeat of 12 adds nothing.
       expect(log.where((String line) => line.contains('timeout')), hasLength(2));
       expect(log.first, contains('"stories"'));
       expect(log.first, contains('given timeout 0:00:09'));
@@ -239,7 +235,6 @@ void main() {
         debugPrint = printed;
       }
 
-      // Two strategies given, one flag given: three lines, and the repeated rebuild adds nothing.
       expect(log, hasLength(3));
       expect(log[0], contains('given loadingStrategy MindboxEmbeddedBlockLoadingStrategy.placeholder'));
       expect(log[0], contains('keeps MindboxEmbeddedBlockLoadingStrategy.hidden'));
@@ -414,7 +409,6 @@ void main() {
     testWidgets('Every strategy has a word', (WidgetTester tester) async {
       for (final MindboxEmbeddedBlockLoadingStrategy strategy
           in MindboxEmbeddedBlockLoadingStrategy.values) {
-        // The strategy is fixed at creation, so every word needs a block of its own.
         await tester.pumpWidget(const SizedBox.shrink());
         created.clear();
         final Map<Object?, Object?> params = await paramsOf(tester, strategy: strategy);
@@ -436,7 +430,6 @@ void main() {
       firstLook = null;
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(SystemChannels.platform_views, (MethodCall call) async {
-        // Only these two carry a map; `dispose` sends the bare view id.
         if (call.method != 'create' && call.method != 'resize') {
           return null;
         }
@@ -457,10 +450,7 @@ void main() {
         );
         return 0;
       });
-      // The plugin answers when the test says so: what the block does before the answer is the
-      // point of half of these tests. The completer is born here, inside the test's zone — one
-      // made in setUp lives in the runner's zone, and its answer would reach the block only once
-      // the test body is over.
+      // A completer made in setUp lives in the runner's zone and answers only after the test body.
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
         const MethodChannel(embeddedBlockPluginChannelName),
         (MethodCall call) {
@@ -537,8 +527,6 @@ void main() {
       expect(find.byKey(const Key('host-placeholder')), findsNothing);
       await tester.pumpAndSettle();
 
-      // Sized to nothing, the platform view would never be created on Android; sized to its
-      // height under a clipped slot of zero, it is — and the block can load unseen and grow.
       expect(created, hasLength(1));
       expect(tester.getSize(find.byType(AndroidView)).height, 104);
       expect(slotHeight(tester), 0);
@@ -688,8 +676,6 @@ void main() {
       });
     }
 
-    // Not the SDK's own 250: a wrapper that ignored the duration it was sent would still pass
-    // against the default.
     const Map<String, Object> animatedContent = <String, Object>{
       'appearance': 'content',
       'animated': true,
@@ -698,7 +684,7 @@ void main() {
 
     const Key hostPlaceholder = Key('host-placeholder');
     const Key hostError = Key('host-error');
-    // Painted, so it takes touches the way a real placeholder does; a bare SizedBox is never hit.
+    // Painted: a bare SizedBox is never hit.
     Widget hostPlaceholderScreen(BuildContext _) =>
         const ColoredBox(key: hostPlaceholder, color: Color(0xFF123456), child: SizedBox.expand());
     Widget hostErrorScreen(BuildContext _) => const SizedBox.expand(key: hostError);
@@ -795,7 +781,6 @@ void main() {
       expect(fade.opacity.value, lessThan(1));
       expect(fade.opacity.value, greaterThan(0));
 
-      // The fade is over once the clock is past its 400 ms, and the layer leaves on the next build.
       await tester.pump(const Duration(milliseconds: 250));
       await tester.pump();
       expect(find.byKey(hostPlaceholder), findsNothing);
@@ -837,8 +822,6 @@ void main() {
       expect(find.byType(FadeTransition), findsNothing);
     });
 
-    /// The fading layer is on its way out and must not take the touch the content under it is
-    /// entitled to: a tap in the block during the fade reaches past the placeholder.
     testOnIOS('A tap during the fade goes past the host\'s placeholder', (WidgetTester tester) async {
       await show(tester, MindboxEmbeddedBlockLoadingStrategy.placeholder,
           placeholder: hostPlaceholderScreen);
@@ -948,9 +931,7 @@ void main() {
           .setMockMethodCallHandler(SystemChannels.platform_views, null);
     });
 
-    // The native blocks ignore the padding themselves, so the widget neither trims the name nor
-    // warns about it: a name pasted with a stray space finds its place, and the log stays quiet.
-    testWidgets('Reaches the native block as given, and says nothing about it',
+    testWidgets('A padded name reaches the native block as given, with nothing logged',
         (WidgetTester tester) async {
       final List<String> log = <String>[];
       final DebugPrintCallback printed = debugPrint;
@@ -989,8 +970,7 @@ void main() {
           .setMockMethodCallHandler(SystemChannels.platform_views, (MethodCall call) async {
         final Map<Object?, Object?> arguments = call.arguments as Map<Object?, Object?>;
 
-        // The engine answers a resize with the size it actually gave the platform view, and the
-        // controller reads it back — a bare null there fails inside the framework, not in the SDK.
+        // The controller reads the resize answer back; a bare null fails inside the framework.
         if (call.method == 'resize') {
           return <Object?, Object?>{
             'width': arguments['width'],
@@ -1069,8 +1049,6 @@ void main() {
       }
     });
 
-    /// `height` is live and promises no reload: a block the host collapses to nothing and opens
-    /// again keeps its native block and the page behind it, rather than building both anew.
     testWidgets('A live block passing through a height of nothing keeps its native block',
         (WidgetTester tester) async {
       answerFirstLookWith('placeholder');
@@ -1193,7 +1171,6 @@ void main() {
           .setMockMethodCallHandler(SystemChannels.platform_views, null);
     });
 
-    /// A native block with every callback listening; what each one hears goes to [heard].
     Future<void> show(WidgetTester tester) async {
       await tester.pumpWidget(Directionality(
         textDirection: TextDirection.ltr,
@@ -1211,7 +1188,6 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    /// The native block reporting on its channel, the way the platform view does.
     Future<void> report(WidgetTester tester, Map<String, Object> arguments) async {
       await TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.handlePlatformMessage(
         embeddedBlockChannelName(viewId),
@@ -1223,8 +1199,7 @@ void main() {
       await tester.pump();
     }
 
-    // The delivery is the same Dart on both platforms; iOS is picked for the plainer mock — a
-    // UiKitView is created without the resize round trip an AndroidView needs answered.
+    // Same Dart on both platforms; a UiKitView needs no resize answer.
     void testOnIOS(String description, Future<void> Function(WidgetTester) body) {
       testWidgets(description, (WidgetTester tester) async {
         debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
@@ -1306,9 +1281,7 @@ void main() {
   });
 
   group('A drag that two scrollables want', () {
-    // The device slop an Android scrollable plays with. The block used to fall back to kTouchSlop —
-    // 18 — and lose every horizontal drag to a parent that crosses 8 first.
-    const DeviceGestureSettings settings = DeviceGestureSettings(touchSlop: 8);
+    const DeviceGestureSettings androidGestureSettings = DeviceGestureSettings(touchSlop: 8);
 
     late int viewId;
 
@@ -1316,8 +1289,6 @@ void main() {
       viewId = -1;
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(SystemChannels.platform_views, (MethodCall call) async {
-        // 'touch' carries a list, not a map: the block wins the arena and forwards the drag, so
-        // this handler is asked about more than the two methods it answers.
         if (call.method != 'create' && call.method != 'resize') {
           return null;
         }
@@ -1345,8 +1316,6 @@ void main() {
           .setMockMethodCallHandler(SystemChannels.platform_views, null);
     });
 
-    /// The native block saying it has content on screen — the only state in which the block asks
-    /// for horizontal drags at all.
     Future<void> showContent(WidgetTester tester) async {
       await TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.handlePlatformMessage(
         embeddedBlockChannelName(viewId),
@@ -1366,7 +1335,7 @@ void main() {
       addTearDown(pages.dispose);
 
       await tester.pumpWidget(MediaQuery(
-        data: const MediaQueryData(gestureSettings: settings),
+        data: const MediaQueryData(gestureSettings: androidGestureSettings),
         child: Directionality(
           textDirection: TextDirection.ltr,
           child: PageView(
@@ -1389,10 +1358,7 @@ void main() {
       return pages;
     }
 
-    /// A finger crossing the screen the way a finger does — in small steps, not in one jump. The
-    /// step matters: whoever reaches its own slop on an earlier step closes the arena, and a block
-    /// that waits for 18 never gets to answer a parent that is done at 8.
-    Future<void> dragBy(WidgetTester tester, Offset start, double distance) async {
+    Future<void> dragInSmallSteps(WidgetTester tester, Offset start, double distance) async {
       final TestGesture gesture = await tester.startGesture(start);
       for (double moved = 0; moved < distance.abs(); moved += 4) {
         await gesture.moveBy(Offset(4 * distance.sign, 0));
@@ -1408,7 +1374,7 @@ void main() {
       try {
         final PageController pages = await showBlockInPageView(tester);
 
-        await dragBy(tester, tester.getCenter(find.byType(AndroidView)), -600);
+        await dragInSmallSteps(tester, tester.getCenter(find.byType(AndroidView)), -600);
 
         expect(pages.page, 0);
       } finally {
@@ -1422,7 +1388,7 @@ void main() {
         final PageController pages = await showBlockInPageView(tester);
 
         final Offset besideTheBlock = tester.getCenter(find.byType(AndroidView)) - const Offset(0, 150);
-        await dragBy(tester, besideTheBlock, -600);
+        await dragInSmallSteps(tester, besideTheBlock, -600);
 
         expect(pages.page, 1);
       } finally {
@@ -1439,7 +1405,7 @@ void main() {
         addTearDown(pages.dispose);
 
         await tester.pumpWidget(MediaQuery(
-          data: const MediaQueryData(gestureSettings: settings),
+          data: const MediaQueryData(gestureSettings: androidGestureSettings),
           child: Directionality(
             textDirection: TextDirection.ltr,
             child: PageView(
@@ -1458,7 +1424,7 @@ void main() {
         ));
         await tester.pumpAndSettle();
 
-        await dragBy(tester, tester.getCenter(find.byType(AndroidView)), -600);
+        await dragInSmallSteps(tester, tester.getCenter(find.byType(AndroidView)), -600);
 
         expect(pages.page, 1);
       } finally {
@@ -1514,10 +1480,6 @@ void main() {
       });
     }
 
-    // Both platforms host a native block, and the widget's keep-alive and hidden/shown paths
-    // are the same Dart on both — only the teardown differs: on iOS the widget sends `release`
-    // itself, on Android the platform view's own dispose hook does, so `release` is asserted
-    // on iOS only.
     void testOnBoth(String description, Future<void> Function(WidgetTester) body) {
       for (final TargetPlatform platform in <TargetPlatform>[
         TargetPlatform.iOS,
@@ -1527,12 +1489,9 @@ void main() {
       }
     }
 
-    // A row that asks to be kept alive on its own, the way a host's stateful row widget might.
     Widget keptRow({required Widget child}) => _KeptAliveRow(child: child);
 
-    // A list ten screens tall with the block in its first row. The test viewport is 600 logical
-    // pixels high and the list caches 250 more, so a scroll of a few thousand takes the row far
-    // past anything the list keeps around on its own.
+    // The test viewport is 600 high, and the list caches 250 past it.
     Future<void> pumpList(WidgetTester tester, {required bool keepAlive}) {
       return tester.pumpWidget(Directionality(
         textDirection: TextDirection.ltr,
@@ -1626,13 +1585,11 @@ void main() {
       expect(hostVisible, <bool>[true, false, true]);
     });
 
-    testOnBoth('A kept block still in view is not reported hidden by the check',
+    testOnBoth('A kept block out of view but within the cache extent is not reported hidden',
         (WidgetTester tester) async {
       await pumpList(tester, keepAlive: true);
       await tester.pumpAndSettle();
 
-      // Short of the cache extent: the row is out of the viewport but still live, and a live row
-      // is for the platform to pause, not the widget.
       await scrollBy(tester, 150);
       await tester.pump();
       await tester.pump();
@@ -1684,7 +1641,6 @@ void main() {
       await tester.pumpAndSettle();
       expect(hostVisible, <bool>[true]);
 
-      // The carousel's own parent data never parks the block — the feed does, one level up.
       await tester.drag(find.byKey(feed), const Offset(0, -5000));
       await tester.pumpAndSettle();
 
@@ -1763,7 +1719,6 @@ void main() {
 
       await scrollBy(tester, 5000);
 
-      // The row's own client keeps it, so the block survives without asking — and must not run.
       expect(find.byType(MindboxEmbeddedBlock, skipOffstage: false), findsOneWidget);
       expect(methods, isNot(contains(EmbeddedBlockMethods.release)));
       expect(hostVisible, <bool>[true, false]);
@@ -1808,7 +1763,6 @@ void main() {
 
 }
 
-/// A list row with a keep-alive client of its own, as a host's stateful row widget might have.
 class _KeptAliveRow extends StatefulWidget {
   const _KeptAliveRow({required this.child});
 
