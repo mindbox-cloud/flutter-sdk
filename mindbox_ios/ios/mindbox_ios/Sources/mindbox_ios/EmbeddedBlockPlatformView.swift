@@ -23,9 +23,6 @@ public final class EmbeddedBlockPlatformViewFactory: NSObject, FlutterPlatformVi
     }
 }
 
-/// The channel shared by every block, asked before any of them exists: the look a block of a place
-/// starts with. Dart decides `placeholder` and `hidden` on its own; `automatic` depends on the SDK's
-/// memory of the place, and only this side has it.
 enum EmbeddedBlockPluginChannel {
 
     static func register(with registrar: FlutterPluginRegistrar) {
@@ -65,7 +62,6 @@ final class EmbeddedBlockPlatformView: NSObject, FlutterPlatformView {
     private var outcome: String?
     private var failReason: String?
 
-    /// The report being sent is the animated reveal of the content — set for that one send only.
     private var isRevealAnimated = false
 
     init(viewId: Int64, arguments: Any?, messenger: FlutterBinaryMessenger) {
@@ -101,8 +97,6 @@ final class EmbeddedBlockPlatformView: NSObject, FlutterPlatformView {
                      hasErrorView: params?[EmbeddedBlockWire.hasErrorView] as? Bool ?? false)
 
         blockView.delegate = self
-        // Whether the change deserves the reveal animation is the view's decision, read while the
-        // observer runs; the wrapper's own frame is what it animates, so it is told rather than asked.
         blockView.setAppearanceObserver { [weak self] appearance in
             guard let self else { return }
             self.report(appearance: appearance, isRevealAnimated: self.blockView.isRevealAnimated)
@@ -230,8 +224,6 @@ extension EmbeddedBlockPlatformView: MindboxEmbeddedBlockViewDelegate {
     }
 }
 
-// MARK: - The words both sides of the channels agree on
-
 enum EmbeddedBlockWire {
     static let viewType = Constants.embeddedBlockViewType
     static let pluginChannel = "\(Constants.embeddedBlockViewType)/plugin"
@@ -275,8 +267,6 @@ enum EmbeddedBlockWire {
         }
     }
 
-    /// The strategy behind its word — the same three words on every platform — or `nil` for a word
-    /// this version does not know.
     static func loadingStrategy(of word: String?) -> MindboxEmbeddedBlockLoadingStrategy? {
         switch word {
         case "automatic": return .automatic

@@ -274,11 +274,6 @@ class _EmbeddedBlock extends StatefulWidget {
   State<_EmbeddedBlock> createState() => _EmbeddedBlockState();
 }
 
-/// Kept alive in a lazy list by default: the platform view — and the SDK container with its page
-/// behind it — is what a reload costs, and a row of a `ListView` is rebuilt on every pass across the
-/// screen. Off screen the block is paused rather than destroyed — by the window on iOS, and by the
-/// hidden signal this widget sends on Android — so keeping it costs memory, not work; see
-/// [MindboxEmbeddedBlock.keepAlive]. A platform without a native block has nothing worth keeping.
 class _EmbeddedBlockState extends State<_EmbeddedBlock>
     with AutomaticKeepAliveClientMixin, TickerProviderStateMixin {
   @override
@@ -292,30 +287,19 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock>
 
   late EmbeddedBlockAppearance _appearance;
 
-  /// The native block has reported on its own channel at least once. From then on the first look
-  /// asked of the plugin channel is stale, whenever it arrives.
   bool _hasHeardFromNative = false;
 
-  /// The growth of a block that waited hidden: 0 to 1 over the SDK's reveal, 1 at rest.
   late final AnimationController _reveal;
 
-  /// The host's own placeholder or error screen on its way out: the look it stood for, kept in the
-  /// tree for as long as the SDK fades the content in under it; `null` when nothing is fading.
   EmbeddedBlockAppearance? _fadingAppearance;
 
-  /// The fade of a host layer the content replaces: 0 to 1 over the SDK's reveal, 1 at rest.
   late final AnimationController _fade;
   late final Animation<double> _fadeOut;
 
-  /// The curve the native reveal runs on, so the slot and the layer move with the content: the
-  /// standard Material curve on Android, UIKit's ease-in-out on iOS.
   late final Curve _revealCurve;
 
   EmbeddedBlockOutcome? _deliveredOutcome;
 
-  /// The block has been given a height at least once. A block created with none builds no native
-  /// block, as the log says; a live block passing through none keeps the one it has — `height` is
-  /// live and promises no reload.
   bool _hasHadSpace = false;
 
   final Set<String> _warnedCreationValues = <String>{};
@@ -328,8 +312,6 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock>
 
   bool _isTickerEnabled = true;
 
-  /// A list keeps the block's row alive, and it is out of view. Read from the slivers' parent
-  /// data after every frame for as long as the block is mounted.
   bool _isKeptAliveOffscreen = false;
 
   bool _isKeptAliveCheckArmed = false;
@@ -412,15 +394,10 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock>
 
   @override
   Widget build(BuildContext context) {
-    // The mixin's build is what hands the list the keep-alive handle; its widget is not used.
     super.build(context);
     final Widget? hostLayer = _hostLayer(context);
 
-    // The slot is what the layout sees; the block inside keeps its full height whatever the slot
-    // is. A platform view sized to nothing is never created on Android — the engine skips the
-    // create for an empty size — so a block that waits hidden would never load and never grow.
-    // With its own height under a clipped slot of zero it runs its whole cycle unseen, as the
-    // native blocks do, and the slot opens when the content arrives.
+    // Android never creates a zero-size platform view, so the block keeps its height in the slot.
     final Widget block = ClipRect(
       child: OverflowBox(
         alignment: Alignment.topCenter,
@@ -446,8 +423,6 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock>
     );
   }
 
-  /// The height the layout is given: nothing for a collapsed block, the block's height otherwise —
-  /// and, while a block that waited hidden is revealed, the part of it the growth has reached.
   double get _slotHeight {
     if (_appearance == EmbeddedBlockAppearance.collapsed) {
       return 0;
@@ -455,13 +430,6 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock>
     return _height * _revealCurve.transform(_reveal.value);
   }
 
-  /// The look a block starts with, before the native block exists to say.
-  ///
-  /// `placeholder` and `hidden` are decided by the strategy alone. `automatic` is decided by the
-  /// SDK's memory of the place, which only the native side has and Dart reaches asynchronously —
-  /// see [_askForTheFirstLook] — so until it answers an `automatic` block takes no space: a place
-  /// that has never shown content must not flash reserved space, and one that has shows its
-  /// placeholder a frame late rather than a frame early.
   static EmbeddedBlockAppearance _firstLook(MindboxEmbeddedBlockLoadingStrategy strategy) {
     switch (strategy) {
       case MindboxEmbeddedBlockLoadingStrategy.placeholder:
@@ -472,9 +440,6 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock>
     }
   }
 
-  /// Asks the plugin — not the block, which does not exist yet — what an `automatic` block of this
-  /// place starts with. The native block's own report, once the platform view is built, settles the
-  /// same question and wins: an answer that comes after it is dropped.
   void _askForTheFirstLook() {
     if (!_isSupported ||
         _creationLoadingStrategy != MindboxEmbeddedBlockLoadingStrategy.automatic) {
@@ -496,12 +461,6 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock>
     });
   }
 
-  /// Takes the block to [appearance]. The arrival of content is the one change that is animated,
-  /// and only when the native block says so — it owns that decision, gates included — for as long
-  /// as it says: a slot that was closed grows, and a placeholder or error screen of the host's own
-  /// fades out under the content the native block fades in, untouchable while it goes. Everything
-  /// else lands at once, and a look arriving mid-animation takes the slot and the layer where the
-  /// new look puts them.
   void _show(EmbeddedBlockAppearance appearance, {Duration? revealDuration}) {
     final EmbeddedBlockAppearance previous = _appearance;
     final bool animated = revealDuration != null && revealDuration > Duration.zero;
@@ -531,7 +490,6 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock>
 
   static const MethodChannel _pluginChannel = MethodChannel(embeddedBlockPluginChannelName);
 
-  /// The words the strategies go by on the channel — the same three on every platform.
   static const Map<MindboxEmbeddedBlockLoadingStrategy, String> _strategyWords =
       <MindboxEmbeddedBlockLoadingStrategy, String>{
     MindboxEmbeddedBlockLoadingStrategy.automatic: 'automatic',
@@ -539,9 +497,6 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock>
     MindboxEmbeddedBlockLoadingStrategy.hidden: 'hidden',
   };
 
-  /// The host's own screen over the native block, if the look has one: the placeholder or the
-  /// error screen — or, while the content fades in under it, the one it is replacing, on its way
-  /// out and not taking touches.
   Widget? _hostLayer(BuildContext context) {
     final EmbeddedBlockAppearance? fading = _fadingAppearance;
     if (fading != null) {
@@ -566,11 +521,6 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock>
   }
 
   Widget _nativeBlock() {
-    // A height that reserves no space builds no native block on either platform, as the log
-    // says: iOS would create the view at any size and run the whole cycle unseen, and a block
-    // nobody can see has no business loading a page or reporting an outcome. Only until the block
-    // has had a height once: taking the native block out of the tree on a live height of zero
-    // would build it anew on the way back, page and all.
     _hasHadSpace = _hasHadSpace || _height > 0;
     if (!_isSupported || !_hasHadSpace) {
       return const SizedBox.shrink();
@@ -590,17 +540,8 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock>
       creationParams[EmbeddedBlockParams.timeoutMs] = timeout.inMilliseconds;
     }
 
-    // The recognizer is built by hand rather than by a RawGestureDetector, so nothing hands it the
-    // touch slop of the device the way the framework hands it to every scrollable. Left to itself it
-    // falls back to kTouchSlop — 18 logical pixels against the 8 an Android scrollable plays with —
-    // and a scrollable that wants the same direction takes the drag while the block is still short
-    // of its own threshold: the arena closes, and the carousel is never told a finger was on it. On
-    // equal slop the drag goes to whoever is closest to the finger, and inside the block that is the
-    // block.
-    //
-    // Read whole rather than by aspect: the aspect accessors arrived in Flutter 3.10, and the plugin
-    // still speaks to 3.0. Watching all of MediaQuery costs nothing here — a platform view keeps the
-    // recognizer it was first given, so the settings are read once however they are asked for.
+    // Without the device's touch slop the recognizer uses kTouchSlop and loses drags to scrollables.
+    // MediaQuery is read whole: its aspect accessors arrived in Flutter 3.10.
     final DeviceGestureSettings? gestureSettings = MediaQuery.maybeOf(context)?.gestureSettings;
 
     final Set<Factory<OneSequenceGestureRecognizer>> gestureRecognizers =
@@ -664,8 +605,6 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock>
     _deliver(report.outcome, _reasonOf(report.failReason));
   }
 
-  /// Deduplicated by the kind of outcome, not by the whole report: a silent retry that fails for
-  /// a different reason is still the same outcome, as it is for the native blocks.
   void _deliver(EmbeddedBlockOutcome? outcome, MindboxEmbeddedBlockFailReason? reason) {
     if (outcome == null || outcome == _deliveredOutcome) {
       return;
@@ -680,8 +619,6 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock>
         widget.onEmpty?.call();
         break;
       case EmbeddedBlockOutcome.fail:
-        // A failure always comes with a reason; a report without one is a native side this version
-        // does not expect, and the SDK's own error is the closest word for it.
         widget.onFail?.call(reason ?? MindboxEmbeddedBlockFailReason.internalError);
         break;
     }
@@ -719,14 +656,7 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock>
     _invoke(channel, EmbeddedBlockMethods.setHostVisible, _isHostVisible);
   }
 
-  /// Whether a list has parked the block off screen. A lazy sliver flips `keptAlive` on the
-  /// child's parent data while it lays out, so the answer is read once the frame is done.
-  ///
-  /// The walk goes all the way up and answers for *every* enclosing lazy list, not the nearest
-  /// one: the keep-alive request travels past the first list to all the others, so a carousel
-  /// inside a feed is parked by the feed while the carousel's own parent data still says the
-  /// block is in place. A block outside any lazy list finds nothing and is never off screen by
-  /// this measure.
+  // Walks to the root: a keep-alive request reaches every enclosing lazy list.
   bool _readKeptAliveOffscreen() {
     RenderObject? node = context.findRenderObject();
     while (node != null) {
@@ -735,23 +665,13 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock>
         return true;
       }
 
-      // `parent` is typed as the abstract node on the oldest Flutter the plugin speaks to, and as
-      // a render object on the newest — the check reads on both without a cast to warn about.
+      // `parent` is an AbstractNode on older Flutter and a RenderObject on newer.
       final Object? parent = node.parent;
       node = parent is RenderObject ? parent : null;
     }
     return false;
   }
 
-  /// Re-armed after every frame for as long as the block is mounted, whatever its own
-  /// [MindboxEmbeddedBlock.keepAlive] says: the block's request is not the only thing that can
-  /// park its row — any keep-alive client in the row does, another block among them — and a
-  /// block parked by someone else has to be hidden and shown all the same. Tying the check to
-  /// the block's own flag would also leave a block that turned the flag off while parked hidden
-  /// for good once its row came back.
-  ///
-  /// A post-frame callback runs only when a frame is produced, so a list that stands still costs
-  /// nothing; a list that scrolls pays a short walk up the render tree per block per frame.
   void _armKeptAliveCheck() {
     if (_isKeptAliveCheckArmed || !_isSupported) {
       return;
@@ -798,8 +718,6 @@ class _EmbeddedBlockState extends State<_EmbeddedBlock>
     _warnIfCreationValueIsIgnored('animatesReveal', widget.animatesReveal, _creationAnimatesReveal);
   }
 
-  /// Said once per value given, as the Compose wrapper says it: the first rebuild that brings a
-  /// new value is the one worth a line in the log, not every rebuild that repeats it.
   void _warnIfCreationValueIsIgnored(String name, Object? given, Object? kept) {
     if (given == kept || !_warnedCreationValues.add('$name=$given')) {
       return;

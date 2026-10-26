@@ -29,11 +29,6 @@ internal class EmbeddedBlockPlatformViewFactory(
         EmbeddedBlockPlatformView(context, viewId, args, messenger)
 }
 
-/**
- * The channel shared by every block, asked before any of them exists: the look a block of a place
- * starts with. Dart decides `placeholder` and `hidden` on its own; `automatic` depends on the SDK's
- * memory of the place, and only this side has it.
- */
 @OptIn(InternalMindboxApi::class)
 internal class EmbeddedBlockPluginChannel(
     private val context: Context,
@@ -93,7 +88,6 @@ internal class EmbeddedBlockPlatformView(
     private var outcome: String? = null
     private var failReason: String? = null
 
-    /** The report being sent is the animated reveal of the content — set for that one send only. */
     private var isRevealAnimated = false
 
     private var placeholderStandIn: View? = null
@@ -148,8 +142,6 @@ internal class EmbeddedBlockPlatformView(
                     report(outcome = EmbeddedBlockWire.FAIL, reason = reason.value)
             },
         )
-        // Whether the change deserves the reveal animation is the view's decision, read while the
-        // observer runs; the wrapper's own frame is what it animates, so it is told rather than asked.
         blockView.setAppearanceObserver { appearance ->
             report(appearance, isRevealAnimated = blockView.isRevealAnimated)
         }
@@ -254,12 +246,7 @@ internal class EmbeddedBlockPlatformView(
         channel.invokeMethod(EmbeddedBlockWire.METHOD_REPORT, arguments)
     }
 
-    /**
-     * The duration the native fade actually runs for: the SDK's nominal reveal scaled by the
-     * animator duration scale from the developer settings, which every [android.animation.ValueAnimator]
-     * honours and a Flutter animation knows nothing about. Sent as the effective value, so the
-     * slot and the layer the wrapper animates end together with the content at 0.5x and 2x alike.
-     */
+    // ValueAnimator applies the developer animator duration scale; Flutter animations do not.
     private fun effectiveRevealDurationMs(): Long {
         val scale = try {
             Settings.Global.getFloat(context.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f)
@@ -272,7 +259,6 @@ internal class EmbeddedBlockPlatformView(
 
 internal const val EMBEDDED_BLOCK_VIEW_TYPE = "mindbox.cloud/flutter-sdk/embedded_block"
 
-/** The words both sides of the channels agree on, and the translations between them and the SDK. */
 @OptIn(InternalMindboxApi::class)
 internal object EmbeddedBlockWire {
     const val VIEW_TYPE = EMBEDDED_BLOCK_VIEW_TYPE
@@ -314,10 +300,6 @@ internal object EmbeddedBlockWire {
         MindboxEmbeddedBlockAppearance.COLLAPSED -> COLLAPSED
     }
 
-    /**
-     * The strategy behind its word — the same three words on every platform — or `null` for a
-     * word this version does not know.
-     */
     fun loadingStrategyOf(word: String?): MindboxEmbeddedBlockLoadingStrategy? = when (word) {
         "automatic" -> MindboxEmbeddedBlockLoadingStrategy.AUTOMATIC
         "placeholder" -> MindboxEmbeddedBlockLoadingStrategy.PLACEHOLDER
