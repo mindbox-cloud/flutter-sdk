@@ -32,35 +32,6 @@ Learn how to send events to Mindbox. Create a new Operation class object and set
 
 Mindbox SDK helps handle push notifications. Configuration and usage instructions can be found in the SDK documentation [here](https://developers.mindbox.ru/docs/firebase-send-push-notifications-flutter),  [here](https://developers.mindbox.ru/docs/huawei-send-push-notifications-flutter) and [here](https://developers.mindbox.ru/docs/ios-send-push-notifications-flutter).
 
-### Embedded Blocks
-
-`MindboxEmbeddedBlock` shows the block configured for a place in the admin panel. Give it the
-place's system name and a height; the layout sets its position and width.
-
-```dart
-MindboxEmbeddedBlock(
-  placeSystemName: 'stories',
-  height: 104,
-  placeholder: (_) => const StoriesSkeleton(),
-  errorBuilder: (_) => const StoriesUnavailable(),
-  onFail: (reason) => log('stories failed: $reason'),
-)
-```
-
-- `onLoad`, `onEmpty` and `onFail` report how the load ended. Keep the block in the layout after
-  `onEmpty`: a collapsed block still shows content the place gets later.
-- `timeout` is counted only while the block's screen is shown, 30 seconds by default.
-- `loadingStrategy` sets what the block shows while it loads. The default, `automatic`, keeps the
-  block at zero height at a place that has not shown content on this device yet, and at a place
-  that has, takes the height a frame after the block is built. `placeholder` takes it from the
-  first frame.
-- `timeout`, `loadingStrategy` and `animatesReveal` are read only when the block is created; give
-  the widget a new `Key` to change them. `height` can change at any time.
-- In a lazy list the block is kept alive off screen and comes back without a reload. A kept block
-  holds its page in memory; pass `keepAlive: false` on a screen with many blocks.
-- The block works on iOS and Android. On other platforms it collapses and reports `onFail` with
-  `internalError`.
-
 ## Troubleshooting
 
 Refer to the [Example of integration(IOS)](https://github.com/mindbox-cloud/flutter-sdk/tree/develop/mindbox_ios/example) or [Example of integration(Android)](https://github.com/mindbox-cloud/flutter-sdk/tree/develop/mindbox_android/example) in case of any issues.
