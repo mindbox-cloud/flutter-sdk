@@ -11,59 +11,24 @@ import 'package:mindbox_platform_interface/mindbox_platform_interface.dart';
 import 'embedded_block_fail_reason.dart';
 import 'embedded_block_loading_strategy.dart';
 
-/// An embedded Mindbox block.
+/// Shows the Mindbox embedded block configured for a place in the admin panel.
 ///
-/// The app marks a *place* by its [placeSystemName] and never learns what goes into it — that is the
-/// config's decision, and it can change without an app release. **The host owns the size**: pass the
-/// [height] the block should occupy. A place that ends up without content collapses to zero height
-/// and hands the space back.
-///
-/// ```dart
-/// MindboxEmbeddedBlock(
-///   placeSystemName: 'main-screen-top',
-///   height: 104,
-/// )
-/// ```
-///
-/// Both looks can be customized, the same way as in SwiftUI and Compose: [placeholder] replaces
-/// the stock loading shimmer, and [errorBuilder] opts into showing a failure instead of collapsing.
-/// Both stay ordinary widgets, built in place and mounted inside the block, so they resolve the
-/// theme, the locale and the inherited objects of the tree the block itself stands in — and a
-/// callback of the host works from them like from any other widget. Neither is built before the
-/// block has taken its place: a block that waits hidden — `hidden`, or `automatic` at a place with
-/// no record yet, which is what a fresh install gets by default — shows no placeholder while it
-/// waits, and a failure during that wait collapses it without the error screen.
+/// Give it a height and let the layout set its position and width. Keep it in the layout rather than
+/// removing it in [onEmpty]: a collapsed block still shows content the place gets later.
+/// [timeout], [loadingStrategy] and [animatesReveal] are read only when the block is created; give
+/// the widget a new [Key] to change them. On platforms other than iOS and Android the block
+/// collapses and reports [onFail] with [MindboxEmbeddedBlockFailReason.internalError].
 ///
 /// ```dart
 /// MindboxEmbeddedBlock(
 ///   placeSystemName: 'stories',
 ///   height: 104,
 ///   placeholder: (_) => const StoriesSkeleton(),
-///   errorBuilder: (_) => const StoriesUnavailable(),
+///   onFail: (reason) => log('stories failed: $reason'),
 /// )
 /// ```
-///
-/// How long the block may wait before it gives its place back is the [timeout], and a host that
-/// leaves it out gets the SDK's own budget of 30 seconds.
-///
-/// What the block shows until the SDK has decided what goes into it is the [loadingStrategy]: a
-/// placeholder, nothing, or — by default — nothing until the place has shown content once on this
-/// device and a placeholder from then on. The content is revealed with the SDK's own animation — it
-/// fades in, and a block that started hidden grows to its height — unless [animatesReveal] is off.
-///
-/// The widget is a thin layer over the native block: the platform view holds the SDK's own container
-/// — with its waiting budget and its web page — and this widget only mirrors the container's
-/// decisions in the Flutter layout, and draws the host's own screens over it when it asks for them.
-///
-/// The outcome arrives through three callbacks, the same three as in SwiftUI and Compose: [onLoad]
-/// when the content is shown, [onEmpty] when there is nothing to show at the place, and [onFail] with
-/// a reason when the block could not be shown.
-///
-/// **iOS and Android.** On any other platform the block collapses right away and reports [onFail]
-/// with [MindboxEmbeddedBlockFailReason.internalError], so a layout that hides its section on
-/// failure behaves the same everywhere.
 class MindboxEmbeddedBlock extends StatelessWidget {
-  /// Creates a block for the place named [placeSystemName], occupying [height].
+  /// Creates a block for the place named [placeSystemName].
   const MindboxEmbeddedBlock({
     Key? key,
     required this.placeSystemName,
@@ -79,148 +44,46 @@ class MindboxEmbeddedBlock extends StatelessWidget {
     this.onFail,
   }) : super(key: key);
 
-  /// The name of the place from the admin panel. A different name is a different block, built from
-  /// scratch in place of the old one.
-  ///
-  /// Passed down as given. Whitespace around the name is not part of it: the native blocks ignore
-  /// it, so a name pasted from the admin panel with a stray space still finds its place. The name
-  /// itself is matched the way the native SDK matches it.
+  /// The place's system name from the admin panel, matched ignoring letter case and surrounding
+  /// whitespace. A new name builds a new block.
   final String placeSystemName;
 
-  /// The height the block occupies while it loads and while it is shown. Live: a new value given
-  /// to a live block resizes it in place — the same content, no reload — exactly as the SwiftUI
-  /// and Compose wrappers behave.
+  /// The block's height while it is not collapsed; a new value resizes the block in place. A block
+  /// created without a positive height loads nothing until it gets one.
   final double height;
 
-  /// How long the block waits to learn what it shows before it gives its place back. `null` — the
-  /// default — is the SDK's own budget of 30 seconds.
-  ///
-  /// The budget covers the wait for the answer, not the whole life of the block: a page that has
-  /// already arrived gets its own time to render, and that is not shortened by a small timeout here.
-  /// An answer that comes in later no longer expands a block that has given up; the next attempt
-  /// starts when the block comes back on screen.
-  ///
-  /// The wait is the user's, not the clock's: it is counted only while the screen the block stands
-  /// on is the one being looked at, and a block left behind a pushed route keeps the remainder of
-  /// its budget for when the user comes back.
-  ///
-  /// Zero or negative is not a budget — such a block would collapse before the SDK could answer at
-  /// all — so the native side keeps its default instead and writes down what it was given.
-  ///
-  /// Fixed when the block is created: a new value given to a live block is ignored and reported
-  /// to the log. Give the widget a new [Key] to load a block on a new budget.
+  /// How long the block waits for the SDK to choose its content before it fails with
+  /// [MindboxEmbeddedBlockFailReason.networkError], counted while its screen is shown. `null`, zero
+  /// or negative means 30 seconds.
   final Duration? timeout;
 
-  /// What the block shows until the SDK answers — see [MindboxEmbeddedBlockLoadingStrategy].
-  ///
-  /// [MindboxEmbeddedBlockLoadingStrategy.automatic] — the default — keeps the block hidden until
-  /// the place has shown content once on this device and puts a placeholder there from then on. A
-  /// block that takes its space up front keeps the layout still at the price of flashing where
-  /// there is nothing to show; a block that waits hidden never flashes at the price of the layout
-  /// growing when content arrives. A place that always has a campaign behind it is worth an
-  /// explicit [MindboxEmbeddedBlockLoadingStrategy.placeholder].
-  ///
-  /// A block that waits hidden — `hidden`, or `automatic` at a place with no record — builds
-  /// neither [placeholder] nor [errorBuilder] before its first content: a failure during that
-  /// wait collapses it, and only [onFail] tells.
-  ///
-  /// Fixed when the block is created, as [timeout] is: a new value given to a live block is
-  /// ignored and reported to the log. Give the widget a new [Key] to build a block anew.
+  /// What the block shows while it loads; [MindboxEmbeddedBlockLoadingStrategy.automatic] by default.
   final MindboxEmbeddedBlockLoadingStrategy loadingStrategy;
 
-  /// Whether the SDK animates the reveal of the content — a fade, and the growth of a block that
-  /// waited hidden. `true` by default; the system's reduced-motion setting turns the animation off
-  /// as well. Turn it off to animate the block's container yourself in [onLoad].
-  ///
-  /// Fixed when the block is created, as [timeout] is.
+  /// Whether the SDK animates the content's appearance; `true` by default. Set `false` to animate the
+  /// block's container yourself in [onLoad].
   final bool animatesReveal;
 
-  /// Whether the block survives being scrolled out of a lazy list.
-  ///
-  /// A `ListView`, a `GridView` or any other lazy sliver builds only what is near the viewport and
-  /// throws the rest away — a block scrolled far enough would be disposed with its row, and on the
-  /// way back a *new* block would load its content from scratch: a full cycle with the shimmer on
-  /// every pass across the screen. The native iOS and Android blocks do not behave that way: a view
-  /// in a scroll is paused off screen, not destroyed, and its page is shown again as it was.
-  ///
-  /// `true` — the default — asks the list to keep the block alive, so it matches the native blocks:
-  /// off screen its content is paused, and on the way back the same page is shown at once, with no
-  /// reload, no shimmer and no second [onLoad]. Outside a lazy list the flag changes nothing.
-  ///
-  /// The pause is the widget's doing, not only the platform's: a kept block that the list has
-  /// scrolled out of view is reported to the native block as hidden, the same way a block behind a
-  /// pushed route is. On iOS the platform view also leaves the window, on Android it stays attached
-  /// and would otherwise count as visible — running its page, spending its waiting budget and
-  /// accounting a show nobody sees.
-  ///
-  /// The price is memory: every kept block holds its web page for as long as the list lives, and
-  /// the request keeps the whole row alive — the row's own widgets with it — in every lazy list
-  /// the block stands in, a carousel inside a feed included. A screen with many blocks that is
-  /// better off paying a reload than holding them all can turn this off, and then the block is
-  /// disposed with its row exactly as any other widget is. Live: a new value takes effect on the
-  /// block in place.
+  /// Whether a lazy list keeps the block alive off screen, so it comes back without a reload; `true`
+  /// by default, and can change at any time. A kept block holds its page and its row in memory: set
+  /// `false` on a screen with many blocks.
   final bool keepAlive;
 
-  /// Built instead of the SDK shimmer while the block is loading.
-  ///
-  /// Fills the whole place, as the native placeholder does: the widget is given the block's full
-  /// width and height as tight constraints. A screen that should be smaller says so itself, with an
-  /// [Align] or a [Center]; one that could be taller has to fit — anything over [height] overflows.
-  ///
-  /// Not built while the block waits hidden — `hidden`, or `automatic` at a place that has not
-  /// shown content yet: such a block takes no space, so there is nothing to fill. Once content was
-  /// shown, the placeholder keeps the space while the page is replaced. When the content arrives
-  /// with the SDK's reveal, the placeholder fades out under it for as long as the content fades in.
+  /// Shown instead of the SDK's shimmer while the block loads, at the block's full size.
   final WidgetBuilder? placeholder;
 
-  /// Built instead of collapsing when the block cannot be shown.
-  ///
-  /// Applies only to failures: an empty place — one with nothing behind its place system name —
-  /// always collapses, so a host cannot fill the space of a block that was never meant to be there.
-  ///
-  /// Nor does it apply to a block that waits hidden — `hidden`, or `automatic` at a place that has
-  /// not shown content yet, which is what the default gives a fresh install: a block that never
-  /// took its space does not take it for an error screen, so a failure collapses it and only
-  /// [onFail] tells. A host that wants the error screen on the very first load names
-  /// [MindboxEmbeddedBlockLoadingStrategy.placeholder].
-  ///
-  /// Adding it to a block that has *already* collapsed does not bring the space back: reopening
-  /// space the layout has reclaimed would make it jump. Such a builder takes effect on a load that
-  /// starts the cycle anew, never on the silent retry a return to the screen brings. Passing it
-  /// from the start is what a host that wants a failure screen should do.
+  /// Shown, instead of collapsing, when the block fails while it takes its height. Pass it from the
+  /// start: adding it later does not expand a collapsed block.
   final WidgetBuilder? errorBuilder;
 
-  /// The content is shown: the block has taken its height and is visible.
-  ///
-  /// A block that waited hidden only starts to grow here: the slot goes from 0 to [height] over
-  /// the SDK's reveal, so a host that measures the block or scrolls to it on this call sees it
-  /// still near zero.
-  ///
-  /// Delivered once per outcome, not once per lifetime: the same outcome is never repeated, and an
-  /// outcome that actually changed — a place that filled up after a failure — is delivered again.
-  /// The native block reports the same way, so every wrapper of the SDK calls back alike.
+  /// Called when the content is shown.
   final VoidCallback? onLoad;
 
-  /// There is nothing to show at the place: no campaign behind its name, the targeting or the A/B
-  /// group did not match, the show budget is spent, or the page rendered nothing. A normal outcome,
-  /// not a breakage: the block collapses, [errorBuilder] does not apply, and no reason is given —
-  /// which of these it was is the SDK's business.
-  ///
-  /// Delivered on the same rule as [onLoad]: once per outcome, again if the outcome changes.
+  /// Called when the block collapses because the place has nothing to show or the data its targeting
+  /// needs could not be fetched.
   final VoidCallback? onEmpty;
 
-  /// The block could not be shown: the SDK had no config or never answered, the page could not be
-  /// loaded, the content is malformed or the SDK hit an internal error. The block collapses, or
-  /// keeps its height and builds [errorBuilder] when one is given — unless it waited hidden: a
-  /// block that never took its space collapses on a failure whatever [errorBuilder] says. An empty
-  /// place is not a failure and arrives in [onEmpty] instead.
-  ///
-  /// The reason is for logs and analytics, not for branching: whatever it is, the block has already
-  /// collapsed or switched to [errorBuilder]. Compare it with the constants of
-  /// [MindboxEmbeddedBlockFailReason] and keep a fallback — a later SDK may add reasons.
-  ///
-  /// Delivered on the same rule as [onLoad]: once per outcome, again if the outcome changes. A
-  /// failure that repeats with a different reason is the same outcome and is not delivered again.
+  /// Called when the block fails; it collapses or shows [errorBuilder].
   final void Function(MindboxEmbeddedBlockFailReason reason)? onFail;
 
   @override
