@@ -1,30 +1,20 @@
-/// Why a block could not be shown — the payload of `MindboxEmbeddedBlock.onFail`.
-///
-/// Meant for logs and analytics on the host side, not for branching: whatever the reason, the block
-/// has already collapsed or switched to its error screen. A string-backed class rather than an enum
-/// so a later SDK can add a reason without breaking an exhaustive `switch` — keep a fallback when
-/// matching. The raw values are the same on every platform: what the native iOS and Android blocks
-/// report under these names reaches Flutter unchanged.
+/// Why a block failed, for logs and analytics. Later SDK versions may add reasons, so keep a fallback
+/// when matching.
 class MindboxEmbeddedBlockFailReason {
-  /// A reason by its raw value. The constants below are the ones this version knows; a later SDK
-  /// may report a word that is not among them, and it arrives through this constructor as it is.
+  /// A reason by its raw value.
   const MindboxEmbeddedBlockFailReason(this.rawValue);
 
-  /// The content is unavailable because of the environment: the config could not be downloaded and
-  /// nothing is cached, the SDK gave no answer within the block's waiting budget, the block's page
-  /// could not be loaded, or — on iOS — the data the targeting needs could not be fetched;
-  /// typically a network problem. Android answers a targeting fetch that fails with `onEmpty`
-  /// instead: a difference between the native SDKs, not the widget's.
+  /// The SDK could not get the content: no network or config, no answer within the block's
+  /// `timeout`, or the page did not load.
   static const MindboxEmbeddedBlockFailReason networkError =
       MindboxEmbeddedBlockFailReason('networkError');
 
-  /// An error on the Mindbox side: the page loaded but never reported its content or reported
-  /// something unusable, or the SDK failed inside. Also what a platform without a native block
-  /// reports.
+  /// The page did not report usable content or the SDK failed inside; also reported off iOS and
+  /// Android.
   static const MindboxEmbeddedBlockFailReason internalError =
       MindboxEmbeddedBlockFailReason('internalError');
 
-  /// The stable name of the reason, the same on every platform.
+  /// The reason's name, the same on every platform.
   final String rawValue;
 
   @override
