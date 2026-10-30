@@ -164,13 +164,26 @@ jobs:
 
           done
 
-          echo "→ Bumping Android native SDK in build.gradle"
-          echo "  Before:" && grep "cloud.mindbox:mobile-sdk" mindbox_android/android/build.gradle || true
-          sed -i "s/cloud.mindbox:mobile-sdk:.*/cloud.mindbox:mobile-sdk:$AND_VER'/" mindbox_android/android/build.gradle
-          echo "  After:"  && grep "cloud.mindbox:mobile-sdk" mindbox_android/android/build.gradle || true
-
           # Fail the release if a version substitution didn't land (stale pin).
           assert_pin() { grep -qE "$2" "$1" || { echo "ERROR: pattern /$2/ not found in $1 — substitution failed"; exit 1; }; }
+
+          echo "→ Bumping Android native SDK in build.gradle"
+          echo "  Before:" && grep "cloud.mindbox:" mindbox_android/android/build.gradle || true
+          # Every cloud.mindbox artifact in this file ships from the same native release, so they all
+          # take the same version — the ones named today and any added after this was written.
+          sed -i -E "s/(cloud\.mindbox:[a-z0-9-]+:)[^']*'/\1$AND_VER'/" mindbox_android/android/build.gradle
+          echo "  After:"  && grep "cloud.mindbox:" mindbox_android/android/build.gradle || true
+
+          # Named artifacts are asserted the way the iOS pins are; the sweep after them catches a
+          # dependency nobody thought to name here, which would otherwise ship stale without a word.
+          assert_pin mindbox_android/android/build.gradle "cloud\.mindbox:mobile-sdk:$AND_VER'"
+          assert_pin mindbox_android/android/build.gradle "cloud\.mindbox:mindbox-common:$AND_VER'"
+          STALE=$(grep -nE "cloud\.mindbox:[a-z0-9-]+:" mindbox_android/android/build.gradle | grep -v ":$AND_VER'" || true)
+          if [ -n "$STALE" ]; then
+            echo "ERROR: build.gradle still pins Mindbox artifacts to another version:"
+            echo "$STALE"
+            exit 1
+          fi
 
           echo "→ Bumping iOS native SDK in podspec"
           echo "  Before s.version:" && grep -E "s\.version" mindbox_ios/ios/mindbox_ios.podspec || true
