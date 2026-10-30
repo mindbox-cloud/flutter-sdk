@@ -9,7 +9,7 @@ on:
     secrets:
       PUB_CREDENTIALS:
         required: true
-      PAT_FOR_TRIGGERING_BRANCH_PROTECTION:
+      MOBILE_CI_APP_PRIVATE_KEY:
         required: true
 
 permissions:
@@ -49,7 +49,7 @@ jobs:
         run: |
           cd mindbox_platform_interface
           echo "VERSION=$(awk '{if ($1 ~ /^version:/) print $2}' pubspec.yaml)" >> "$GITHUB_ENV"
-      - uses: sakebook/actions-flutter-pub-publisher@ccd9fbba502ea7ef33ea2479e0cdac5a2a9766e1 # v1.4.1
+      - uses: sakebook/actions-flutter-pub-publisher@7112915a1a834881d4c98ef7af12f3456e5c79c7 # v1.3.1
         if: steps.pubspec.outputs.changed == 0
         with:
           package_directory: mindbox_platform_interface
@@ -107,7 +107,7 @@ jobs:
         run: |
           cd "$PKG"
           echo "VERSION=$(awk '{if ($1 ~ /^version:/) print $2}' pubspec.yaml)" >> "$GITHUB_ENV"
-      - uses: sakebook/actions-flutter-pub-publisher@ccd9fbba502ea7ef33ea2479e0cdac5a2a9766e1 # v1.4.1
+      - uses: sakebook/actions-flutter-pub-publisher@7112915a1a834881d4c98ef7af12f3456e5c79c7 # v1.3.1
         if: steps.pubspec.outputs.changed == 0
         with:
           package_directory: ${{ matrix.package }}
@@ -156,7 +156,7 @@ jobs:
         run: |
           cd mindbox
           echo "VERSION=$(awk '{if ($1 ~ /^version:/) print $2}' pubspec.yaml)" >> "$GITHUB_ENV"
-      - uses: sakebook/actions-flutter-pub-publisher@ccd9fbba502ea7ef33ea2479e0cdac5a2a9766e1 # v1.4.1
+      - uses: sakebook/actions-flutter-pub-publisher@7112915a1a834881d4c98ef7af12f3456e5c79c7 # v1.3.1
         if: steps.pubspec.outputs.changed == 0
         with:
           package_directory: mindbox
@@ -177,19 +177,26 @@ jobs:
       startsWith(github.head_ref, 'release/') &&
       github.base_ref == 'master'
     runs-on: ubuntu-latest
-    env:
-      # gh uses this PAT, not the workflow GITHUB_TOKEN — needed so the merge PR
-      # re-triggers branch-protection checks. Job-level `permissions:` only scope
-      # the workflow token, so they don't apply to these gh calls.
-      GITHUB_TOKEN: ${{ secrets.PAT_FOR_TRIGGERING_BRANCH_PROTECTION }}
     steps:
+      - name: Create App token
+        id: app-token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          client-id: ${{ vars.MOBILE_CI_APP_CLIENT_ID }}
+          private-key: ${{ secrets.MOBILE_CI_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
       - name: Checkout develop branch
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           ref: develop
       - name: Create Pull Request
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: gh pr create --base develop --head master --title "Merge 'master' into 'develop' after release" --body "Automated Pull Request to merge 'master' into 'develop' after release"
       - name: Merge Pull Request
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           pr_number=$(gh pr list --base develop --head master --json number --jq '.[0].number')
           gh pr merge "$pr_number" --merge --auto

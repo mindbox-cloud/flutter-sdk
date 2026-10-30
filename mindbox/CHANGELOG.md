@@ -4,6 +4,11 @@
 * `MindboxEmbeddedBlock` reports three outcomes, as the native SwiftUI and Compose blocks do: `onLoad`, `onEmpty` and `onFail` with a `MindboxEmbeddedBlockFailReason` (`networkError` or `internalError`).
 * `MindboxEmbeddedBlock` takes a `loadingStrategy` — `automatic` (the default: hidden until the place has shown content once on this device, a placeholder from then on), `placeholder` or `hidden` — and `animatesReveal`, as the native SwiftUI and Compose blocks do. A block that waited hidden grows to its height with the SDK's reveal when its content arrives, and a `placeholder` or `errorBuilder` of the host's own fades out under the content for as long as the SDK fades it in.
 
+## 2.15.3
+
+* Upgrade native Android SDK dependency to v2.15.4.
+* Upgrade native iOS SDK dependency to v2.15.3.
+
 ## 2.15.2
 
 * Upgrade native Android SDK dependency to v2.15.2.
