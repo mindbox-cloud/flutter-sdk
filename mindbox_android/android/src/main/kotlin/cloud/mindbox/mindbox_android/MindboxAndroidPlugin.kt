@@ -28,6 +28,7 @@ class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, Ne
     private val deviceUuidSubscriptions = mutableListOf<String>()
     private val tokenSubscriptions = mutableListOf<String>()
     private lateinit var channel: MethodChannel
+    private lateinit var embeddedBlocks: EmbeddedBlockPluginChannel
 
     inner class InAppCallbackImpl : InAppCallback {
         override fun onInAppClick(id: String, redirectUrl: String, payload: String) {
@@ -56,6 +57,15 @@ class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, Ne
     override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         channel = MethodChannel(flutterPluginBinding.binaryMessenger, "mindbox.cloud/flutter-sdk")
         channel.setMethodCallHandler(this)
+        flutterPluginBinding.platformViewRegistry.registerViewFactory(
+            EMBEDDED_BLOCK_VIEW_TYPE,
+            EmbeddedBlockPlatformViewFactory(flutterPluginBinding.binaryMessenger),
+        )
+        embeddedBlocks = EmbeddedBlockPluginChannel(
+            flutterPluginBinding.applicationContext,
+            flutterPluginBinding.binaryMessenger,
+        )
+        embeddedBlocks.attach()
     }
 
     override fun onMethodCall(call: MethodCall, result: Result) {
@@ -82,6 +92,8 @@ class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, Ne
                         .apply {
                             (args["shouldIncludeVersionCode"] as? Boolean)
                                 ?.let { shouldIncludeVersionCode(it) }
+                            (args["disableTrackingIds"] as? Boolean)
+                                ?.let { disableTrackingIds(it) }
                         }
                         .build()
                     Mindbox.init(activity = context, config, listOf())
@@ -249,6 +261,7 @@ class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, Ne
 
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         channel.setMethodCallHandler(null)
+        embeddedBlocks.detach()
     }
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {

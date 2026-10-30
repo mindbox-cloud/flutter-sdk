@@ -11,6 +11,7 @@ class Configuration {
     this.shouldCreateCustomer = true,
     this.operationsDomain = '',
     this.shouldIncludeVersionCode,
+    this.disableTrackingIds,
   });
 
   /// Used for generating baseurl for REST.
@@ -47,6 +48,27 @@ class Configuration {
   /// default is used (`true` — versionCode is reported).
   final bool? shouldIncludeVersionCode;
 
+  /// Turns off the collection of the device tracking identifier (GAID from
+  /// Google Mobile Services, OAID from Huawei Mobile Services) that the SDK
+  /// otherwise reports to Mindbox alongside application events.
+  /// Android only, ignored on iOS.
+  ///
+  /// Collection is on by default; pass `true` to stop it. This is the only
+  /// supported way to opt out: removing the `AD_ID` permission from the
+  /// manifest affects the whole app and does not stop OAID collection.
+  /// The SDK never requests a runtime permission of its own. RuStore
+  /// supplies no tracking identifier.
+  ///
+  /// Unlike most options, it is re-read on every initialization, so it can
+  /// be turned on or off in a later app version. A changed value takes effect
+  /// once `init` has run in that version; native work started earlier
+  /// (push services set up in `Application.onCreate`, background token
+  /// refresh) still uses the previous value.
+  ///
+  /// When `null` (default), the key is not sent and the native default is
+  /// used (`false` — the identifier is collected).
+  final bool? disableTrackingIds;
+
   /// Returns map of parameters
   Map<String, dynamic> toMap() => {
         'domain': domain,
@@ -59,5 +81,7 @@ class Configuration {
         'operationsDomain': operationsDomain,
         if (shouldIncludeVersionCode != null)
           'shouldIncludeVersionCode': shouldIncludeVersionCode,
+        if (disableTrackingIds != null)
+          'disableTrackingIds': disableTrackingIds,
       };
 }
