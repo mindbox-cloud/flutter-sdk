@@ -92,6 +92,8 @@ class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, Ne
                         .apply {
                             (args["shouldIncludeVersionCode"] as? Boolean)
                                 ?.let { shouldIncludeVersionCode(it) }
+                            (args["disableTrackingIds"] as? Boolean)
+                                ?.let { disableTrackingIds(it) }
                         }
                         .build()
                     Mindbox.init(activity = context, config, listOf())
