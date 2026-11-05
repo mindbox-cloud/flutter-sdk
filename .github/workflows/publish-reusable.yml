@@ -30,7 +30,7 @@ jobs:
     outputs:
       sha: ${{ steps.tags.outputs.sha }}
     steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ inputs.branch }}
       - name: Create tags
@@ -84,7 +84,7 @@ jobs:
       contents: write
       actions: write
     steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.set-tags.outputs.sha }}
       - uses: ./.github/actions/publish-from-tag
@@ -106,7 +106,7 @@ jobs:
           - 'mindbox_ios'
       fail-fast: false
     steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.set-tags.outputs.sha }}
       - uses: ./.github/actions/publish-from-tag
@@ -122,7 +122,7 @@ jobs:
       contents: write
       actions: write
     steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.set-tags.outputs.sha }}
       - uses: ./.github/actions/publish-from-tag
@@ -145,7 +145,7 @@ jobs:
           permission-contents: write
           permission-pull-requests: write
       - name: Checkout develop branch
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: develop
       - name: Create Pull Request
