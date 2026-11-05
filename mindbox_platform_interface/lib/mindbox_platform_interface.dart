@@ -1,4 +1,5 @@
 export 'src/channel.dart';
+export 'src/embedded_block.dart';
 export 'src/errors/mindbox_error.dart';
 export 'src/mindbox_platform.dart';
 export 'src/types/inapp_callbacks.dart';
