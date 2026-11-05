@@ -18,5 +18,10 @@ if gh release view "$tag" >/dev/null 2>&1; then
   exit 0
 fi
 
+release_args=(--verify-tag --title "$title" --notes "$notes")
+if [[ "${tag#*-v}" == *-* ]]; then
+  release_args+=(--prerelease)
+fi
+
 echo "Creating release $tag"
-gh release create "$tag" --verify-tag --title "$title" --notes "$notes"
+gh release create "$tag" "${release_args[@]}"

@@ -77,7 +77,7 @@ jobs:
 
   platform_interface_publish:
     needs: [set-tags]
-    timeout-minutes: 30
+    timeout-minutes: 45
     runs-on: ubuntu-latest
     name: mindbox_platform_interface publishing
     permissions:
@@ -93,7 +93,7 @@ jobs:
 
   native_components_publish:
     needs: [set-tags, platform_interface_publish]
-    timeout-minutes: 30
+    timeout-minutes: 45
     runs-on: ubuntu-latest
     name: ${{ matrix.package }} publishing
     permissions:
@@ -115,7 +115,7 @@ jobs:
 
   plugin_publish:
     needs: [set-tags, native_components_publish]
-    timeout-minutes: 30
+    timeout-minutes: 45
     runs-on: ubuntu-latest
     name: mindbox publishing
     permissions:
