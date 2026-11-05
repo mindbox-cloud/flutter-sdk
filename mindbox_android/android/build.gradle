@@ -72,6 +72,6 @@ if (builtInKotlin) {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    api 'cloud.mindbox:mobile-sdk:2.16.0-rc'
-    compileOnly 'cloud.mindbox:mindbox-common:2.16.0-rc'
+    api 'cloud.mindbox:mobile-sdk:2.16.0'
+    compileOnly 'cloud.mindbox:mindbox-common:2.16.0'
 }
