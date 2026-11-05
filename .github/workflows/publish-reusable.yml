@@ -20,8 +20,14 @@ jobs:
     with:
       branch: ${{ inputs.branch }}
 
+  publish_dry_run:
+    name: Dry run publishing before any tag is created
+    uses: ./.github/workflows/publish-dry-run.yml
+    with:
+      branch: ${{ inputs.branch }}
+
   set-tags:
-    needs: [analyze_and_test]
+    needs: [analyze_and_test, publish_dry_run]
     timeout-minutes: 5
     runs-on: ubuntu-latest
     name: Tag versions that are not on pub.dev yet
