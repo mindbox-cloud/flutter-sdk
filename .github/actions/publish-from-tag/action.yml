@@ -1,0 +1,35 @@
+name: Publish a package from its release tag
+description: Runs publish-package.yml on the <package>-v<version> tag and waits for it unless pub.dev already has that version, then makes sure the GitHub release exists.
+
+inputs:
+  package:
+    description: Package name, which is also its directory in the repository
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Publish from the tag
+      shell: bash
+      env:
+        PACKAGE: ${{ inputs.package }}
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        version=$(awk '$1 == "version:" { print $2 }' "$PACKAGE/pubspec.yaml")
+        tag="$PACKAGE-v$version"
+
+        status=$(curl --silent --show-error --retry 3 --output /dev/null --write-out '%{http_code}' \
+          "https://pub.dev/api/packages/$PACKAGE/versions/$version")
+        if [ "$status" = 200 ]; then
+          echo "$PACKAGE $version is already on pub.dev"
+        elif [ "$status" = 404 ]; then
+          run_id=$(gh api --method POST "repos/$GITHUB_REPOSITORY/actions/workflows/publish-package.yml/dispatches" \
+            -f "ref=$tag" -F return_run_details=true --jq '.workflow_run_id')
+          echo "Publishing $tag in $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$run_id"
+          gh run watch "$run_id" --repo "$GITHUB_REPOSITORY" --exit-status --compact --interval 30
+        else
+          echo "::error::pub.dev answered $status for $PACKAGE $version"
+          exit 1
+        fi
+
+        ./.github/git-release-ci.sh "$tag" "$PACKAGE v$version"
