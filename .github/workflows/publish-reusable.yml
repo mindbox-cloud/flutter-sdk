@@ -7,8 +7,6 @@ on:
         required: true
         type: string
     secrets:
-      PUB_CREDENTIALS:
-        required: true
       MOBILE_CI_APP_PRIVATE_KEY:
         required: true
 
@@ -22,154 +20,114 @@ jobs:
     with:
       branch: ${{ inputs.branch }}
 
-  platform_interface_publish:
+  set-tags:
     needs: [analyze_and_test]
-    timeout-minutes: 4
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    name: Tag versions that are not on pub.dev yet
+    permissions:
+      contents: write
+    outputs:
+      sha: ${{ steps.tags.outputs.sha }}
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          ref: ${{ inputs.branch }}
+      - name: Create tags
+        id: tags
+        run: |
+          head=$(git rev-parse HEAD)
+          echo "sha=$head" >> "$GITHUB_OUTPUT"
+          tags_to_create=()
+          stale_tags=()
+          for package in mindbox_platform_interface mindbox_android mindbox_ios mindbox; do
+            version=$(awk '$1 == "version:" { print $2 }' "$package/pubspec.yaml")
+            tag="$package-v$version"
+
+            status=$(curl --silent --show-error --retry 3 --output /dev/null --write-out '%{http_code}' \
+              "https://pub.dev/api/packages/$package/versions/$version")
+            if [ "$status" = 200 ]; then
+              echo "$package $version is already on pub.dev, no tag needed"
+              continue
+            elif [ "$status" != 404 ]; then
+              echo "::error::pub.dev answered $status for $package $version"
+              exit 1
+            fi
+
+            existing=$(git ls-remote origin "refs/tags/$tag" | cut -f1)
+            if [ -z "$existing" ]; then
+              tags_to_create+=("$tag")
+            elif [ "$existing" = "$head" ]; then
+              echo "$tag already points to $head"
+            else
+              echo "::error::$tag points to $existing from an earlier merge, and $package $version is not on pub.dev"
+              stale_tags+=("refs/tags/$tag")
+            fi
+          done
+
+          if [ "${#stale_tags[@]}" -gt 0 ]; then
+            echo "Delete the tags of the failed attempt, then re-run this job:"
+            echo "  git push origin --delete ${stale_tags[*]}"
+            exit 1
+          fi
+
+          for tag in "${tags_to_create[@]}"; do
+            git push origin "$head:refs/tags/$tag"
+          done
+
+  platform_interface_publish:
+    needs: [set-tags]
+    timeout-minutes: 30
     runs-on: ubuntu-latest
     name: mindbox_platform_interface publishing
     permissions:
       contents: write
+      actions: write
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
-          fetch-depth: 2
-          ref: ${{ inputs.branch }}
-      - name: Check package Pubspec
-        id: pubspec
-        env:
-          HEAD_SHA: ${{ github.sha }}
-        run: |
-          set +e
-          git diff-tree --no-commit-id --name-only -r HEAD~1 "$HEAD_SHA" | grep 'mindbox_platform_interface/pubspec.yaml'
-          rc=$?
-          set -e
-          echo "changed=$rc" >> "$GITHUB_OUTPUT"
-      - name: Extract package version
-        if: steps.pubspec.outputs.changed == 0
-        run: |
-          cd mindbox_platform_interface
-          echo "VERSION=$(awk '{if ($1 ~ /^version:/) print $2}' pubspec.yaml)" >> "$GITHUB_ENV"
-      - uses: sakebook/actions-flutter-pub-publisher@7112915a1a834881d4c98ef7af12f3456e5c79c7 # v1.3.1
-        if: steps.pubspec.outputs.changed == 0
+          ref: ${{ needs.set-tags.outputs.sha }}
+      - uses: ./.github/actions/publish-from-tag
         with:
-          package_directory: mindbox_platform_interface
-          credential: ${{ secrets.PUB_CREDENTIALS }}
-          flutter_package: true
-          skip_test: true
-      - name: Create Release
-        if: steps.pubspec.outputs.changed == 0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          BRANCH: ${{ inputs.branch }}
-        run: ./.github/git-release-ci.sh "mindbox_platform_interface-v$VERSION" "mindbox_platform_interface v$VERSION" "$BRANCH"
-
-  waiting-while-platform-interface-publish:
-    needs: [platform_interface_publish]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Delay for 10 minutes
-        run: sleep 600
+          package: mindbox_platform_interface
 
   native_components_publish:
-    needs: [analyze_and_test, platform_interface_publish, waiting-while-platform-interface-publish]
-    timeout-minutes: 4
+    needs: [set-tags, platform_interface_publish]
+    timeout-minutes: 30
     runs-on: ubuntu-latest
     name: ${{ matrix.package }} publishing
     permissions:
       contents: write
+      actions: write
     strategy:
       matrix:
         package:
           - 'mindbox_android'
           - 'mindbox_ios'
       fail-fast: false
-
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
-          fetch-depth: 2
-          ref: ${{ inputs.branch }}
-      - name: Check package Pubspec
-        id: pubspec
-        env:
-          HEAD_SHA: ${{ github.sha }}
-          PKG: ${{ matrix.package }}
-        run: |
-          set +e
-          git diff-tree --no-commit-id --name-only -r HEAD~1 "$HEAD_SHA" | grep "$PKG/pubspec.yaml"
-          rc=$?
-          set -e
-          echo "changed=$rc" >> "$GITHUB_OUTPUT"
-      - name: Extract package version
-        if: steps.pubspec.outputs.changed == 0
-        env:
-          PKG: ${{ matrix.package }}
-        run: |
-          cd "$PKG"
-          echo "VERSION=$(awk '{if ($1 ~ /^version:/) print $2}' pubspec.yaml)" >> "$GITHUB_ENV"
-      - uses: sakebook/actions-flutter-pub-publisher@7112915a1a834881d4c98ef7af12f3456e5c79c7 # v1.3.1
-        if: steps.pubspec.outputs.changed == 0
+          ref: ${{ needs.set-tags.outputs.sha }}
+      - uses: ./.github/actions/publish-from-tag
         with:
-          package_directory: ${{ matrix.package }}
-          credential: ${{ secrets.PUB_CREDENTIALS }}
-          flutter_package: true
-          skip_test: true
-      - name: Create Release
-        if: steps.pubspec.outputs.changed == 0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          BRANCH: ${{ inputs.branch }}
-          PKG: ${{ matrix.package }}
-        run: ./.github/git-release-ci.sh "$PKG-v$VERSION" "$PKG v$VERSION" "$BRANCH"
-
-  waiting-while-native_components_publish:
-    needs: [native_components_publish]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Delay for 10 minutes
-        run: sleep 600
+          package: ${{ matrix.package }}
 
   plugin_publish:
-    needs: [analyze_and_test, platform_interface_publish, native_components_publish, waiting-while-native_components_publish]
-    timeout-minutes: 4
+    needs: [set-tags, native_components_publish]
+    timeout-minutes: 30
     runs-on: ubuntu-latest
     name: mindbox publishing
     permissions:
       contents: write
+      actions: write
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
-          fetch-depth: 2
-          ref: ${{ inputs.branch }}
-      - name: Check package Pubspec
-        id: pubspec
-        env:
-          HEAD_SHA: ${{ github.sha }}
-        run: |
-          set +e
-          git diff-tree --no-commit-id --name-only -r HEAD~1 "$HEAD_SHA" | grep 'mindbox/pubspec.yaml'
-          rc=$?
-          set -e
-          echo "changed=$rc" >> "$GITHUB_OUTPUT"
-      - name: Extract package version
-        if: steps.pubspec.outputs.changed == 0
-        run: |
-          cd mindbox
-          echo "VERSION=$(awk '{if ($1 ~ /^version:/) print $2}' pubspec.yaml)" >> "$GITHUB_ENV"
-      - uses: sakebook/actions-flutter-pub-publisher@7112915a1a834881d4c98ef7af12f3456e5c79c7 # v1.3.1
-        if: steps.pubspec.outputs.changed == 0
+          ref: ${{ needs.set-tags.outputs.sha }}
+      - uses: ./.github/actions/publish-from-tag
         with:
-          package_directory: mindbox
-          credential: ${{ secrets.PUB_CREDENTIALS }}
-          flutter_package: true
-          skip_test: true
-          dry_run: false
-      - name: Create Release
-        if: steps.pubspec.outputs.changed == 0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          BRANCH: ${{ inputs.branch }}
-        run: ./.github/git-release-ci.sh "mindbox-v$VERSION" "mindbox v$VERSION" "$BRANCH"
+          package: mindbox
 
   merge:
     needs: [plugin_publish]

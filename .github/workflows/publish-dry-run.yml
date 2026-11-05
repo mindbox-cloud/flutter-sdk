@@ -30,10 +30,5 @@ jobs:
           channel: stable
 
       - name: Dry run publish
-        uses: sakebook/actions-flutter-pub-publisher@7112915a1a834881d4c98ef7af12f3456e5c79c7 # v1.3.1
-        with:
-          package_directory: ${{ matrix.package }}
-          credential: ${{ secrets.PUB_CREDENTIALS }}
-          flutter_package: true
-          skip_test: true
-          dry_run: true
+        working-directory: ${{ matrix.package }}
+        run: flutter pub publish --dry-run

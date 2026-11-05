@@ -1,0 +1,93 @@
+name: SDK publish package
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: publish-package-${{ github.ref_name }}
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    name: Publish ${{ github.ref_name }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: pub.dev
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+
+      - name: Read the package from the tag and check its version
+        id: tag
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          package="${TAG%%-v*}"
+          version="${TAG#"$package"-v}"
+          case "$package" in
+            mindbox_platform_interface | mindbox_android | mindbox_ios | mindbox) ;;
+            *)
+              echo "::error::Run this workflow on a release tag <package>-v<version>, not on $TAG"
+              exit 1
+              ;;
+          esac
+          pubspec_version=$(awk '$1 == "version:" { print $2 }' "$package/pubspec.yaml")
+          if [ "$version" != "$pubspec_version" ]; then
+            echo "::error::$TAG does not match version $pubspec_version in $package/pubspec.yaml"
+            exit 1
+          fi
+          echo "package=$package" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Check whether pub.dev already has this version
+        id: pub_dev
+        env:
+          PACKAGE: ${{ steps.tag.outputs.package }}
+          VERSION: ${{ steps.tag.outputs.version }}
+        run: |
+          status=$(curl --silent --show-error --retry 3 --output /dev/null --write-out '%{http_code}' \
+            "https://pub.dev/api/packages/$PACKAGE/versions/$VERSION")
+          case "$status" in
+            200)
+              echo "$PACKAGE $VERSION is already on pub.dev, publishing is skipped"
+              echo "published=true" >> "$GITHUB_OUTPUT"
+              ;;
+            404)
+              echo "published=false" >> "$GITHUB_OUTPUT"
+              ;;
+            *)
+              echo "::error::pub.dev answered $status for $PACKAGE $VERSION"
+              exit 1
+              ;;
+          esac
+
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        if: steps.pub_dev.outputs.published == 'false'
+        with:
+          channel: stable
+
+      - name: Dry run publish, retried until pub.dev serves the new dependencies
+        if: steps.pub_dev.outputs.published == 'false'
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
+        env:
+          PACKAGE: ${{ steps.tag.outputs.package }}
+        with:
+          timeout_minutes: 5
+          max_attempts: 10
+          retry_wait_seconds: 30
+          command: cd "$PACKAGE" && flutter pub publish --dry-run
+
+      - name: Publish with a GitHub OIDC token
+        if: steps.pub_dev.outputs.published == 'false'
+        working-directory: ${{ steps.tag.outputs.package }}
+        run: |
+          PUB_TOKEN=$(curl --fail --silent --show-error --retry 3 \
+            --header "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=https://pub.dev" | jq -er '.value')
+          export PUB_TOKEN
+          flutter pub token add https://pub.dev --env-var PUB_TOKEN
+          flutter pub publish --force

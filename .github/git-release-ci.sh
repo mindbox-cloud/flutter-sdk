@@ -6,10 +6,9 @@ set -euo pipefail
 # called once per published package (mindbox, mindbox_android, mindbox_ios,
 # mindbox_platform_interface) with that package's tag/title.
 #
-# Usage: git-release-ci.sh <tag> <title> <branch>
-tag="${1:?usage: git-release-ci.sh <tag> <title> <branch>}"
-title="${2:?usage: git-release-ci.sh <tag> <title> <branch>}"
-branch="${3:?usage: git-release-ci.sh <tag> <title> <branch>}"
+# Usage: git-release-ci.sh <tag> <title>
+tag="${1:?usage: git-release-ci.sh <tag> <title>}"
+title="${2:?usage: git-release-ci.sh <tag> <title>}"
 
 notes="Auto-generated release. Check more details at [Mindbox Flutter SDK Documentation](https://developers.mindbox.ru/docs/flutter-sdk)"
 
@@ -19,5 +18,5 @@ if gh release view "$tag" >/dev/null 2>&1; then
   exit 0
 fi
 
-echo "Creating release $tag on branch $branch"
-gh release create "$tag" --target "$branch" --title "$title" --notes "$notes"
+echo "Creating release $tag"
+gh release create "$tag" --verify-tag --title "$title" --notes "$notes"
