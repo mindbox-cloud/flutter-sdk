@@ -27,13 +27,17 @@ jobs:
     name: Tag versions that are not on pub.dev yet
     permissions:
       contents: write
+    outputs:
+      sha: ${{ steps.tags.outputs.sha }}
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           ref: ${{ inputs.branch }}
       - name: Create tags
+        id: tags
         run: |
           head=$(git rev-parse HEAD)
+          echo "sha=$head" >> "$GITHUB_OUTPUT"
           tags_to_create=()
           stale_tags=()
           for package in mindbox_platform_interface mindbox_android mindbox_ios mindbox; do
@@ -82,13 +86,13 @@ jobs:
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
-          ref: ${{ inputs.branch }}
+          ref: ${{ needs.set-tags.outputs.sha }}
       - uses: ./.github/actions/publish-from-tag
         with:
           package: mindbox_platform_interface
 
   native_components_publish:
-    needs: [platform_interface_publish]
+    needs: [set-tags, platform_interface_publish]
     timeout-minutes: 30
     runs-on: ubuntu-latest
     name: ${{ matrix.package }} publishing
@@ -104,13 +108,13 @@ jobs:
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
-          ref: ${{ inputs.branch }}
+          ref: ${{ needs.set-tags.outputs.sha }}
       - uses: ./.github/actions/publish-from-tag
         with:
           package: ${{ matrix.package }}
 
   plugin_publish:
-    needs: [native_components_publish]
+    needs: [set-tags, native_components_publish]
     timeout-minutes: 30
     runs-on: ubuntu-latest
     name: mindbox publishing
@@ -120,7 +124,7 @@ jobs:
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
-          ref: ${{ inputs.branch }}
+          ref: ${{ needs.set-tags.outputs.sha }}
       - uses: ./.github/actions/publish-from-tag
         with:
           package: mindbox
