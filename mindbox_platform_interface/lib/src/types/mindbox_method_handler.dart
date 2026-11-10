@@ -162,6 +162,11 @@ class MindboxMethodHandler {
     await channel.invokeMethod('refreshNotificationPermissionStatus');
   }
 
+  /// Method for passing the advertising identifier (IDFA) to the SDK
+  void setAdvertisingIdentifier(String? identifier) async {
+    await channel.invokeMethod('setAdvertisingIdentifier', identifier);
+  }
+
   /// Method for registers a list of InAppCallback instances to handle clicks
   /// and dismiss in in-apps.
   void registerInAppCallbacks({required List<InAppCallback> callbacks}) async {

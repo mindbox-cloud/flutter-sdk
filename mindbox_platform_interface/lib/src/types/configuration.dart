@@ -51,7 +51,9 @@ class Configuration {
   /// Turns off the collection of the device tracking identifier (GAID from
   /// Google Mobile Services, OAID from Huawei Mobile Services) that the SDK
   /// otherwise reports to Mindbox alongside application events.
-  /// Android only, ignored on iOS.
+  ///
+  /// On iOS, `true` stops `Mindbox.instance.setAdvertisingIdentifier` from
+  /// passing the IDFA and clears the one sent earlier.
   ///
   /// Collection is on by default; pass `true` to stop it. This is the only
   /// supported way to opt out: removing the `AD_ID` permission from the

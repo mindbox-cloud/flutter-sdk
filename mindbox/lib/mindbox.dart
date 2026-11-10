@@ -29,6 +29,8 @@ class Mindbox {
 
   static Mindbox? _instance;
 
+  bool _disableTrackingIds = false;
+
   /// The instance of the [Mindbox] to use.
   static Mindbox get instance => _getOrCreateInstance();
 
@@ -58,6 +60,10 @@ class Mindbox {
   /// You can call this method multiple times to set new configuration params.
   /// Read more about [Configuration] parameter.
   void init({required Configuration configuration}) {
+    _disableTrackingIds = configuration.disableTrackingIds ?? false;
+    if (_disableTrackingIds && defaultTargetPlatform == TargetPlatform.iOS) {
+      MindboxPlatform.instance.setAdvertisingIdentifier(null);
+    }
     MindboxPlatform.instance.init(configuration: configuration);
   }
 
@@ -168,6 +174,28 @@ class Mindbox {
   /// ```
   void refreshNotificationPermissionStatus() {
     MindboxPlatform.instance.refreshNotificationPermissionStatus();
+  }
+
+  /// Passes the app's advertising identifier (IDFA) to Mindbox. iOS only,
+  /// does nothing on Android.
+  ///
+  /// The SDK does not read the IDFA itself: call this method at launch and on
+  /// every return to the foreground. `null`, an empty string or zeros mean
+  /// there is no tracking consent and clear the IDFA sent earlier.
+  /// The IDFA is sent only if the app's `PrivacyInfo.xcprivacy` declares the
+  /// Mindbox tracking host.
+  ///
+  /// Example usage:
+  /// ```dart
+  /// Mindbox.instance.setAdvertisingIdentifier(
+  ///     await AppTrackingTransparency.getAdvertisingIdentifier());
+  /// ```
+  void setAdvertisingIdentifier(String? identifier) {
+    if (defaultTargetPlatform != TargetPlatform.iOS) {
+      return;
+    }
+    MindboxPlatform.instance
+        .setAdvertisingIdentifier(_disableTrackingIds ? null : identifier);
   }
 
   /// Writes a log message to the native Mindbox logging system.
