@@ -172,6 +172,10 @@ public class MindboxIosPlugin: NSObject, FlutterPlugin {
         case "refreshNotificationPermissionStatus":
             Mindbox.shared.refreshNotificationPermissionStatus()
 
+        case "setAdvertisingIdentifier":
+            setAdvertisingIdentifier(call.arguments as? String)
+            result(nil)
+
         case "writeNativeLog":
             guard let args = call.arguments as? [Any], args.count >= 2 else {
                     result(FlutterError(code: "-1", message: "error", details: "Wrong argument count or type"))
@@ -203,6 +207,18 @@ public class MindboxIosPlugin: NSObject, FlutterPlugin {
         default:
             result(FlutterMethodNotImplemented)
         }
+    }
+
+    private func setAdvertisingIdentifier(_ value: String?) {
+        guard let value, !value.isEmpty else {
+            Mindbox.shared.setAdvertisingIdentifier(nil)
+            return
+        }
+        guard let identifier = UUID(uuidString: value) else {
+            Mindbox.logger.log(level: .error, message: "[Flutter] setAdvertisingIdentifier: the value is not a UUID, the advertising identifier stays unchanged")
+            return
+        }
+        Mindbox.shared.setAdvertisingIdentifier(identifier)
     }
 }
 
