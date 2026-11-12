@@ -4,7 +4,7 @@ import PackageDescription
 let package = Package(
     name: "mindbox_ios",
     platforms: [
-        .iOS(.v12)
+        .iOS(.v15)
     ],
     products: [
         .library(name: "mindbox-ios", targets: ["mindbox_ios"])
