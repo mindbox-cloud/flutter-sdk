@@ -1,7 +1,10 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mindbox/mindbox.dart';
+import 'package:mindbox_android/mindbox_android.dart';
 import 'package:mindbox_ios/mindbox_ios.dart';
 import 'package:mindbox_platform_interface/mindbox_platform_interface.dart';
 
@@ -110,6 +113,88 @@ void main() {
         (url, payload) => completer.complete([url, payload]));
 
     expect(await completer.future, equals(['dummy-url', 'dummy-payload']));
+  });
+
+  const idfa = 'EA7583CD-A667-48BC-B806-42ECB2B48606';
+
+  Configuration configuration({bool? disableTrackingIds}) => Configuration(
+      domain: 'domain',
+      endpointIos: 'endpointIos',
+      endpointAndroid: 'endpointAndroid',
+      subscribeCustomerIfCreated: true,
+      disableTrackingIds: disableTrackingIds);
+
+  List<MethodCall> recordChannelCalls(TargetPlatform platform) {
+    debugDefaultTargetPlatformOverride = platform;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    final calls = <MethodCall>[];
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+      calls.add(call);
+      return mindboxMockMethodCallHandler(call);
+    });
+    return calls;
+  }
+
+  List<String> initAndIdentifierCalls(List<MethodCall> calls) => [
+        for (final call in calls)
+          if (call.method == 'init')
+            'init'
+          else if (call.method == 'setAdvertisingIdentifier')
+            'setAdvertisingIdentifier(${call.arguments})'
+      ];
+
+  test('setAdvertisingIdentifier() passes the identifier to the iOS SDK',
+      () async {
+    final calls = recordChannelCalls(TargetPlatform.iOS);
+
+    Mindbox.instance.init(configuration: configuration());
+    await pumpEventQueue();
+    Mindbox.instance.setAdvertisingIdentifier(idfa);
+    await pumpEventQueue();
+
+    expect(initAndIdentifierCalls(calls),
+        ['init', 'setAdvertisingIdentifier($idfa)']);
+  });
+
+  test(
+      'When disableTrackingIds is true, setAdvertisingIdentifier() passes '
+      'null to the iOS SDK', () async {
+    final calls = recordChannelCalls(TargetPlatform.iOS);
+
+    Mindbox.instance
+        .init(configuration: configuration(disableTrackingIds: true));
+    await pumpEventQueue();
+    calls.clear();
+    Mindbox.instance.setAdvertisingIdentifier(idfa);
+    await pumpEventQueue();
+
+    expect(initAndIdentifierCalls(calls), ['setAdvertisingIdentifier(null)']);
+  });
+
+  test(
+      'When disableTrackingIds is true, init() clears the identifier in the '
+      'iOS SDK before the native initialization', () async {
+    final calls = recordChannelCalls(TargetPlatform.iOS);
+
+    Mindbox.instance
+        .init(configuration: configuration(disableTrackingIds: true));
+    await pumpEventQueue();
+
+    expect(initAndIdentifierCalls(calls),
+        ['setAdvertisingIdentifier(null)', 'init']);
+  });
+
+  test('On Android the identifier never reaches the native SDK', () async {
+    MindboxAndroidPlatform.registerPlatform();
+    final calls = recordChannelCalls(TargetPlatform.android);
+
+    Mindbox.instance
+        .init(configuration: configuration(disableTrackingIds: true));
+    Mindbox.instance.setAdvertisingIdentifier(idfa);
+    await pumpEventQueue();
+
+    expect(initAndIdentifierCalls(calls), ['init']);
   });
 }
 

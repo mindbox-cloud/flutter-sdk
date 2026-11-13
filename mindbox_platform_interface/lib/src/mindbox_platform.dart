@@ -127,6 +127,10 @@ abstract class MindboxPlatform {
   void refreshNotificationPermissionStatus() => throw UnimplementedError(
       'refreshNotificationPermissionStatus() has not been implemented');
 
+  /// Method for passing the advertising identifier (IDFA) to the SDK
+  void setAdvertisingIdentifier(String? identifier) => throw UnimplementedError(
+      'setAdvertisingIdentifier() has not been implemented');
+
   /// Writes a log message to the native Mindbox logging system.
   void writeNativeLog({required String message, required LogLevel logLevel}) =>
      throw UnimplementedError(

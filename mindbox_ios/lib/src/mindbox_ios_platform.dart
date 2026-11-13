@@ -108,6 +108,11 @@ class MindboxIosPlatform extends MindboxPlatform {
     _methodHandler.refreshNotificationPermissionStatus();
   }
 
+  @override
+  void setAdvertisingIdentifier(String? identifier) {
+    _methodHandler.setAdvertisingIdentifier(identifier);
+  }
+
   /// Writes a log message to the native Mindbox logging system.
   @override
   void writeNativeLog({required String message, required LogLevel logLevel}) {
