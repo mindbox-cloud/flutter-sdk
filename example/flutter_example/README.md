@@ -29,7 +29,13 @@ To run the application on a real device and try push notifications, follow the i
   - MindboxNotificationServiceExtension
   - MindboxNotificationContentExtension
 10. [Configure your endpoints](https://developers.mindbox.ru/docs/add-ios-integration).
-11. Change domain and endpoints in the `main.dart` to yours.
+11. Change domain and endpoints in the `main.dart` to yours. With another domain, change the tracking host in the privacy manifest too (see [Advertising identifier (IDFA)](#advertising-identifier-idfa)).
+
+### Advertising identifier (IDFA)
+
+On iOS the app passes the IDFA to the SDK: `passAdvertisingIdentifier` in `view_model.dart` asks for tracking permission while the user has not answered, then passes the IDFA at launch and on every return to the app, with or without consent. [Read more](https://developers.mindbox.ru/docs/flutter-sdk-methods).
+
+The SDK sends the IDFA only when the app's privacy manifest `ios/Runner/PrivacyInfo.xcprivacy` declares the tracking host: your domain with the leading `api` replaced by `api-tracking`, for example `api-tracking.mindbox.ru` for `api.mindbox.ru`. Never list the main API host: iOS blocks requests to the listed hosts until the user allows tracking.
 
 ### Android
 1. Clone [flutter-sdk repository](https://github.com/mindbox-cloud/flutter-sdk).
