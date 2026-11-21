@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:app_tracking_transparency/app_tracking_transparency.dart';
 import 'package:mindbox/mindbox.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -69,6 +72,22 @@ class ViewModel {
       print("Permission status: $status");
       Mindbox.instance.refreshNotificationPermissionStatus();
     }
+  }
+
+  //https://developers.mindbox.ru/docs/flutter-sdk-methods
+  //Called at launch and on every return to the app: the SDK does not read the IDFA itself.
+  //The request repeats while the user has not answered, since iOS does not show it
+  //while another system request is open.
+  static Future<void> passAdvertisingIdentifier() async {
+    if (!Platform.isIOS) {
+      return;
+    }
+    final status = await AppTrackingTransparency.trackingAuthorizationStatus;
+    if (status == TrackingStatus.notDetermined) {
+      await AppTrackingTransparency.requestTrackingAuthorization();
+    }
+    Mindbox.instance.setAdvertisingIdentifier(
+        await AppTrackingTransparency.getAdvertisingIdentifier());
   }
 
   //https://developers.mindbox.ru/docs/in-app

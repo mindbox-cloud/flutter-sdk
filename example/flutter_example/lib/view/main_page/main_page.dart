@@ -17,17 +17,32 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    ViewModel.passAdvertisingIdentifier();
     _showAlertIfNeeded();
     // Please note: if the context is not initialized at the time of
     // receiving data from the push, then navigation will not work
     Mindbox.instance.onPushClickReceived((link, payload) {
       _handlePushNotification(link, payload);
     });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      ViewModel.passAdvertisingIdentifier();
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 
   void _handlePushNotification(String link, dynamic payload) {
