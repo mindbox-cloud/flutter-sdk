@@ -34,7 +34,7 @@ Mindbox SDK helps handle push notifications. Configuration and usage instruction
 
 ## Troubleshooting
 
-Refer to the [Example of integration(IOS)](https://github.com/mindbox-cloud/flutter-sdk/tree/develop/mindbox_ios/example) or [Example of integration(Android)](https://github.com/mindbox-cloud/flutter-sdk/tree/develop/mindbox_android/example) in case of any issues.
+Refer to the [example app](https://github.com/mindbox-cloud/flutter-sdk/tree/develop/example/flutter_example) in case of any issues.
 
 ## Further Help
 

@@ -23,9 +23,9 @@ jobs:
     needs: check-branch
     permissions:
       contents: write
+      actions: write
     uses: ./.github/workflows/publish-reusable.yml
     with:
       branch: ${{ github.ref_name }}
     secrets:
-      PUB_CREDENTIALS: ${{ secrets.PUB_CREDENTIALS }}
       MOBILE_CI_APP_PRIVATE_KEY: ${{ secrets.MOBILE_CI_APP_PRIVATE_KEY }}

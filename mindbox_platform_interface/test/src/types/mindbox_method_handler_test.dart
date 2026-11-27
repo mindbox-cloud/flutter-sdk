@@ -199,6 +199,26 @@ void main() {
   );
 
   test(
+    'setAdvertisingIdentifier() forwards the identifier to native channel',
+    () async {
+      final capturedArgs = <dynamic>[];
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+        if (call.method == 'setAdvertisingIdentifier') {
+          capturedArgs.add(call.arguments);
+        }
+        return mindboxMockMethodCallHandler(call);
+      });
+
+      handler.setAdvertisingIdentifier('EA7583CD-A667-48BC-B806-42ECB2B48606');
+      handler.setAdvertisingIdentifier(null);
+      await pumpEventQueue();
+
+      expect(capturedArgs, ['EA7583CD-A667-48BC-B806-42ECB2B48606', null]);
+    },
+  );
+
+  test(
     'When config is invalid, init() calling should throws MindboxException',
     () async {
       final invalidConfig = Configuration(

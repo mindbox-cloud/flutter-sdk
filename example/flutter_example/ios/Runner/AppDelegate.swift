@@ -18,6 +18,9 @@ import UserNotifications
 
         UNUserNotificationCenter.current().delegate = self
 
+        // registering in APNs on every launch to receive the device token
+        UIApplication.shared.registerForRemoteNotifications()
+
         // tracking sources of referrals to the application via push notifications
         Mindbox.shared.track(.launch(launchOptions))
 

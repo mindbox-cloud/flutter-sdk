@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:mindbox_android/mindbox_android.dart';
 import 'package:mindbox_ios/mindbox_ios.dart';
 import 'package:mindbox_platform_interface/mindbox_platform_interface.dart';
+import 'src/advertising_identifier_gate.dart';
 export 'package:mindbox_platform_interface/mindbox_platform_interface.dart'
     show
         Configuration,
@@ -28,6 +29,8 @@ class Mindbox {
   Mindbox._();
 
   static Mindbox? _instance;
+
+  final _advertisingIdentifierGate = AdvertisingIdentifierGate();
 
   /// The instance of the [Mindbox] to use.
   static Mindbox get instance => _getOrCreateInstance();
@@ -58,6 +61,8 @@ class Mindbox {
   /// You can call this method multiple times to set new configuration params.
   /// Read more about [Configuration] parameter.
   void init({required Configuration configuration}) {
+    _advertisingIdentifierGate.init(
+        disableTrackingIds: configuration.disableTrackingIds ?? false);
     MindboxPlatform.instance.init(configuration: configuration);
   }
 
@@ -168,6 +173,25 @@ class Mindbox {
   /// ```
   void refreshNotificationPermissionStatus() {
     MindboxPlatform.instance.refreshNotificationPermissionStatus();
+  }
+
+  /// Passes the app's advertising identifier (IDFA) to Mindbox. iOS only,
+  /// does nothing on Android.
+  ///
+  /// The SDK does not read the IDFA itself: call this method at launch and on
+  /// every return to the foreground. `null`, an empty string or zeros mean
+  /// there is no tracking consent and clear the IDFA sent earlier.
+  /// The IDFA is sent only if the app's `PrivacyInfo.xcprivacy` declares the
+  /// Mindbox tracking host. A value set before [init] is held and passed on
+  /// by [init] once `disableTrackingIds` is known.
+  ///
+  /// Example usage:
+  /// ```dart
+  /// Mindbox.instance.setAdvertisingIdentifier(
+  ///     await AppTrackingTransparency.getAdvertisingIdentifier());
+  /// ```
+  void setAdvertisingIdentifier(String? identifier) {
+    _advertisingIdentifierGate.setAdvertisingIdentifier(identifier);
   }
 
   /// Writes a log message to the native Mindbox logging system.

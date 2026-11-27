@@ -1,15 +1,14 @@
 buildscript {
-    ext.kotlin_version = '1.9.22'
+    ext.kotlin_version = '2.2.20'
     repositories {
         google()
         mavenCentral()
         maven {url 'https://developer.huawei.com/repo/'}
-        maven {url 'https://artifactory-external.vkpartner.ru/artifactory/maven'}
         mavenLocal()
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.6.0'
+        classpath 'com.android.tools.build:gradle:8.11.1'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath 'com.google.gms:google-services:4.4.0'
         classpath 'com.huawei.agconnect:agcp:1.6.0.300'
@@ -21,7 +20,7 @@ allprojects {
         google()
         mavenCentral()
         maven {url 'https://developer.huawei.com/repo/'}
-        maven {url 'https://artifactory-external.vkpartner.ru/artifactory/maven'}
+        maven {url 'https://nexus-external.rustore.ru/repository/maven-rustore-exposed'}
         mavenLocal()
     }
 }

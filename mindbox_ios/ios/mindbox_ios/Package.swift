@@ -4,13 +4,13 @@ import PackageDescription
 let package = Package(
     name: "mindbox_ios",
     platforms: [
-        .iOS(.v12)
+        .iOS(.v15)
     ],
     products: [
         .library(name: "mindbox-ios", targets: ["mindbox_ios"])
     ],
     dependencies: [
-        .package(url: "https://github.com/mindbox-cloud/ios-sdk", exact: "2.16.0"),
+        .package(url: "https://github.com/mindbox-cloud/ios-sdk", exact: "2.17.0"),
     ],
     targets: [
         .target(

@@ -286,7 +286,7 @@ class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, Ne
 
     private fun handleIntent(intent: Intent) {
         intent.let {
-            val uniqueKey = intent.getStringExtra("uniq_push_key")
+            val uniqueKey = intent.getStringExtra(PUSH_UNIQUE_KEY_EXTRA)
             if (uniqueKey != null) {
                 Mindbox.onPushClicked(context.applicationContext, it)
                 Mindbox.onNewIntent(intent)
@@ -300,7 +300,13 @@ class MindboxAndroidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, Ne
     }
 
     override fun onNewIntent(intent: Intent): Boolean {
-        handleIntent(intent)
+        if (intent.getStringExtra(PUSH_UNIQUE_KEY_EXTRA) == null) {
+            Mindbox.onNewIntent(intent)
+        } else {
+            handleIntent(intent)
+        }
         return false
     }
 }
+
+private const val PUSH_UNIQUE_KEY_EXTRA = "uniq_push_key"
