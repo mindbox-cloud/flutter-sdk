@@ -3,10 +3,6 @@ package cloud.mindbox.flutter_example
 import android.app.Application
 import android.content.Context
 import android.util.Log
-import cloud.mindbox.mobile_sdk.Mindbox
-import cloud.mindbox.mindbox_firebase.MindboxFirebase
-import cloud.mindbox.mindbox_huawei.MindboxHuawei
-import cloud.mindbox.mindbox_rustore.MindboxRuStore
 import cloud.mindbox.mobile_sdk.pushes.MindboxRemoteMessage
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.EventChannel
@@ -19,10 +15,6 @@ class MainApplication : Application() {
 
     var events: EventChannel.EventSink? = null
     private val gson = Gson()
-    override fun onCreate() {
-        super.onCreate()
-        Mindbox.initPushServices(applicationContext, listOf(MindboxFirebase, MindboxHuawei, MindboxRuStore))
-    }
 
     fun setupEventChannel(flutterEngine: FlutterEngine) {
         val eventChannel = EventChannel(
